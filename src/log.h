@@ -9,17 +9,17 @@
 #include <unistd.h>
 
 enum Severity {
-  TRACE = -1,
-  INFO = -2,
-  WARNING = -3,
-  ERROR = -4,
-  FATAL = -5
+  kTrace = -1,
+  kInfo = -2,
+  kWarning = -3,
+  kError = -4,
+  kFatal = -5
 };
 
-const int kVerbosity = INFO;
+const int kVerbosity = kInfo;
 const int kLogLen = 240;
 
-void LogPrintf(int severity, const char* format, ...);
+void LogPrintf(const int severity, const char* format, ...);
 
 // Here comes the ugly part. What we basically want is a construct that is only
 // compiled if the log level is succiciently high. Furthermore we don't even
@@ -41,8 +41,8 @@ void LogPrintf(int severity, const char* format, ...);
 } while (0)
 
 #define ErrorOut(format, ...) do {                \
-  if (LOG_ON(FATAL)) {                            \
-    LogPrintf(FATAL, format, ##__VA_ARGS__);      \
+  if (LOG_ON(kFatal)) {                           \
+    LogPrintf(kFatal, format, ##__VA_ARGS__);     \
   }                                               \
   abort();                                        \
 } while (0)

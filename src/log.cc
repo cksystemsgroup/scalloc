@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void LogPrintf(int severity, const char* format, ...) {
+void LogPrintf(const int severity, const char* format, ...) {
   const char* suffix = "...";
   const char* fatal_prefix = "FATAL ERROR: ";
   char buffer[kLogLen] = {0};
@@ -16,7 +16,7 @@ void LogPrintf(int severity, const char* format, ...) {
   va_list args;
   va_start(args, format);
   switch (severity) {
-  case FATAL:
+  case kFatal:
     strncat(buffer, fatal_prefix, kLogLen);
     rest -= strlen(fatal_prefix);
     break;
