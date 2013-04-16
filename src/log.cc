@@ -1,4 +1,8 @@
-#include "log.h"
+// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
+
+#include "./log.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,7 +15,7 @@ void LogPrintf(int severity, const char* format, ...) {
   int rest = kLogLen;
   va_list args;
   va_start(args, format);
-  switch(severity) {
+  switch (severity) {
   case FATAL:
     strncat(buffer, fatal_prefix, kLogLen);
     rest -= strlen(fatal_prefix);
@@ -25,7 +29,7 @@ void LogPrintf(int severity, const char* format, ...) {
   if (would > rest) {
     strncat(buffer, suffix, strlen(suffix));
   }
-  strcat(buffer, "\n");
+  strncat(buffer, "\n", 1);
   if (write(STDERR_FILENO, buffer, strlen(buffer)) == -1) {
     // Well, if write() failes, just give up...
     abort();
