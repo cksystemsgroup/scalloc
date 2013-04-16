@@ -23,6 +23,12 @@ Various tests can be performed with
 
     make check
  
+## Usage
+
+In order to make use of scalloc, just preload it using `LD_PRELOAD`.
+
+    LD_PRELOAD=/path/to/libscalloc.so ./foo
+
 ## License
 
 Copyright (c) 2012-2013, the scalloc Project Authors.
