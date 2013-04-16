@@ -24,7 +24,9 @@ LDADD =
 lib_LTLIBRARIES = libscalloc.la
 # also include .h files into sources, since the distribution tarball is
 # generated from this list
-libscalloc_la_SOURCES =
+libscalloc_la_SOURCES = \
+	src/log.cc \
+	src/log.h
 libscalloc_la_LDFLAGS = -version-info 0:0:0
 
 BENCH_CPPFLAGS = \
