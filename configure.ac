@@ -2,7 +2,7 @@ AC_INIT([scalloc], 1.0)
 
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_SILENT_RULES([yes])
-AC_CONFIG_HEADER([config.h])
+AC_CONFIG_HEADER([src/config.h])
 
 : ${CFLAGS=""}
 : ${CXXFLAGS=""}
@@ -32,6 +32,18 @@ AC_SEARCH_LIBS([pthread_create], [pthread dld], [], [
 dnl math stuff
 AC_SEARCH_LIBS([fabs], [m], [], [
   AC_MSG_ERROR([unable to find fabs() function of the math library])
+])
+
+
+dnl some features
+
+dnl Example of default-disabled feature
+AC_ARG_ENABLE([check-freelist],
+    AS_HELP_STRING([--check-freelist], [Enable bound checks in freelist]))
+
+AS_IF([test "x$enable_check_freelist" = "xyes"], [
+  AC_DEFINE([FREELIST_CHECK_BOUNDS], [], [enable bound checks in freelist]) 
+  AC_MSG_NOTICE([freelist bounds checks enabled])
 ])
 
 AC_CONFIG_FILES(Makefile)

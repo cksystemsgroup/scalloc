@@ -25,6 +25,7 @@ lib_LTLIBRARIES = libscalloc.la
 # also include .h files into sources, since the distribution tarball is
 # generated from this list
 libscalloc_la_SOURCES = \
+	src/freelist.h \
 	src/log.cc \
 	src/log.h
 libscalloc_la_LDFLAGS = -version-info 0:0:0
@@ -35,7 +36,7 @@ BENCH_CPPFLAGS = \
 
 TEST_CPPFLAGS = \
 	-Wall -Werror \
-	-std=c++0x \
+	-std=c++11 \
 	-I$(top_srcdir)/src \
 	-m64
 
@@ -56,6 +57,15 @@ gtest-clean:
 	$(AM_V_GEN)rm -rf gtest
 
 GTEST_LIBS = gtest/libgtest.a gtest/libgtest_main.a
+
+TESTS += freelist_unittest
+freelist_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+freelist_unittest_LDADD = \
+	$(GTEST_LIBS)
+freelist_unittest_SOURCES = \
+	src/log.cc \
+	src/test/freelist_unittest.cc
 
 noinst_PROGRAMS += $(TESTS)
 
