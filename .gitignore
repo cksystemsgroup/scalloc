@@ -22,3 +22,4 @@
 /config.guess
 /config.h.in~
 /config.sub
+/src/config.h.in
