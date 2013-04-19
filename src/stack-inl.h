@@ -1,3 +1,7 @@
+// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
+
 #ifndef SCALLOC_STACK_INL_H_
 #define SCALLOC_STACK_INL_H_
 
@@ -13,7 +17,7 @@
 // the memory is kPageSize aligned.
 class Stack {
  public:
-  static void InitModule() {} 
+  static void InitModule() {}
 
   void Init();
   void Push(void* p);
@@ -58,7 +62,8 @@ always_inline void* Stack::Pop() {
     if (top_old.Atomic() == NULL) {
       return NULL;
     }
-    top_new.WeakPack(*(reinterpret_cast<void**>(top_old.Atomic())), top_old.Tag() + 1);
+    top_new.WeakPack(*(reinterpret_cast<void**>(top_old.Atomic())),
+                     top_old.Tag() + 1);
   } while (!top_.AtomicExchange(top_old, top_new));
   return top_old.Atomic();
 }
