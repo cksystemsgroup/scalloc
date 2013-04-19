@@ -30,6 +30,7 @@ libscalloc_la_SOURCES = \
 	src/log.cc \
 	src/log.h \
 	src/random.h \
+	src/page_heap_allocator.h \
 	src/spinlock-inl.h \
 	src/stack-inl.h \
 	src/system-alloc.cc \
@@ -80,6 +81,16 @@ freelist_unittest_LDADD = \
 freelist_unittest_SOURCES = \
 	src/log.cc \
 	src/test/freelist_unittest.cc
+
+TESTS += page_heap_allocator_unittest
+page_heap_allocator_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+page_heap_allocator_unittest_LDADD = \
+	$(GTEST_LIBS)
+page_heap_allocator_unittest_SOURCES = \
+	src/log.cc \
+	src/test/page_heap_allocator_unittest.cc \
+	src/system-alloc.cc
 
 TESTS += stack_unittest
 stack_unittest_CPPFLAGS = \
