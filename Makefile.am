@@ -29,6 +29,7 @@ libscalloc_la_SOURCES = \
 	src/freelist.h \
 	src/log.cc \
 	src/log.h \
+	src/random.h \
 	src/spinlock-inl.h \
 	src/stack-inl.h \
 	src/system-alloc.cc \
