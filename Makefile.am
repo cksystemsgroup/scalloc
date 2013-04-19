@@ -29,7 +29,9 @@ libscalloc_la_SOURCES = \
 	src/freelist.h \
 	src/log.cc \
 	src/log.h \
-	src/stack-inl.h
+	src/stack-inl.h \
+	src/system-alloc.cc \
+	src/system-alloc.h
 libscalloc_la_LDFLAGS = -version-info 0:0:0
 
 BENCH_CPPFLAGS = \
@@ -84,6 +86,18 @@ stack_unittest_LDADD = \
 	$(GTEST_LIBS)
 stack_unittest_SOURCES = \
 	src/test/stack_unittest.cc
+
+TESTS += system_alloc_unittest
+system_alloc_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+system_alloc_unittest_LDADD = \
+	$(GTEST_LIBS)
+system_alloc_unittest_SOURCES = \
+	src/log.cc \
+	src/log.h \
+	src/system-alloc.cc \
+	src/system-alloc.h \
+	src/test/system_alloc_unittest.cc
 
 noinst_PROGRAMS += $(TESTS)
 
