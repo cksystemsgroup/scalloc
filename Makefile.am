@@ -9,7 +9,7 @@ AM_CPPFLAGS = \
 	-ggdb \
 	-mcx16 \
 	-m64  \
-	-std=c++11 \
+	-std=c++0x \
         -I${top_srcdir}/src \
         -ffast-math \
         -fno-builtin-malloc \
@@ -25,9 +25,11 @@ lib_LTLIBRARIES = libscalloc.la
 # also include .h files into sources, since the distribution tarball is
 # generated from this list
 libscalloc_la_SOURCES = \
+	src/atomic.h \
 	src/freelist.h \
 	src/log.cc \
-	src/log.h
+	src/log.h \
+	src/stack-inl.h
 libscalloc_la_LDFLAGS = -version-info 0:0:0
 
 BENCH_CPPFLAGS = \
@@ -36,7 +38,7 @@ BENCH_CPPFLAGS = \
 
 TEST_CPPFLAGS = \
 	-Wall -Werror \
-	-std=c++11 \
+	-std=c++0x \
 	-I$(top_srcdir)/src \
 	-m64
 
@@ -58,6 +60,14 @@ gtest-clean:
 
 GTEST_LIBS = gtest/libgtest.a gtest/libgtest_main.a
 
+TESTS += atomic_unittest
+atomic_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+atomic_unittest_LDADD = \
+	$(GTEST_LIBS)
+atomic_unittest_SOURCES = \
+	src/test/atomic_unittest.cc
+
 TESTS += freelist_unittest
 freelist_unittest_CPPFLAGS = \
 	$(TEST_CPPFLAGS)
@@ -66,6 +76,14 @@ freelist_unittest_LDADD = \
 freelist_unittest_SOURCES = \
 	src/log.cc \
 	src/test/freelist_unittest.cc
+
+TESTS += stack_unittest
+stack_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+stack_unittest_LDADD = \
+	$(GTEST_LIBS)
+stack_unittest_SOURCES = \
+	src/test/stack_unittest.cc
 
 noinst_PROGRAMS += $(TESTS)
 
