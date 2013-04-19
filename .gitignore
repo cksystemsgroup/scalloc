@@ -23,3 +23,6 @@
 /config.h.in~
 /config.sub
 /src/config.h.in
+
+# others
+/stamp-h1
