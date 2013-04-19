@@ -13,6 +13,8 @@
 #define always_inline inline __attribute__((always_inline))
 #define no_inline __attribute__((noinline))
 
+const size_t kSystemPageSize = 4096;
+
 always_inline size_t PadSize(size_t size, size_t multiple) {
   return (size + multiple - 1) / multiple * multiple;
 }
