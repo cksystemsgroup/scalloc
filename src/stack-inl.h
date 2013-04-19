@@ -13,8 +13,9 @@
 
 // Treiber stack
 //
-// This stack assumes that memory pushed to it is not in use anymore and that
-// the memory is kPageSize aligned.
+// Note: The implementation stores the next pointers in the memory provided, and
+// thus needs blocks of at least sizeof(TaggedAtomic) with an alignment of
+// AtomicAlign (default 4).
 class Stack {
  public:
   static void InitModule() {}
