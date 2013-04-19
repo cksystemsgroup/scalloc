@@ -1,3 +1,7 @@
+// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
+
 #ifndef SCALLOC_PAGE_HEAP_ALLOCATOR_
 #define SCALLOC_PAGE_HEAP_ALLOCATOR_
 
@@ -15,13 +19,13 @@ namespace scalloc {
 const int kNoAlignment = 1;
 
 // Simple bump pointer allocator for objects of a given type T.  External
-// locking required. 
+// locking required.
 template<typename T, int ALIGNMENT = kNoAlignment>
 class PageHeapAllocator {
  public:
   // No constructor, but an init function, because PageHeapAllocator must be
   // available from a global context (before main).
-  // 
+  //
   // alloc_increment_ needs to be a multiple of kSystemPageSize.
   void Init(size_t alloc_increment) {
     alloc_increment_ = alloc_increment;
@@ -32,13 +36,15 @@ class PageHeapAllocator {
         ErrorOut("PageHeapAllocator: overflow");
       }
       if (kSystemPageSize % ALIGNMENT != 0) {
-        ErrorOut("PageHeapAllocator: ALIGNMENT must be a divisor of system page size");
+        ErrorOut("PageHeapAllocator: ALIGNMENT must be a divisor of system "
+                 "page size");
       }
       tsize_ = PadSize(tsize_, ALIGNMENT);
     }
 
     if (tsize_ > alloc_increment_) {
-      ErrorOut("PageHeapAllocator: type T is too largefor current allocation increment.");
+      ErrorOut("PageHeapAllocator: type T is too largefor current "
+               "allocation increment.");
     }
 
     free_area_ = NULL;
@@ -53,7 +59,8 @@ class PageHeapAllocator {
       free_list_ = *(reinterpret_cast<void**>(result));
     } else {
       if (free_available_ < tsize_) {
-        free_area_ = reinterpret_cast<char*>(SystemAlloc_Mmap(alloc_increment_, NULL));
+        free_area_ = reinterpret_cast<char*>(SystemAlloc_Mmap(
+            alloc_increment_, NULL));
         if (free_area_ == NULL) {
           ErrorOut("PageHeapAllocator: out of memory");
         }
