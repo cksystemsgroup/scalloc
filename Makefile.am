@@ -26,6 +26,8 @@ lib_LTLIBRARIES = libscalloc.la
 # generated from this list
 libscalloc_la_SOURCES = \
 	src/atomic.h \
+	src/distributed_queue.cc \
+	src/distributed_queue.h \
 	src/freelist.h \
 	src/log.cc \
 	src/log.h \
@@ -72,6 +74,21 @@ atomic_unittest_LDADD = \
 	$(GTEST_LIBS)
 atomic_unittest_SOURCES = \
 	src/test/atomic_unittest.cc
+
+TESTS += distributed_queue_unittest
+distributed_queue_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+distributed_queue_unittest_LDADD = \
+	$(GTEST_LIBS)
+distributed_queue_unittest_SOURCES = \
+	src/distributed_queue.cc \
+	src/distributed_queue.h \
+	src/log.cc \
+	src/log.h \
+	src/page_heap_allocator.h \
+	src/system-alloc.cc \
+	src/system-alloc.h \
+	src/test/distributed_queue_unittest.cc
 
 TESTS += freelist_unittest
 freelist_unittest_CPPFLAGS = \
