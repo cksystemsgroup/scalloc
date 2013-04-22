@@ -6,7 +6,8 @@ Fast and scalable memory allocation
 
 * pkg-config
 * cmake (for googletest)
-* [googletest](https://code.google.com/p/googletest "googletest")
+* [googletest](https://code.google.com/p/googletest "googletest") (if tests are
+  enabled)
 
 ## Building
 

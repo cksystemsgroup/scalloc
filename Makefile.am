@@ -69,6 +69,8 @@ gtest-clean:
 
 GTEST_LIBS = gtest/libgtest.a gtest/libgtest_main.a
 
+if UNITTESTS
+
 TESTS += atomic_unittest
 atomic_unittest_CPPFLAGS = \
 	$(TEST_CPPFLAGS)
@@ -145,6 +147,8 @@ system_alloc_unittest_SOURCES = \
 	src/system-alloc.cc \
 	src/system-alloc.h \
 	src/test/system_alloc_unittest.cc
+
+endif
 
 noinst_PROGRAMS += $(TESTS)
 

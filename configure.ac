@@ -37,7 +37,12 @@ AC_SEARCH_LIBS([fabs], [m], [], [
 
 dnl some features
 
-dnl Example of default-disabled feature
+dnl enable unittests
+AC_ARG_ENABLE([tests],
+    AS_HELP_STRING([--enable-tests], [Enable unittests]))
+AM_CONDITIONAL([UNITTESTS], [test x$enable_tests = xyes])
+
+dnl enable freelist bounds checks
 AC_ARG_ENABLE([check-freelist],
     AS_HELP_STRING([--check-freelist], [Enable bound checks in freelist]))
 
