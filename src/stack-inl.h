@@ -27,6 +27,11 @@ class Stack {
   void Put(void* p);
   void* Get();
 
+  // Additional  DistributedQueue interface
+
+  void* PopRecordState(uint64_t* state);
+  uint64_t GetState();
+
  private:
   TaggedAtomic<void*, uint64_t> top_;
 };
@@ -67,6 +72,26 @@ always_inline void* Stack::Pop() {
                      top_old.Tag() + 1);
   } while (!top_.AtomicExchange(top_old, top_new));
   return top_old.Atomic();
+}
+
+always_inline void* Stack::PopRecordState(uint64_t* state) {
+  TaggedAtomic<void*, uint64_t> top_old;
+  TaggedAtomic<void*, uint64_t> top_new;
+  do {
+    top_old.CopyFrom(top_);
+    // check whether we top points to NULL, which indicates empty
+    if (top_old.Atomic() == NULL) {
+      *state = top_old.Tag();
+      return NULL;
+    }
+    top_new.WeakPack(*(reinterpret_cast<void**>(top_old.Atomic())),
+                     top_old.Tag() + 1);
+  } while (!top_.AtomicExchange(top_old, top_new));
+  return top_old.Atomic();
+}
+
+always_inline uint64_t Stack::GetState() {
+  return top_.Tag();
 }
 
 #endif  // SCALLOC_STACK_INL_H_
