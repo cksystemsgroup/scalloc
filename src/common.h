@@ -5,6 +5,8 @@
 #ifndef SCALLOC_COMMON_H_
 #define SCALLOC_COMMON_H_
 
+#include <stddef.h>  // size_t
+
 #define UNLIKELY(x)   __builtin_expect((x), 0)
 #define LIKELY(x)     __builtin_expect((x), 1)
 
