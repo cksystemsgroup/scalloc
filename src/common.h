@@ -15,6 +15,16 @@
 
 const size_t kSystemPageSize = 4096;
 
+// Prohibit reordering of instructions by the compiler.
+inline void CompilerBarrier() {
+  __asm__ __volatile__("" : : : "memory");
+}
+
+// Full memory fence on x86-64
+inline void MemoryBarrier() {
+  __asm__ __volatile__("mfence" : : : "memory");
+}
+
 always_inline size_t PadSize(size_t size, size_t multiple) {
   return (size + multiple - 1) / multiple * multiple;
 }
