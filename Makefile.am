@@ -12,10 +12,6 @@ AM_CPPFLAGS = \
 	-std=c++0x \
         -I${top_srcdir}/src \
         -ffast-math \
-        -fno-builtin-malloc \
-        -fno-builtin-calloc \
-        -fno-builtin-realloc \
-        -fno-builtin-free \
         -fno-omit-frame-pointer
 
 AM_LDFLAGS = -Wl,--as-needed 
