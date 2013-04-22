@@ -25,6 +25,8 @@ lib_LTLIBRARIES = libscalloc.la
 # also include .h files into sources, since the distribution tarball is
 # generated from this list
 libscalloc_la_SOURCES = \
+	src/allocators/page_heap.cc \
+	src/allocators/page_heap.h \
 	src/atomic.h \
 	src/distributed_queue.cc \
 	src/distributed_queue.h \
@@ -107,6 +109,21 @@ page_heap_allocator_unittest_LDADD = \
 page_heap_allocator_unittest_SOURCES = \
 	src/log.cc \
 	src/test/page_heap_allocator_unittest.cc \
+	src/system-alloc.cc
+
+TESTS += page_heap_unittest
+page_heap_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+page_heap_unittest_LDADD = \
+	$(GTEST_LIBS)
+page_heap_unittest_SOURCES = \
+	src/allocators/page_heap.cc \
+	src/distributed_queue.cc \
+	src/distributed_queue.h \
+	src/log.cc \
+	src/log.h \
+	src/page_heap_allocator.h \
+	src/test/page_heap_unittest.cc \
 	src/system-alloc.cc
 
 TESTS += stack_unittest
