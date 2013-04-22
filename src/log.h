@@ -35,7 +35,7 @@ void LogPrintf(const int severity, const char* format, ...);
   if (LOG_ON(severity)) {                         \
     LogPrintf(severity, format, ##__VA_ARGS__);   \
   }                                               \
-  if (severity == FATAL) {                        \
+  if (severity == kFatal) {                       \
     abort();                                      \
   }                                               \
 } while (0)
