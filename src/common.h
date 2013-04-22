@@ -7,6 +7,8 @@
 
 #include <stddef.h>  // size_t
 
+#include "config.h"
+
 #define UNLIKELY(x)   __builtin_expect((x), 0)
 #define LIKELY(x)     __builtin_expect((x), 1)
 
@@ -15,7 +17,7 @@
 #define always_inline inline __attribute__((always_inline))
 #define no_inline __attribute__((noinline))
 
-const size_t kSystemPageSize = 4096;
+const size_t kSystemPageSize = PAGE_SIZE;
 
 // Prohibit reordering of instructions by the compiler.
 inline void CompilerBarrier() {

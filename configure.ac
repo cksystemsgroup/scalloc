@@ -34,6 +34,9 @@ AC_SEARCH_LIBS([fabs], [m], [], [
   AC_MSG_ERROR([unable to find fabs() function of the math library])
 ])
 
+dnl constants
+PAGE_SIZE=$(getconf PAGE_SIZE)
+AC_DEFINE_UNQUOTED([PAGE_SIZE], [$PAGE_SIZE], [system page size])
 
 dnl some features
 
