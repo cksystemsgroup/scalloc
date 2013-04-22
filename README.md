@@ -5,9 +5,10 @@ Fast and scalable memory allocation
 ## Dependencies
 
 * pkg-config
+
+**Building with unittests (--enable-tests):**
 * cmake (for googletest)
-* [googletest](https://code.google.com/p/googletest "googletest") (if tests are
-  enabled)
+* [googletest](https://code.google.com/p/googletest "googletest")
 
 ## Building
 
