@@ -19,6 +19,12 @@
 
 const size_t kSystemPageSize = PAGE_SIZE;
 
+const size_t kMinAlignment = 16;
+
+const size_t kMaxSmallSize = 512;
+
+const size_t kNumClasses = kMaxSmallSize / kMinAlignment;
+
 // Prohibit reordering of instructions by the compiler.
 inline void CompilerBarrier() {
   __asm__ __volatile__("" : : : "memory");
