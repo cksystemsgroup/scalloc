@@ -7,6 +7,7 @@
 
 #include "common.h"
 #include "freelist.h"
+#include "log.h"
 
 enum BlockType {
   kSlab,
@@ -24,6 +25,11 @@ class BlockHeader {
 class ForwardHeader : public BlockHeader {
  public:
   BlockHeader* forward;
+
+  inline void Reset(BlockHeader* forward) {
+    this->type = kForward;
+    this->forward = forward;
+  }
 };
 
 class SlabHeader : public BlockHeader {
@@ -42,6 +48,10 @@ class SlabHeader : public BlockHeader {
 
   uint64_t in_use;
   Freelist flist;
+
+  inline void Reset() {
+    this->type = kSlab;
+  }
 } cache_aligned;
 
 class LargeObjectHeader : public BlockHeader {

@@ -24,6 +24,8 @@ libscalloc_la_SOURCES = \
 	src/allocators/large_object_allocator.h \
 	src/allocators/page_heap.cc \
 	src/allocators/page_heap.h \
+	src/allocators/slab_sc_allocator.cc \
+	src/allocators/slab_sc_allocator.h \
 	src/atomic.h \
 	src/block_header.h \
 	src/distributed_queue.cc \
@@ -32,6 +34,8 @@ libscalloc_la_SOURCES = \
 	src/log.cc \
 	src/log.h \
 	src/random.h \
+	src/size_map.cc \
+	src/size_map.h \
 	src/page_heap_allocator.h \
 	src/spinlock-inl.h \
 	src/stack-inl.h \
@@ -131,12 +135,23 @@ page_heap_unittest_LDADD = \
 page_heap_unittest_SOURCES = \
 	src/allocators/page_heap.cc \
 	src/distributed_queue.cc \
-	src/distributed_queue.h \
 	src/log.cc \
-	src/log.h \
-	src/page_heap_allocator.h \
 	src/test/page_heap_unittest.cc \
 	src/system-alloc.cc
+
+TESTS += slab_sc_allocator_unittest
+slab_sc_allocator_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+slab_sc_allocator_unittest_LDADD = \
+	$(GTEST_LIBS)
+slab_sc_allocator_unittest_SOURCES = \
+	src/allocators/page_heap.cc \
+	src/allocators/slab_sc_allocator.cc \
+	src/distributed_queue.cc \
+	src/log.cc \
+	src/size_map.cc \
+	src/system-alloc.cc \
+	src/test/slab_sc_allocator_unittest.cc
 
 TESTS += stack_unittest
 stack_unittest_CPPFLAGS = \
