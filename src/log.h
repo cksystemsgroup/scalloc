@@ -6,6 +6,7 @@
 #define SCALLOC_LOG_H_
 
 #include <stdarg.h>
+#include <stdlib.h>  // abort()
 #include <unistd.h>
 
 enum Severity {
