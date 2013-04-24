@@ -2,8 +2,8 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#ifndef SCALLOC_SLAB_SC_ALLOCATOR_H_
-#define SCALLOC_SLAB_SC_ALLOCATOR_H_
+#ifndef SCALLOC_ALLOCATORS_SLAB_SC_ALLOCATOR_H_
+#define SCALLOC_ALLOCATORS_SLAB_SC_ALLOCATOR_H_
 
 #include <stdint.h>
 
@@ -78,4 +78,4 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
 
 }  // namespace scalloc
 
-#endif  // SCALLOC_SLAB_SC_ALLOCATOR_H_
+#endif  // SCALLOC_ALLOCATORS_SLAB_SC_ALLOCATOR_H_
