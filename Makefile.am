@@ -42,6 +42,8 @@ libscalloc_la_SOURCES = \
 	src/scalloc.h \
 	src/size_map.cc \
 	src/size_map.h \
+	src/thread_cache.cc \
+	src/thread_cache.h \
 	src/page_heap_allocator.h \
 	src/spinlock-inl.h \
 	src/stack-inl.h \

@@ -17,6 +17,8 @@
 #define always_inline inline __attribute__((always_inline))
 #define no_inline __attribute__((noinline))
 
+#define TLS_MODE __attribute__((tls_model ("initial-exec")))
+
 // Prefer using the runtime initialized variable RuntimeVars::SystemPageSize()
 const size_t kSystemPageSize = PAGE_SIZE;
 
