@@ -34,6 +34,8 @@ libscalloc_la_SOURCES = \
 	src/log.cc \
 	src/log.h \
 	src/random.h \
+	src/runtime_vars.cc \
+	src/runtime_vars.h \
 	src/size_map.cc \
 	src/size_map.h \
 	src/page_heap_allocator.h \
@@ -138,6 +140,16 @@ page_heap_unittest_SOURCES = \
 	src/log.cc \
 	src/test/page_heap_unittest.cc \
 	src/system-alloc.cc
+
+TESTS += runtime_vars_unittest
+runtime_vars_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+runtime_vars_unittest_LDADD = \
+	$(GTEST_LIBS)
+runtime_vars_unittest_SOURCES = \
+	src/log.cc \
+	src/runtime_vars.cc \
+	src/test/runtime_vars_unittest.cc
 
 TESTS += slab_sc_allocator_unittest
 slab_sc_allocator_unittest_CPPFLAGS = \

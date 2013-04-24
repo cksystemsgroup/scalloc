@@ -17,6 +17,7 @@
 #define always_inline inline __attribute__((always_inline))
 #define no_inline __attribute__((noinline))
 
+// Prefer using the runtime initialized variable RuntimeVars::SystemPageSize()
 const size_t kSystemPageSize = PAGE_SIZE;
 
 const size_t kMinAlignment = 16;
