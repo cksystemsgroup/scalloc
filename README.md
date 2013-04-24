@@ -4,9 +4,11 @@ Fast and scalable memory allocation
 
 ## Dependencies
 
-You need a compiler capable of compiling C++11 (c++0x) code.  Furtheremore our
-code assumes `__thread` is present (until we move to C++11's `thread_local`).
+You need a recent compiler capable of compiling C++11 (c++0x) code.  Furthermore
+it is assumed that  `__thread` is present (until we move to C++11's
+`thread_local`).
 
+* autotools (automake and friends)
 * pkg-config
 
 **Building with unittests (--enable-tests):**
