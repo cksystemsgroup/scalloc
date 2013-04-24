@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "allocators/slab_sc_allocator.h"
+#include "runtime_vars.h"
 
 namespace {
 }  // namespace
@@ -15,6 +16,7 @@ class SlabScAllocatorTest : public testing::Test {
  protected:
   virtual void SetUp() {
     // global initialization
+    RuntimeVars::InitModule();
     scalloc::SizeMap::Instance().Init();
     scalloc::SlabScAllocator::InitModule();
 

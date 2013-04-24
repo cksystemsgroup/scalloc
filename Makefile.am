@@ -94,8 +94,8 @@ distributed_queue_unittest_SOURCES = \
 	src/log.cc \
 	src/log.h \
 	src/page_heap_allocator.h \
+	src/runtime_vars.cc \
 	src/system-alloc.cc \
-	src/system-alloc.h \
 	src/test/distributed_queue_unittest.cc
 
 TESTS += freelist_unittest
@@ -114,8 +114,8 @@ large_object_allocator_unittest_LDADD = \
 	$(GTEST_LIBS)
 large_object_allocator_unittest_SOURCES = \
 	src/log.cc \
+	src/runtime_vars.cc \
 	src/system-alloc.cc \
-	src/system-alloc.h \
 	src/test/large_object_allocator_unittest.cc
 
 
@@ -127,6 +127,7 @@ page_heap_allocator_unittest_LDADD = \
 page_heap_allocator_unittest_SOURCES = \
 	src/log.cc \
 	src/test/page_heap_allocator_unittest.cc \
+	src/runtime_vars.cc \
 	src/system-alloc.cc
 
 TESTS += page_heap_unittest
@@ -139,6 +140,7 @@ page_heap_unittest_SOURCES = \
 	src/distributed_queue.cc \
 	src/log.cc \
 	src/test/page_heap_unittest.cc \
+	src/runtime_vars.cc \
 	src/system-alloc.cc
 
 TESTS += runtime_vars_unittest
@@ -162,6 +164,7 @@ slab_sc_allocator_unittest_SOURCES = \
 	src/distributed_queue.cc \
 	src/log.cc \
 	src/size_map.cc \
+	src/runtime_vars.cc \
 	src/system-alloc.cc \
 	src/test/slab_sc_allocator_unittest.cc
 
@@ -180,9 +183,8 @@ system_alloc_unittest_LDADD = \
 	$(GTEST_LIBS)
 system_alloc_unittest_SOURCES = \
 	src/log.cc \
-	src/log.h \
+	src/runtime_vars.cc \
 	src/system-alloc.cc \
-	src/system-alloc.h \
 	src/test/system_alloc_unittest.cc
 
 endif

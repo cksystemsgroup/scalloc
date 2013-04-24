@@ -5,10 +5,12 @@
 #include <gtest/gtest.h>
 
 #include "allocators/page_heap.h"
+#include "runtime_vars.h"
 
 namespace {
 
 void InitHeap() {
+  RuntimeVars::InitModule();
   scalloc::PageHeap::InitModule();
 }
 

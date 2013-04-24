@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "distributed_queue.h"
+#include "runtime_vars.h"
 
 namespace {
 
@@ -20,7 +21,9 @@ void* GetObject() {
 }
 
 DistributedQueue* InitDQ() {
+  RuntimeVars::InitModule();
   DistributedQueue::InitModule();
+
   static DistributedQueue dq;
   dq.Init(kBackends);
   return &dq;
