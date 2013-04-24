@@ -38,6 +38,8 @@ libscalloc_la_SOURCES = \
 	src/random.h \
 	src/runtime_vars.cc \
 	src/runtime_vars.h \
+	src/scalloc.cc \
+	src/scalloc.h \
 	src/size_map.cc \
 	src/size_map.h \
 	src/page_heap_allocator.h \
