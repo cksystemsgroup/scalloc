@@ -13,6 +13,9 @@ cache_aligned uint64_t g_thread_id;
 
 namespace scalloc {
 
+bool ThreadCache::module_init_;
+__thread ThreadCache* ThreadCache::tl_cache_ TLS_MODE;
+
 void ThreadCache::InitModule() {
   SpinLockHolder holder(&g_threadcache_lock);
   CompilerBarrier();
@@ -20,6 +23,8 @@ void ThreadCache::InitModule() {
     RuntimeVars::InitModule();
     SlabScAllocator::InitModule();
     DQScAllocator::InitModule();
+
+    SizeMap::Instance().Init();
 
     g_threadcache_alloc.Init(RuntimeVars::SystemPageSize());
 
