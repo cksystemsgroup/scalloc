@@ -8,6 +8,7 @@
 
 #include "allocators/large_object_allocator.h"
 #include "common.h"
+#include "thread_cache.h"
 
 namespace scalloc {
 
@@ -17,7 +18,7 @@ always_inline void* malloc(const size_t size) {
     // large allocation
     p = LargeObjectAllocator::Alloc(size);
   } else {
-    // TODO(mlippautz): small allocation
+    p = ThreadCache::GetCache().Allocate(size);
   }
   if (UNLIKELY(p == NULL)) {
     errno = ENOMEM;
@@ -31,7 +32,7 @@ always_inline void free(void* p) {
   }
   BlockHeader* hdr = BlockHeader::GetFromObject(p);
   if (hdr->type == kSlab) {
-    // TODO(mlippautz): small free
+    ThreadCache::GetCache().Free(p, reinterpret_cast<SlabHeader*>(hdr));
   } else if (hdr->type == kLargeObject) {
     LargeObjectAllocator::Free(reinterpret_cast<LargeObjectHeader*>(hdr));
   }
@@ -39,6 +40,11 @@ always_inline void free(void* p) {
 }
 
 }  // namespace scalloc
+
+
+//
+// Forward C calls to scalloc_fn to their corresponding scalloc::fn
+//
 
 extern "C" void* scalloc_malloc(size_t size) __THROW {
   return scalloc::malloc(size);

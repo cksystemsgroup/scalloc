@@ -27,7 +27,7 @@ class ThreadCache {
   SlabScAllocator allocator_;
 } cache_aligned;
 
-ThreadCache& ThreadCache::GetCache() {
+always_inline ThreadCache& ThreadCache::GetCache() {
   if (LIKELY(tl_cache_ != NULL)) {
     return *tl_cache_; 
   }
