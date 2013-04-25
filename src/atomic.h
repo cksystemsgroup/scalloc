@@ -43,7 +43,10 @@ inline void Atomic64_Write(Atomic64* var, Atomic64 value) {
 //
 // We rely on the fact that RawType (uint64_t) can be read in a single CPU
 // instruction. This is the case for __x86_64__.
-template<typename AtomicType, typename TagType, int AtomicWidth = 64, int AtomicAlign = 4>
+template<typename AtomicType,
+         typename TagType,
+         int AtomicWidth = 64,
+         int AtomicAlign = 4>
 class TaggedAtomic {
  public:
   inline TaggedAtomic() : raw_(0) {}
@@ -93,7 +96,8 @@ class TaggedAtomic {
 };
 
 template<typename AtomicType, typename TagType, int AtomicWidth, int AtomicAlign>
-inline void TaggedAtomic<AtomicType, TagType, AtomicWidth, AtomicAlign>::Pack(AtomicType atomic, TagType tag) {
+inline void TaggedAtomic<AtomicType, TagType, AtomicWidth, AtomicAlign>::Pack(
+    AtomicType atomic, TagType tag) {
   Atomic64 tmp = 0;
   // Ignores the cast iff AtomicType == uintptr_t, otherwise it will do a
   // reinterpret_cast.
