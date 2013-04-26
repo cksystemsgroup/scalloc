@@ -20,8 +20,6 @@ void ThreadCache::InitModule() {
   SpinLockHolder holder(&g_threadcache_lock);
   CompilerBarrier();
   if(!module_init_) {
-    SlabScAllocator::InitModule();
-    DQScAllocator::InitModule();
 
     g_threadcache_alloc.Init(RuntimeVars::SystemPageSize());
 

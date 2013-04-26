@@ -7,6 +7,8 @@
 #include <errno.h>
 
 #include "allocators/large_object_allocator.h"
+#include "allocators/dq_sc_allocator.h"
+#include "allocators/slab_sc_allocator.h"
 #include "common.h"
 #include "runtime_vars.h"
 #include "scalloc_guard.h"
@@ -18,6 +20,10 @@ ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
     RuntimeVars::InitModule();
     scalloc::SizeMap::InitModule();
+    scalloc::SlabScAllocator::InitModule();
+    scalloc::DQScAllocator::InitModule();
+
+    scalloc::PageHeap::GetHeap()->AsyncRefill();
   }
 }
 
@@ -32,11 +38,10 @@ namespace scalloc {
 
 always_inline void* malloc(const size_t size) {
   void* p;
-  if (size > kMaxSmallSize) {
-    // large allocation
-    p = LargeObjectAllocator::Alloc(size);
-  } else {
+  if (LIKELY(size <= kMaxSmallSize)) {
     p = ThreadCache::GetCache().Allocate(size);
+  } else {
+    p = LargeObjectAllocator::Alloc(size);
   }
   if (UNLIKELY(p == NULL)) {
     errno = ENOMEM;
