@@ -54,7 +54,7 @@ always_inline void Stack::Push(void* p) {
   do {
     top_old.CopyFrom(top_);
     // write the old top's pointer into the current block
-    *(reinterpret_cast<void**>(p)) = reinterpret_cast<void*>(top_old.Atomic());
+    *(reinterpret_cast<void**>(p)) = top_old.Atomic();
     top_new.WeakPack(p, top_old.Tag() + 1);
   } while (!top_.AtomicExchange(top_old, top_new));
 }

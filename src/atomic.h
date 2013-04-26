@@ -119,14 +119,14 @@ template<typename AtomicType, typename TagType, int AtomicWidth, int AtomicAlign
 inline AtomicType TaggedAtomic<AtomicType, TagType, AtomicWidth, AtomicAlign>::Atomic() const {
   Atomic64 cpy = Atomic64_Read(&raw_);
   RawType a = (cpy & AtomicMask) << AtomicAlign;
-  return *reinterpret_cast<AtomicType*>(&a);
+  return (AtomicType)a;
 }
 
 template<typename AtomicType, typename TagType, int AtomicWidth, int AtomicAlign>
 inline TagType TaggedAtomic<AtomicType, TagType, AtomicWidth, AtomicAlign>::Tag() const {
   Atomic64 cpy = Atomic64_Read(&raw_);
   RawType t = (cpy & TagMask) >> (AtomicWidth - AtomicAlign);
-  return *reinterpret_cast<TagType*>(&t);
+  return (TagType)t;
 }
 
 template<typename AtomicType, typename TagType, int AtomicWidth, int AtomicAlign>
