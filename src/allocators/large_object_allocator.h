@@ -25,8 +25,8 @@ inline void* LargeObjectAllocator::Alloc(size_t size) {
   }
   LargeObjectHeader* lbh = reinterpret_cast<LargeObjectHeader*>(p);
   lbh->Reset(actual_size);
-  LOG(kTrace, "large malloc: size: %lu, actual: %lu, block: %p, returned %p",
-      size, actual_size, p, reinterpret_cast<void*>(p + sizeof(*lbh)));
+  LOG(kTrace, "[LargeObjectAllocator]: allocation size: %lu, actual size: %lu, "
+              "p: %p", size, actual_size, reinterpret_cast<void*>(p));
   return reinterpret_cast<void*>(p + sizeof(*lbh)); 
 };
 
