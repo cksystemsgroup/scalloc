@@ -47,7 +47,9 @@ SlabHeader* SlabScAllocator::InitSlab(uintptr_t block,
                                       const size_t sc) {
   const size_t obj_size = SizeMap::Instance().ClassToSize(sc);
   SlabHeader* main_hdr = reinterpret_cast<SlabHeader*>(block);
-  main_hdr->Reset();
+  main_hdr->Reset(sc, id_);
+  main_hdr->owner = id_;
+  main_hdr->active = true;
 
   // We need to initialize the flist and place ForwardHeaders every
   // kSystemPageSize bytes, since this is where we search for headers (for small

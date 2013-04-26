@@ -49,8 +49,11 @@ class SlabHeader : public BlockHeader {
   uint64_t in_use;
   Freelist flist;
 
-  inline void Reset() {
+  inline void Reset(const size_t size_class, const size_t remote_flist) {
     this->type = kSlab;
+    this->size_class = size_class;
+    this->remote_flist = remote_flist;
+    this->in_use = 0;
   }
 } cache_aligned;
 

@@ -64,10 +64,11 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       // making the block active for the time of returning the object, so no
       // other thread can steal it.
       hdr->in_use--;
-      hdr->flist.Push(p);
       if (hdr->in_use == 0) {
         PageHeap::GetHeap()->Put(hdr);
+        return;
       }
+      hdr->flist.Push(p);
       CompilerBarrier();
       hdr->active = false;
       return;
