@@ -25,7 +25,7 @@ void PageHeap::AsyncRefill() {
     ErrorOut("SystemAlloc failed");
   }
   for (size_t i = 0; i < kPageRefill; i++) {
-    page_pool_.Enqueue(reinterpret_cast<void*>(ptr));
+    Put(reinterpret_cast<void*>(ptr));
     ptr += kPageSize;
   }
 }
