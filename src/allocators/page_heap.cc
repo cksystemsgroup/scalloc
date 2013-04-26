@@ -6,6 +6,7 @@
 
 #include "common.h"
 #include "log.h"
+#include "runtime_vars.h"
 #include "system-alloc.h"
 
 namespace scalloc {
@@ -19,14 +20,15 @@ void PageHeap::InitModule() {
 }
 
 void PageHeap::AsyncRefill() {
+  const size_t block_size = RuntimeVars::SystemPageSize() * kPageMultiple;
   uintptr_t ptr = reinterpret_cast<uintptr_t>(SystemAlloc_Mmap(
-      kPageSize * kPageRefill, NULL));
+      block_size * kPageRefill, NULL));
   if (UNLIKELY(ptr == 0)) {
     ErrorOut("SystemAlloc failed");
   }
   for (size_t i = 0; i < kPageRefill; i++) {
     Put(reinterpret_cast<void*>(ptr));
-    ptr += kPageSize;
+    ptr += block_size;
   }
 }
 

@@ -19,8 +19,8 @@
 
 #define TLS_MODE __attribute__((tls_model ("initial-exec")))
 
-// Prefer using the runtime initialized variable RuntimeVars::SystemPageSize()
-const size_t kSystemPageSize = PAGE_SIZE;
+// Number of system pages forming a block
+const size_t kPageMultiple = 4;
 
 const size_t kMinAlignment = 16;
 

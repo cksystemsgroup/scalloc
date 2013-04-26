@@ -6,6 +6,7 @@
 
 #include "allocators/page_heap.h"
 #include "log.h"
+#include "runtime_vars.h"
 
 namespace scalloc {
 
@@ -38,7 +39,7 @@ void SlabScAllocator::Refill(const size_t sc) {
   if (block == 0) {
     ErrorOut("PageHeap out of memory");
   }
-  SlabHeader* hdr = InitSlab(block, 4 * kSystemPageSize, sc);
+  SlabHeader* hdr = InitSlab(block, kPageMultiple * RuntimeVars::SystemPageSize(), sc);
   SetActiveSlab(sc, hdr);
 }
 
@@ -46,35 +47,36 @@ SlabHeader* SlabScAllocator::InitSlab(uintptr_t block,
                                       size_t len,
                                       const size_t sc) {
   const size_t obj_size = SizeMap::Instance().ClassToSize(sc);
+  size_t sys_page_size = RuntimeVars::SystemPageSize();
   SlabHeader* main_hdr = reinterpret_cast<SlabHeader*>(block);
   main_hdr->Reset(sc, id_);
   main_hdr->owner = id_;
   main_hdr->active = true;
 
-  // We need to initialize the flist and place ForwardHeaders every
-  // kSystemPageSize bytes, since this is where we search for headers (for small
-  // AND large objects)
+  // We need to initialize the flist and place ForwardHeaders every system page
+  // size bytes, since this is where we search for headers (for small AND large
+  // objects)
 
   size_t nr_objects;
 
   // First block is special, since it contains the full slab header, while
   // others only contain the forward header to the first block.
-  nr_objects = (kSystemPageSize - sizeof(*main_hdr)) / obj_size;
+  nr_objects = (sys_page_size - sizeof(*main_hdr)) / obj_size;
   main_hdr->flist.FromBlock(reinterpret_cast<void*>(block + sizeof(*main_hdr)),
                             obj_size,
                             nr_objects);
-  len -= kSystemPageSize;
-  block += kSystemPageSize;
+  len -= sys_page_size;
+  block += sys_page_size;
 
   // Fill with forward headers and flist objects.
-  for (; len >= kSystemPageSize; len -= kSystemPageSize) {
+  for (; len >= sys_page_size; len -= sys_page_size) {
     ForwardHeader* fwd_hdr = reinterpret_cast<ForwardHeader*>(block);
     fwd_hdr->Reset(main_hdr);
-    nr_objects = (kSystemPageSize - sizeof(*fwd_hdr)) / obj_size;
+    nr_objects = (sys_page_size - sizeof(*fwd_hdr)) / obj_size;
     main_hdr->flist.AddRange(reinterpret_cast<void*>(block + sizeof(*fwd_hdr)),
                              obj_size,
                              nr_objects);
-    block += kSystemPageSize;
+    block += sys_page_size;
   }
 
   return main_hdr;

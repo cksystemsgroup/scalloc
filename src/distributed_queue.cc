@@ -5,6 +5,7 @@
 #include "distributed_queue.h"
 
 #include "common.h"
+#include "runtime_vars.h"
 #include "spinlock-inl.h"
 
 namespace {
@@ -29,8 +30,8 @@ void DistributedQueue::InitModule() {
   SpinLockHolder holder(&g_init_lock);
   CompilerBarrier();
   if (!g_dq_module_init) {
-    backend_allocator_.Init(kSystemPageSize);
-    state_allocator_.Init(kSystemPageSize);
+    backend_allocator_.Init(RuntimeVars::SystemPageSize());
+    state_allocator_.Init(RuntimeVars::SystemPageSize());
     g_dq_module_init = true;
   }
 }

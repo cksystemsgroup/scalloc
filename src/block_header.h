@@ -8,6 +8,7 @@
 #include "common.h"
 #include "freelist.h"
 #include "log.h"
+#include "runtime_vars.h"
 
 enum BlockType {
   kSlab,
@@ -68,14 +69,15 @@ class LargeObjectHeader : public BlockHeader {
 } cache_aligned;
 
 always_inline BlockHeader* BlockHeader::GetFromObject(void* p) {
+  const size_t sys_page_size = RuntimeVars::SystemPageSize();
   uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
-  if (UNLIKELY(ptr % kSystemPageSize == 0)) {
-    BlockHeader* bh = reinterpret_cast<BlockHeader*>(ptr - kSystemPageSize);
+  if (UNLIKELY(ptr % sys_page_size == 0)) {
+    BlockHeader* bh = reinterpret_cast<BlockHeader*>(ptr - sys_page_size);
     if (bh->type == kForward) {
       bh = reinterpret_cast<ForwardHeader*>(bh)->forward;
     }
   }
-  uintptr_t page_ptr = ptr & ~(kSystemPageSize - 1);
+  uintptr_t page_ptr = ptr & ~(sys_page_size - 1);
   BlockHeader* bh = reinterpret_cast<BlockHeader*>(page_ptr);
   switch (bh->type) {
   case kForward:

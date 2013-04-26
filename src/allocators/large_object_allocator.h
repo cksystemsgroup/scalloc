@@ -5,6 +5,7 @@
 
 #include "block_header.h"
 #include "common.h"
+#include "runtime_vars.h"
 #include "system-alloc.h"
 
 namespace scalloc {
@@ -16,10 +17,10 @@ class LargeObjectAllocator {
 };
 
 inline void* LargeObjectAllocator::Alloc(size_t size) {
-  size = PadSize(size, kSystemPageSize);
+  size = PadSize(size, RuntimeVars::SystemPageSize());
   size_t actual_size;
   uintptr_t p = reinterpret_cast<uintptr_t>(scalloc::SystemAlloc_Mmap(size, &actual_size));
-  if (UNLIKELY(p % kSystemPageSize != 0)) {
+  if (UNLIKELY(p % RuntimeVars::SystemPageSize() != 0)) {
     ErrorOut("large malloc alignment failed");
   }
   LargeObjectHeader* lbh = reinterpret_cast<LargeObjectHeader*>(p);

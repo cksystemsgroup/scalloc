@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "log.h"
+#include "runtime_vars.h"
 #include "system-alloc.h"
 
 namespace scalloc {
@@ -26,7 +27,7 @@ class PageHeapAllocator {
   // No constructor, but an init function, because PageHeapAllocator must be
   // available from a global context (before main).
   //
-  // alloc_increment_ needs to be a multiple of kSystemPageSize.
+  // alloc_increment_ needs to be a multiple of the system page size.
   void Init(size_t alloc_increment) {
     alloc_increment_ = alloc_increment;
 
@@ -35,7 +36,7 @@ class PageHeapAllocator {
       if (tsize_ + ALIGNMENT <= tsize_) {
         ErrorOut("PageHeapAllocator: overflow");
       }
-      if (kSystemPageSize % ALIGNMENT != 0) {
+      if (RuntimeVars::SystemPageSize() % ALIGNMENT != 0) {
         ErrorOut("PageHeapAllocator: ALIGNMENT must be a divisor of system "
                  "page size");
       }
