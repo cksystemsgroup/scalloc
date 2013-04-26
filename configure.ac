@@ -41,6 +41,12 @@ AC_ARG_ENABLE([tests],
     AS_HELP_STRING([--enable-tests], [Enable unittests]))
 AM_CONDITIONAL([UNITTESTS], [test x$enable_tests = xyes])
 
+dnl optimization level
+AC_ARG_ENABLE([debug],
+    AS_HELP_STRING([--enable-debug], [Enable compilation with debug symbols and
+                    disable optimizations]))
+AM_CONDITIONAL([DEBUG], [test x$enable_debug = xyes])
+
 dnl enable freelist bounds checks
 AC_ARG_ENABLE([check-freelist],
     AS_HELP_STRING([--check-freelist], [Enable bound checks in freelist]))

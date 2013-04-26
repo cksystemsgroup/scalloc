@@ -6,13 +6,18 @@ TESTS =
 AM_CPPFLAGS = \
 	-Wall -Werror \
 	-Winline \
-	-ggdb \
 	-mcx16 \
 	-m64  \
 	-std=c++0x \
         -I${top_srcdir}/src \
         -ffast-math \
         -fno-omit-frame-pointer
+
+if DEBUG
+AM_CPPFLAGS += -ggdb
+else
+AM_CPPFLAGS += -O3
+endif
 
 AM_LDFLAGS = -Wl,--as-needed 
 LDADD = 
