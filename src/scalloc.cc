@@ -8,7 +8,25 @@
 
 #include "allocators/large_object_allocator.h"
 #include "common.h"
+#include "runtime_vars.h"
+#include "scalloc_guard.h"
+#include "size_map.h"
 #include "thread_cache.h"
+
+static int scallocguard_refcount = 0;
+ScallocGuard::ScallocGuard() {
+  if (scallocguard_refcount++ == 0) {
+    RuntimeVars::InitModule();
+    scalloc::SizeMap::InitModule();
+  }
+}
+
+ScallocGuard::~ScallocGuard() {
+  if (--scallocguard_refcount == 0) {
+  }
+}
+
+static ScallocGuard StartupExitHook;
 
 namespace scalloc {
 
