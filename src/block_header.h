@@ -37,18 +37,24 @@ class SlabHeader : public BlockHeader {
  public:
   // read-only properties
 
+  struct {
   size_t size_class;
   size_t remote_flist;
+  } cache_aligned;
 
   // mostly read properties
 
+  struct {
   bool active;
   size_t owner;
+  } cache_aligned;
 
   // thread-local read/write properties
 
+  struct {
   uint64_t in_use;
   Freelist flist;
+  } cache_aligned;
 
   inline void Reset(const size_t size_class, const size_t remote_flist) {
     this->type = kSlab;
