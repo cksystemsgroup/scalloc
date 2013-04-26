@@ -31,7 +31,7 @@ class SlabScAllocator {
   SlabHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
   void* AllocateNoSlab(const size_t sc, const size_t size);
   void RemoteFree(void* p, SlabHeader* hdr);
-};
+} cache_aligned;
 
 always_inline void SlabScAllocator::SetActiveSlab(const size_t sc,
                                                   const SlabHeader* hdr) {
@@ -43,23 +43,28 @@ always_inline void SlabScAllocator::SetActiveSlab(const size_t sc,
 
 always_inline void* SlabScAllocator::Allocate(const size_t size) {
   const size_t sc = SizeMap::SizeToClass(size);
+  LOG(kTrace, "[SlabAllocator]: allocation request for size: %lu, sc: %lu", size, sc);
   SlabHeader* hdr = my_headers_[sc];
-  if (hdr == NULL || hdr->flist.Empty()) {
-    return AllocateNoSlab(sc, size);
+  void* result;
+  if (hdr && (result = hdr->flist.Pop())) {
+    hdr->in_use++;
+    LOG(kTrace, "[SlabAllocator]: allocation at %p for size: %lu, sc: %lu", result, size, sc);
+    return result;
   }
-  hdr->in_use++;
-  return hdr->flist.Pop();
+  return AllocateNoSlab(sc, size);
 }
 
 always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
   if (hdr->owner == id_) {
     if (hdr->active) {
       // Local free for the currently used slab block.
+      LOG(kTrace, "[SlabAllcoator]: free in active local block at %p", p);
       hdr->in_use--;
       hdr->flist.Push(p);
       return;
     } else if (!hdr->active &&
-               __sync_bool_compare_and_swap(&hdr->active, false, true)) {
+               (__sync_lock_test_and_set(&hdr->active, 1) == 0)) {
+      LOG(kTrace, "[SlabAllcoator]: free in retired local block at %p", p);
       // lock free for some slab block that was prev used by this thread
       // making the block active for the time of returning the object, so no
       // other thread can steal it.
@@ -69,8 +74,7 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
         return;
       }
       hdr->flist.Push(p);
-      CompilerBarrier();
-      hdr->active = false;
+      __sync_lock_release(&hdr->active);
       return;
     }
   }

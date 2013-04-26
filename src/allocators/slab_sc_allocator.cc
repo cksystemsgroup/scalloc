@@ -35,6 +35,7 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
 }
 
 void SlabScAllocator::Refill(const size_t sc) {
+  LOG(kTrace, "[SlabAllocator]: refilling size class: %lu", sc);
   uintptr_t block = reinterpret_cast<uintptr_t>(PageHeap::GetHeap()->Get());
   if (block == 0) {
     ErrorOut("PageHeap out of memory");
