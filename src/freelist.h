@@ -86,17 +86,15 @@ always_inline void Freelist::Push(void* p) {
 always_inline void* Freelist::Pop() {
   void* result = list_;
   if (result != NULL) {
-    list_ = *(reinterpret_cast<void**>(list_));
-    len_--;
-  }
 #ifdef FREELIST_CHECK_BOUNDS
-  if (result) {
     if (!((reinterpret_cast<uintptr_t>(result) >= lower_) &&
           (reinterpret_cast<uintptr_t>(result) < upper_))) {
       ErrorOut("Freelist::Push() out of bounds");
     }
-  }
 #endif  // FREELIST_CHECK_BOUNDS
+    list_ = *(reinterpret_cast<void**>(list_));
+    len_--;
+  }
   return result;
 }
 
