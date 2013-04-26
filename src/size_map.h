@@ -7,6 +7,8 @@ namespace scalloc {
 
 class SizeMap {
  public:
+  static void InitModule();
+
   static SizeMap& Instance();
   static size_t SizeToClass(const size_t size);
 
