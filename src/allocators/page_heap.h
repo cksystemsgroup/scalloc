@@ -20,8 +20,8 @@ class PageHeap {
   void AsyncRefill();
 
  private:
-  static const size_t kPageHeapBackends = 16;
-  static const size_t kPageRefill = 16;
+  static const size_t kPageHeapBackends = 4;
+  static const size_t kPageRefill = 4;
 
   static PageHeap page_heap_ cache_aligned;
 
