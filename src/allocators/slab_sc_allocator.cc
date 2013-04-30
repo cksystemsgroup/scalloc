@@ -83,8 +83,4 @@ SlabHeader* SlabScAllocator::InitSlab(uintptr_t block,
   return main_hdr;
 }
 
-void SlabScAllocator::RemoteFree(void* p, SlabHeader* hdr) {
-  // TODO(mlippautz): handle remote frees
-}
-
 }  // namespace scalloc

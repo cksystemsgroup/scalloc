@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 
+#include "allocators/dq_sc_allocator.h"
 #include "common.h"
 #include "block_header.h"
 #include "page_heap.h"
@@ -43,12 +44,10 @@ always_inline void SlabScAllocator::SetActiveSlab(const size_t sc,
 
 always_inline void* SlabScAllocator::Allocate(const size_t size) {
   const size_t sc = SizeMap::SizeToClass(size);
-  LOG(kTrace, "[SlabAllocator]: allocation request for size: %lu, sc: %lu", size, sc);
   SlabHeader* hdr = my_headers_[sc];
   void* result;
   if (hdr && (result = hdr->flist.Pop())) {
     hdr->in_use++;
-    LOG(kTrace, "[SlabAllocator]: allocation at %p for size: %lu, sc: %lu", result, size, sc);
     return result;
   }
   return AllocateNoSlab(sc, size);
@@ -64,10 +63,9 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       return;
     } else if (!hdr->active &&
                (__sync_lock_test_and_set(&hdr->active, 1) == 0)) {
-      LOG(kTrace, "[SlabAllcoator]: free in retired local block at %p", p);
-      // lock free for some slab block that was prev used by this thread
-      // making the block active for the time of returning the object, so no
-      // other thread can steal it.
+      LOG(kTrace, "[SlabAllcoator]: free in retired local block at %p, sc: %lu, in_use: %lu", p, hdr->size_class, hdr->in_use);
+      // lock a block (by making it active) that was previously used by the
+      // current thread.
       hdr->in_use--;
       if (hdr->in_use == 0) {
         PageHeap::GetHeap()->Put(hdr);
@@ -79,6 +77,10 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
     }
   }
   RemoteFree(p, hdr);
+}
+
+always_inline void SlabScAllocator::RemoteFree(void* p, SlabHeader* hdr) {
+  //DQScAllocator::Instance().Free(p, hdr->size_class, hdr->owner);
 }
 
 }  // namespace scalloc
