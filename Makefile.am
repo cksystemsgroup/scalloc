@@ -170,6 +170,7 @@ slab_sc_allocator_unittest_CPPFLAGS = \
 slab_sc_allocator_unittest_LDADD = \
 	$(GTEST_LIBS)
 slab_sc_allocator_unittest_SOURCES = \
+	src/allocators/dq_sc_allocator.cc \
 	src/allocators/page_heap.cc \
 	src/allocators/slab_sc_allocator.cc \
 	src/distributed_queue.cc \
