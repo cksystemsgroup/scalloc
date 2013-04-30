@@ -9,6 +9,8 @@
 #include <stdlib.h>  // abort()
 #include <unistd.h>
 
+#include "config.h"
+
 enum Severity {
   kTrace = -1,
   kInfo = -2,
@@ -17,7 +19,7 @@ enum Severity {
   kFatal = -5
 };
 
-const int kVerbosity = kInfo;
+const int kVerbosity = LOG_LEVEL;
 const int kLogLen = 240;
 
 void LogPrintf(const int severity, const char* format, ...);

@@ -5,7 +5,6 @@ TESTS =
 
 AM_CPPFLAGS = \
 	-Wall -Werror \
-	-Winline \
 	-mcx16 \
 	-m64  \
 	-std=c++0x \

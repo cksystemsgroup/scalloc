@@ -47,6 +47,14 @@ AC_ARG_ENABLE([debug],
                     disable optimizations]))
 AM_CONDITIONAL([DEBUG], [test x$enable_debug = xyes])
 
+AC_ARG_ENABLE([loglevel],
+    AS_HELP_STRING([--enable-loglevel=LOGLEVEL], [Enable logging in scalloc.
+                    Levels: kTrace, kInfo, kWarning, kError, kFatal. Default:
+                    kWarning]), 
+    [AC_DEFINE([LOG_LEVEL], [$enableval], [log level])],
+    [AC_DEFINE([LOG_LEVEL], [kWarning], [log level])]
+)
+
 dnl enable freelist bounds checks
 AC_ARG_ENABLE([check-freelist],
     AS_HELP_STRING([--check-freelist], [Enable bound checks in freelist]))
