@@ -26,8 +26,6 @@ ScallocGuard::ScallocGuard() {
     scalloc::SlabScAllocator::InitModule();
 
     free(malloc(1));
-    scalloc::ThreadCache::InitPthread();
-    free(malloc(1));
   }
 }
 
