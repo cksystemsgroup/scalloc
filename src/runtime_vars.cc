@@ -19,8 +19,7 @@ void RuntimeVars::InitModule() {
     if (errno == 0) {
       ErrorOut("sysconf: _SC_PAGESIZE not supported");
     } else {
-      perror("sysconf() error");
-      abort();
+      ErrorOut("sysconf() failed");
     }
   }
   system_page_size_ = static_cast<size_t>(ret);
@@ -29,8 +28,7 @@ void RuntimeVars::InitModule() {
     if (errno == 0) {
       ErrorOut("sysconf: _SC_NPROCESSORS_CONF not supported");
     } else {
-      perror("sysconf() error");
-      abort();
+      ErrorOut("sysconf() failed");
     }
   }
   number_cpus_ = static_cast<size_t>(ret);
