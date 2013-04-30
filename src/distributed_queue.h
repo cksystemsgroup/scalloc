@@ -47,7 +47,7 @@ class DistributedQueue {
 
   // State object used to record backend states by each thread in the emptiness
   // check of a dequeue operation.
-  static __thread State* state_;
+  static __thread TLS_MODE State* state_;
 
   // Number of backends.
   size_t p_;
@@ -101,81 +101,5 @@ always_inline void* DistributedQueue::DequeueAt(size_t start) {
     return NULL;
   }
 }
-
-
-/*
-
-namespace scalloc {
-
-struct DqState {
-  uint64_t backend_states[kPageHeapBackends];
-};
-
-DqState* get_dq_state();
-
-class DistributedQueue {
- public:
-  static void InitModule();
-
-  void Init(size_t p);
-
-  void Put(void* p);
-  void Put(void* p, size_t start);
-  void* Get();
-  void* Get(size_t start);
-  void* GetOnly(size_t start);
-  void Print();
-
- private:
-  size_t p_;
-  // initialized with 0 by the linker
-  Stack* backends_[kMaxDQBackends] cache_aligned;  
-};
-
-always_inline void DistributedQueue::Put(void* p) {
-  size_t start = static_cast<size_t>(hwrand()) % p_;
-  Put(p, start);
-}
-
-always_inline void* DistributedQueue::Get() {
-  size_t start = static_cast<size_t>(hwrand()) % p_;
-  return Get(start);
-}
-
-always_inline void DistributedQueue::Put(void* p, size_t start) {
-  backends_[start]->Put(p);
-}
-
-always_inline void* DistributedQueue::Get(size_t start) {
-  DqState* state = get_dq_state();
-  size_t i;
-  void* result;
-  while (true) {
-    for (size_t _cnt = 0; _cnt < p_; _cnt++) {
-      i = (_cnt + start) % p_;
-      if ((result = backends_[i]->Pop_Return_State(&(state->backend_states[i]))) != NULL) {
-        return result;
-      }
-    }
-    for (size_t _cnt = 0; _cnt < p_; _cnt++) {
-      i = (_cnt + start) % p_;
-      if (state->backend_states[i] != backends_[i]->GetState()) {
-        start = i;
-        break;
-      }
-      if (((i + 1) % p_) == start) {
-        return NULL;
-      }
-    }
-  }
-}
-
-always_inline void* DistributedQueue::GetOnly(size_t start) {
-  return backends_[start]->Pop();
-}
-
-}  // namespace scalloc
-
-*/
 
 #endif  // SCALLOC_DISTRIBUTED_QUEUE_H_
