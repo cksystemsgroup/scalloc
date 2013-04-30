@@ -37,6 +37,10 @@ always_inline DQScAllocator& DQScAllocator::Instance() {
   return singleton;
 }
 
+always_inline void DQScAllocator::Free(void* p, const size_t sc, const size_t dq_id) {
+  dqs_[sc].EnqueueAt(p, dq_id % RuntimeVars::Cpus());
+}
+
 }  // namespace scalloc
 
 #endif  // SCALLOC_ALLOCATORS_DQ_SC_ALLOCATOR_H_

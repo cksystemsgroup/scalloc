@@ -4,22 +4,20 @@
 
 #include "allocators/dq_sc_allocator.h"
 
+#include "distributed_queue.h"
 #include "runtime_vars.h"
 
 namespace scalloc {
 
 void DQScAllocator::InitModule() {
-
+  DistributedQueue::InitModule();
+  Instance().Init();
 }
 
 void DQScAllocator::Init() {
   for (size_t i = 0; i < kNumClasses; i++) {
     dqs_[i].Init(RuntimeVars::Cpus());
   }
-}
-
-void DQScAllocator::Free(void* p, const size_t sc, const size_t dq_id) {
-  dqs_[sc].EnqueueAt(p, dq_id % RuntimeVars::Cpus());
 }
 
 void* DQScAllocator::Allocate(const size_t sc,
