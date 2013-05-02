@@ -63,7 +63,8 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       return;
     } else if (!hdr->active &&
                (__sync_lock_test_and_set(&hdr->active, 1) == 0)) {
-      LOG(kTrace, "[SlabAllcoator]: free in retired local block at %p, sc: %lu, in_use: %lu", p, hdr->size_class, hdr->in_use);
+      LOG(kTrace, "[SlabAllcoator]: free in retired local block at %p, "
+                  "sc: %lu, in_use: %lu", p, hdr->size_class, hdr->in_use);
       // lock a block (by making it active) that was previously used by the
       // current thread.
       hdr->in_use--;
@@ -72,6 +73,10 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
         return;
       }
       hdr->flist.Push(p);
+      if (hdr->flist.Size() > my_headers_[hdr->size_class]->flist.Size()) {
+        SetActiveSlab(hdr->size_class, hdr);
+        return;
+      }
       __sync_lock_release(&hdr->active);
       return;
     }
@@ -80,7 +85,7 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
 }
 
 always_inline void SlabScAllocator::RemoteFree(void* p, SlabHeader* hdr) {
-  //DQScAllocator::Instance().Free(p, hdr->size_class, hdr->owner);
+  DQScAllocator::Instance().Free(p, hdr->size_class, hdr->owner);
 }
 
 }  // namespace scalloc

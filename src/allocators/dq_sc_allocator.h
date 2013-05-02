@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 
+#include "block_header.h"
 #include "common.h"
 #include "distributed_queue.h"
 #include "freelist.h"
@@ -26,7 +27,7 @@ class DQScAllocator {
   void* Allocate(const size_t sc,
                  const size_t dq_id,
                  const size_t tid,
-                 bool* steal_failed);
+                 SlabHeader** block);
 
  private:
   DistributedQueue dqs_[kNumClasses] cache_aligned;
@@ -37,7 +38,9 @@ always_inline DQScAllocator& DQScAllocator::Instance() {
   return singleton;
 }
 
-always_inline void DQScAllocator::Free(void* p, const size_t sc, const size_t dq_id) {
+always_inline void DQScAllocator::Free(void* p,
+                                       const size_t sc,
+                                       const size_t dq_id) {
   dqs_[sc].EnqueueAt(p, dq_id % RuntimeVars::Cpus());
 }
 

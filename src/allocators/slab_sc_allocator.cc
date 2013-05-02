@@ -27,7 +27,17 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
 
   if (my_headers_[sc] != NULL) {
     // Only try to steal we had a slab at least once.
-    // TODO(mlippautz): stealing ;)
+    SlabHeader* hdr;
+    void* p = DQScAllocator::Instance().Allocate(
+        sc, my_headers_[sc]->remote_flist, id_, &hdr);
+    if (p != NULL) {
+      if (hdr != NULL) {
+        SetActiveSlab(sc, hdr);
+      } else {
+        Refill(sc);
+      }
+      return p;
+    }
   }
 
   Refill(sc);
@@ -40,7 +50,9 @@ void SlabScAllocator::Refill(const size_t sc) {
   if (block == 0) {
     ErrorOut("PageHeap out of memory");
   }
-  SlabHeader* hdr = InitSlab(block, kPageMultiple * RuntimeVars::SystemPageSize(), sc);
+  SlabHeader* hdr = InitSlab(block,
+                             kPageMultiple * RuntimeVars::SystemPageSize(),
+                             sc);
   SetActiveSlab(sc, hdr);
 }
 

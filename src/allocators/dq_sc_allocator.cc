@@ -4,6 +4,7 @@
 
 #include "allocators/dq_sc_allocator.h"
 
+#include "block_header.h"
 #include "distributed_queue.h"
 #include "runtime_vars.h"
 
@@ -23,10 +24,22 @@ void DQScAllocator::Init() {
 void* DQScAllocator::Allocate(const size_t sc,
                               const size_t dq_id,
                               const size_t tid,
-                              bool* steal_failed) {
+                              SlabHeader** block) {
   void* p = dqs_[sc].DequeueAt(dq_id % RuntimeVars::Cpus());
+  *block = NULL;
 
-  // TODO(mlippautz): implement block stealing here
+  if (p != NULL) {
+    // We found an object, let's try to steal the whole block.
+    SlabHeader* hdr = reinterpret_cast<SlabHeader*>(
+        BlockHeader::GetFromObject(p));
+    if (hdr->active == false &&  // block is not in use
+        hdr->flist.Size() > 50 &&  // enough free objects to account
+                                   // for this stealing procedure
+        __sync_lock_test_and_set(&hdr->active, 1) == 0) {  // try to steal it
+        // Got it!
+        *block = hdr;
+    }
+  }
 
   return p;
 }
