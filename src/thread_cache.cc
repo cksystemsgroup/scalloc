@@ -7,7 +7,6 @@ namespace {
 
 cache_aligned SpinLock g_threadcache_lock(LINKER_INITIALIZED);
 cache_aligned scalloc::PageHeapAllocator<scalloc::ThreadCache, 64> g_threadcache_alloc;
-cache_aligned uint64_t g_thread_id;
 
 }  // namespace
 
@@ -71,7 +70,7 @@ ThreadCache* ThreadCache::NewCache() {
     SpinLockHolder holder(&g_threadcache_lock);
     CompilerBarrier();
     cache = g_threadcache_alloc.New();
-    cache->allocator_.Init(__sync_fetch_and_add(&g_thread_id, 1));
+    cache->allocator_.Init(pthread_self());
 
     // pthread_setspecific() may call malloc() itself, thus we MUST set
     // tl_cache_ beforehand to allow a recursive malloc() call to find the cache
