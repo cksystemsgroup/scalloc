@@ -21,7 +21,7 @@ class PageHeap {
 
  private:
   static const size_t kPageHeapBackends = 4;
-  static const size_t kPageRefill = 24;
+  static const size_t kPageRefill = 1;
 
   static PageHeap page_heap_ cache_aligned;
 
