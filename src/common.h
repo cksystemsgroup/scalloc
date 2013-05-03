@@ -26,7 +26,7 @@ const size_t kMinAlignment = 16;
 
 const size_t kMaxSmallSize = 512;
 
-const size_t kNumClasses = kMaxSmallSize / kMinAlignment;
+const size_t kNumClasses = kMaxSmallSize / kMinAlignment + 1;
 
 // Prohibit reordering of instructions by the compiler.
 inline void CompilerBarrier() {

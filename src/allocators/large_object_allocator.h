@@ -17,7 +17,7 @@ class LargeObjectAllocator {
 };
 
 inline void* LargeObjectAllocator::Alloc(size_t size) {
-  size = PadSize(size, RuntimeVars::SystemPageSize());
+  size = PadSize(size + sizeof(LargeObjectHeader), RuntimeVars::SystemPageSize());
   size_t actual_size;
   uintptr_t p = reinterpret_cast<uintptr_t>(scalloc::SystemAlloc_Mmap(size, &actual_size));
   if (UNLIKELY(p % RuntimeVars::SystemPageSize() != 0)) {
