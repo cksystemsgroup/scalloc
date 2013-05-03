@@ -92,7 +92,29 @@ extern "C" void* scalloc_calloc(size_t nmemb, size_t size) __THROW {
 }
 
 extern "C" void* scalloc_realloc(void* ptr, size_t size) __THROW {
-  ErrorOut("realloc() not yet implemented.");
+  if (ptr == NULL) {
+    return scalloc::malloc(size);
+  }
+  void* new_ptr;
+  size_t old_size;
+  BlockHeader* hdr = BlockHeader::GetFromObject(ptr);
+  if (LIKELY(hdr->type == kSlab)) {
+    old_size = scalloc::SizeMap::Instance().ClassToSize(
+        reinterpret_cast<SlabHeader*>(hdr)->size_class);
+  } else {
+    old_size = reinterpret_cast<LargeObjectHeader*>(hdr)->size -
+               sizeof(LargeObjectHeader);
+  }
+  if (size <= old_size) {
+    return ptr;
+  } else {
+    new_ptr = scalloc::malloc(size);
+    if (LIKELY(new_ptr != NULL)) {
+      memcpy(new_ptr, ptr, old_size);
+      scalloc::free(ptr);
+    }
+  }
+  return new_ptr;
 }
 
 extern "C" void* scalloc_memalign(size_t __alignment, size_t __size) __THROW {
