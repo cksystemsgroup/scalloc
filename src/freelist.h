@@ -14,14 +14,41 @@
 #include "common.h"
 #include "log.h"
 
-// An unlocked freelist.
+/// An unlocked free list.
 class Freelist {
  public:
+  /// Creates/resets this free list in a contiguous chunk of memory.
+  ///
+  /// @param start Pointer to contiguous memory
+  /// @param size Size of the objects in this free list
+  /// @param len Number of objects in this free list
   void FromBlock(const void* start, const size_t size, size_t len);
+
+  /// Extends the free list with a contiguous chunk of memory.
+  ///
+  /// @param start Pointer to new chunk of contiguous memory
+  /// @param size Size of the objects in this free list
+  /// @param len Number of objects added to this free list
   void AddRange(const void* start, const size_t size, size_t len);
+
+  /// Adds a free object to the head of this free list.
+  ///
+  /// @param p A free object
   void Push(void* p);
+
+  /// Removes a free object from the head of this free list.
+  ///
+  /// @return A free object
   void* Pop();
+
+  /// Determines if this free list is empty.
+  ///
+  /// @return true if empty, false otherwise
   bool Empty();
+
+  /// Determines the number of free objects (the size) in (of) this free list.
+  ///
+  /// @return The size of this free list
   size_t Size();
 
  private:
