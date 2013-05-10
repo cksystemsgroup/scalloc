@@ -55,8 +55,8 @@ class DistributedQueue {
   // The actual DQ backends.
   Backend* backends_[kMaxBackends] cache_aligned;
 
-  // Getter for the thread-local State record.
-  State* GetState();
+  // Create a new threadlocal state.
+  State* NewState();
 };
 
 
@@ -80,20 +80,22 @@ always_inline void* DistributedQueue::DequeueOnlyAt(size_t backend_id) {
 
 always_inline void* DistributedQueue::DequeueAt(size_t start) {
   void* result;
-  State* state = GetState();
+  if (state_ == NULL) {
+    state_ = NewState();
+  }
   size_t i;
   while (true) {
  GET_RETRY:
     for (size_t _cnt = 0; _cnt < p_; _cnt++) {
       i = (_cnt + start) % p_;
       if ((result = backends_[i]->PopRecordState(
-              &(state->backend_states[i]))) != NULL) {
+              &(state_->backend_states[i]))) != NULL) {
         return result;
       }
     }
     for (size_t _cnt = 0; _cnt < p_; _cnt++) {
       i = (_cnt + start) % p_;
-      if (state->backend_states[i] != backends_[i]->GetState()) {
+      if (state_->backend_states[i] != backends_[i]->GetState()) {
         start = i;
         goto GET_RETRY;
       }
