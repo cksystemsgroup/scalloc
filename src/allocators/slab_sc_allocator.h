@@ -78,7 +78,6 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
 
       if (hdr->in_use == 0) {
         PageHeap::GetHeap()->Put(hdr);
-        LOG(kWarning, "freeing span at %p", hdr);
         return;
       }
 
