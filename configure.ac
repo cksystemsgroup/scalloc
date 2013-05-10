@@ -51,7 +51,7 @@ AC_ARG_ENABLE([loglevel],
     AS_HELP_STRING([--enable-loglevel=LOGLEVEL], [Enable logging in scalloc.
                     Levels: kTrace, kInfo, kWarning, kError, kFatal. Default:
                     kWarning]), 
-    [AC_DEFINE([LOG_LEVEL], [$enableval], [log level])],
+    [AC_DEFINE_UNQUOTED([LOG_LEVEL], [$enableval], [log level])],
     [AC_DEFINE([LOG_LEVEL], [kWarning], [log level])]
 )
 
