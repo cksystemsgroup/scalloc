@@ -28,13 +28,14 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
   if (my_headers_[sc] != NULL) {
     // Only try to steal we had a slab at least once.
     SlabHeader* hdr;
-    void* p = DQScAllocator::Instance().Allocate(
-        sc, my_headers_[sc]->remote_flist, id_, &hdr);
+    void* p = DQScAllocator::Instance().Allocate(sc, id_, id_, &hdr);
     if (p != NULL) {
       if (hdr != NULL) {
         SetActiveSlab(sc, hdr);
       } else {
-        Refill(sc);
+        if (reinterpret_cast<SlabHeader*>(BlockHeader::GetFromObject(p)) != my_headers_[sc]) {
+          Refill(sc);
+        }
       }
       return p;
     }

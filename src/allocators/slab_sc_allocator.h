@@ -31,7 +31,6 @@ class SlabScAllocator {
   void Refill(const size_t sc);
   SlabHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
   void* AllocateNoSlab(const size_t sc, const size_t size);
-  void RemoteFree(void* p, SlabHeader* hdr);
 } cache_aligned;
 
 always_inline void SlabScAllocator::SetActiveSlab(const size_t sc,
@@ -68,24 +67,26 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       // lock a block (by making it active) that was previously used by the
       // current thread.
       hdr->in_use--;
-      if (hdr->in_use == 0) {
-        PageHeap::GetHeap()->Put(hdr);
-        return;
-      }
       hdr->flist.Push(p);
-      if (hdr->flist.Size() > my_headers_[hdr->size_class]->flist.Size()) {
+
+      SlabHeader* cur_sc_hdr = my_headers_[hdr->size_class];
+      if (cur_sc_hdr->flist.Size() < 100 &&
+          hdr->flist.Size() > 100) {
         SetActiveSlab(hdr->size_class, hdr);
         return;
       }
+
+      if (hdr->in_use == 0) {
+        PageHeap::GetHeap()->Put(hdr);
+        LOG(kWarning, "freeing span at %p", hdr);
+        return;
+      }
+
       __sync_lock_release(&hdr->active);
       return;
     }
   }
-  RemoteFree(p, hdr);
-}
-
-always_inline void SlabScAllocator::RemoteFree(void* p, SlabHeader* hdr) {
-  DQScAllocator::Instance().Free(p, hdr->size_class, hdr->owner);
+  DQScAllocator::Instance().Free(p, hdr->size_class, hdr->remote_flist);
 }
 
 }  // namespace scalloc

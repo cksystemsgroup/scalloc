@@ -38,6 +38,7 @@ void* DQScAllocator::Allocate(const size_t sc,
         __sync_lock_test_and_set(&hdr->active, 1) == 0) {  // try to steal it
         // Got it!
         *block = hdr;
+        hdr->owner = tid;
     }
   }
 
