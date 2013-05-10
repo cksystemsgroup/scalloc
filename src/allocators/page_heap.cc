@@ -19,17 +19,21 @@ void PageHeap::InitModule() {
   page_heap_.page_pool_.Init(kPageHeapBackends);
 }
 
-void PageHeap::AsyncRefill() {
+
+void* PageHeap::AsyncRefill(const size_t refill) {
   const size_t block_size = RuntimeVars::SystemPageSize() * kPageMultiple;
   uintptr_t ptr = reinterpret_cast<uintptr_t>(SystemAlloc_Mmap(
-      block_size * kPageRefill, NULL));
+      block_size * refill, NULL));
   if (UNLIKELY(ptr == 0)) {
     ErrorOut("SystemAlloc failed");
   }
-  for (size_t i = 0; i < kPageRefill; i++) {
+  void* result = reinterpret_cast<void*>(ptr);
+  ptr += block_size;
+  for (size_t i = 1; i < refill; i++) {
     Put(reinterpret_cast<void*>(ptr));
     ptr += block_size;
   }
+  return result;
 }
 
 }  // namespace scalloc

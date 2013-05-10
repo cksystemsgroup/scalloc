@@ -17,11 +17,11 @@ class PageHeap {
 
   void* Get();
   void Put(void* p);
-  void AsyncRefill();
+  void* AsyncRefill(const size_t refill);
 
  private:
-  static const size_t kPageHeapBackends = 4;
-  static const size_t kPageRefill = 1;
+  static const size_t kPageHeapBackends = 8;
+  static const size_t kPageRefill = 64;
 
   static PageHeap page_heap_ cache_aligned;
 
@@ -38,11 +38,10 @@ always_inline void PageHeap::Put(void* p) {
 }
 
 always_inline void* PageHeap::Get() {
- REDO:
+  LOG(kTrace, "[PageHeap]: get request");
   void* result = page_pool_.Dequeue();
   if (UNLIKELY(result == NULL)) {
-    AsyncRefill();
-    goto REDO;
+    return AsyncRefill(kPageRefill);
   }
   LOG(kTrace, "[PageHeap]: get: %p", result);
   return result;
