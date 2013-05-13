@@ -20,7 +20,7 @@
 #define TLS_MODE __attribute__((tls_model ("initial-exec")))
 
 // Number of system pages forming a block
-const size_t kPageMultiple = 4;
+const size_t kPageMultiple = 2;
 
 const size_t kMinAlignment = 16;
 
