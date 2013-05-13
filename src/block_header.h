@@ -9,6 +9,7 @@
 #include "freelist.h"
 #include "log.h"
 #include "runtime_vars.h"
+#include "size_map.h"
 
 enum BlockType {
   kSlab,
@@ -61,6 +62,11 @@ class SlabHeader : public BlockHeader {
     this->size_class = size_class;
     this->remote_flist = remote_flist;
     this->in_use = 0;
+  }
+
+  // The utilization of the span in percent.
+  inline size_t Utilization() {
+    return (this->flist.Size() * 100) / scalloc::SizeMap::Instance().MaxObjectsPerClass(this->size_class);
   }
 } cache_aligned;
 

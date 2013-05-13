@@ -32,9 +32,8 @@ void* DQScAllocator::Allocate(const size_t sc,
     // We found an object, let's try to steal the whole block.
     SlabHeader* hdr = reinterpret_cast<SlabHeader*>(
         BlockHeader::GetFromObject(p));
-    if (hdr->active == false &&  // block is not in use
-        hdr->flist.Size() > 100 &&  // enough free objects to account
-                                   // for this stealing procedure
+    if (hdr->active == false &&
+        hdr->Utilization() < 90 &&
         __sync_lock_test_and_set(&hdr->active, 1) == 0) {  // try to steal it
         // Got it!
         *block = hdr;

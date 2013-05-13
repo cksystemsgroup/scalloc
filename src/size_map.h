@@ -14,9 +14,11 @@ class SizeMap {
 
   void Init();
   size_t ClassToSize(const size_t sclass);
+  size_t MaxObjectsPerClass(const size_t sclass);
 
  private:
   size_t class_to_size_[kNumClasses];
+  size_t class_to_objs_[kNumClasses];
 };
 
 always_inline SizeMap& SizeMap::Instance() {
@@ -30,6 +32,10 @@ always_inline size_t SizeMap::SizeToClass(const size_t size) {
 
 always_inline size_t SizeMap::ClassToSize(const size_t sclass) {
   return class_to_size_[sclass];
+}
+
+always_inline size_t SizeMap::MaxObjectsPerClass(const size_t sclass) {
+  return class_to_objs_[sclass];
 }
 
 }  // namespace scalloc

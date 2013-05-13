@@ -70,8 +70,8 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       hdr->flist.Push(p);
 
       SlabHeader* cur_sc_hdr = my_headers_[hdr->size_class];
-      if (cur_sc_hdr->flist.Size() < 100 &&
-          hdr->flist.Size() > 100) {
+      if (cur_sc_hdr->Utilization() > 90 &&
+          hdr->Utilization() < 90) {
         SetActiveSlab(hdr->size_class, hdr);
         return;
       }
