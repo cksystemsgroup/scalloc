@@ -33,7 +33,7 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
       if (hdr != NULL) {
         SetActiveSlab(sc, hdr);
       } else {
-        if (reinterpret_cast<SlabHeader*>(BlockHeader::GetFromObject(p)) != my_headers_[sc]) {
+        if (reinterpret_cast<SlabHeader*>(BlockHeader::GetFromObject(p))->owner != id_) {
           Refill(sc);
         }
       }
