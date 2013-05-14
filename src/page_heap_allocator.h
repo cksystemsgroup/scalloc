@@ -7,11 +7,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
+#include "allocators/global_sbrk_allocator.h"
 #include "common.h"
 #include "log.h"
 #include "runtime_vars.h"
-#include "system-alloc.h"
+#include "spinlock-inl.h"
+#include "stack-inl.h"
 
 namespace scalloc {
 
@@ -19,8 +22,8 @@ namespace scalloc {
 // alignment.
 const int kNoAlignment = 1;
 
-// Simple bump pointer allocator for objects of a given type T.  External
-// locking required.
+// Almost lock-free free-list allocator that may be used internally for fixed
+// types and alignments.
 template<typename T, int ALIGNMENT = kNoAlignment>
 class PageHeapAllocator {
  public:
@@ -48,44 +51,42 @@ class PageHeapAllocator {
                "allocation increment.");
     }
 
-    free_area_ = NULL;
-    free_available_ = 0;
-    free_list_ = NULL;
+    free_list_.Init();
+  }
+
+  void* Refill() {
+    uintptr_t ptr = reinterpret_cast<uintptr_t>(GlobalSbrkAllocator::Allocate(alloc_increment_));
+    void* result = reinterpret_cast<void*>(ptr);
+    ptr += tsize_;
+    for (size_t i = 1; i < alloc_increment_/tsize_; i++) {
+      free_list_.Push(reinterpret_cast<void*>(ptr));
+      ptr += tsize_;
+    }
+    return result;
   }
 
   T* New() {
-    void* result;
-    if (free_list_ != NULL) {
-      result = free_list_;
-      free_list_ = *(reinterpret_cast<void**>(result));
-    } else {
-      if (free_available_ < tsize_) {
-        free_area_ = reinterpret_cast<char*>(SystemAlloc_Mmap(
-            alloc_increment_, NULL));
-        if (free_area_ == NULL) {
-          ErrorOut("PageHeapAllocator: out of memory");
-        }
-        free_available_ = alloc_increment_;
+    void* result = free_list_.Pop();
+    if (result == NULL) {
+      SpinLockHolder lock_holder(&refill_lock_);
+      CompilerBarrier();
+      result = free_list_.Pop();
+      if (result == NULL) {
+        result = Refill();
       }
-      // Bump pointer
-      result = free_area_;
-      free_area_ += tsize_;
-      free_available_ -= tsize_;
     }
     return reinterpret_cast<T*>(result);
   }
 
   void Delete(T* ptr) {
-    *(reinterpret_cast<void**>(ptr)) = free_list_;
-    free_list_ = ptr;
+    free_list_.Push(ptr);
   }
 
  private:
   size_t alloc_increment_;
   size_t tsize_;
-  size_t free_available_;
-  char* free_area_;
-  void* free_list_;
+  SpinLock refill_lock_;
+  Stack free_list_;
 };
 
 }  // namespace scalloc
