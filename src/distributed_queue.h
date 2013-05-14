@@ -53,7 +53,7 @@ class DistributedQueue {
   size_t p_;
 
   // The actual DQ backends.
-  Backend* backends_[kMaxBackends] cache_aligned;
+  Backend* backends_[kMaxBackends];
 
   // Create a new threadlocal state.
   State* NewState();

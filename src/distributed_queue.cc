@@ -40,6 +40,7 @@ void DistributedQueue::Init(size_t p) {
   p_ = p;
   for (size_t i = 0; i < p_; i++) {
     backends_[i] = backend_allocator_.New();
+    backends_[i]->Init();
   }
 }
 
