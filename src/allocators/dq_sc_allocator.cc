@@ -11,7 +11,6 @@
 namespace scalloc {
 
 void DQScAllocator::InitModule() {
-  DistributedQueue::InitModule();
   Instance().Init();
 }
 

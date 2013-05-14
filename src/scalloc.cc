@@ -13,6 +13,7 @@
 #include "allocators/page_heap.h"
 #include "allocators/slab_sc_allocator.h"
 #include "common.h"
+#include "distributed_queue.h"
 #include "runtime_vars.h"
 #include "scalloc_guard.h"
 #include "size_map.h"
@@ -25,6 +26,8 @@ ScallocGuard::ScallocGuard() {
     scalloc::SizeMap::InitModule();
 
     GlobalSbrkAllocator::InitModule();
+
+    DistributedQueue::InitModule();
     scalloc::DQScAllocator::InitModule();
     scalloc::SlabScAllocator::InitModule();
 

@@ -15,8 +15,6 @@ PageHeap PageHeap::page_heap_ cache_aligned;
 __thread TLS_MODE size_t PageHeap::refill_ cache_aligned;
 
 void PageHeap::InitModule() {
-  DistributedQueue::InitModule();
-
   page_heap_.page_pool_.Init(kPageHeapBackends);
 }
 
