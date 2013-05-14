@@ -17,24 +17,26 @@ enum BlockType {
   kForward
 };
 
-class BlockHeader {
+class Header {
  public:
-  static BlockHeader* GetFromObject(void* p);
+  static Header* GetFromObject(void* p);
 
   BlockType type;
 };
+typedef Header BlockHeader;
 
-class ForwardHeader : public BlockHeader {
+class PageHeader : public Header {
  public:
-  BlockHeader* forward;
+  Header* forward;
 
-  inline void Reset(BlockHeader* forward) {
+  inline void Reset(Header* forward) {
     this->type = kForward;
     this->forward = forward;
   }
 };
+typedef PageHeader ForwardHeader;
 
-class SlabHeader : public BlockHeader {
+class SpanHeader : public Header {
  public:
   // read-only properties
 
@@ -69,8 +71,9 @@ class SlabHeader : public BlockHeader {
     return 100 - ((this->flist.Size() * 100) / scalloc::SizeMap::Instance().MaxObjectsPerClass(this->size_class));
   }
 } cache_aligned;
+typedef SpanHeader SlabHeader;
 
-class LargeObjectHeader : public BlockHeader {
+class LargeObjectHeader : public Header {
  public:
   size_t size;
 
