@@ -16,6 +16,11 @@ void SlabScAllocator::InitModule() {
 
 void SlabScAllocator::Init(const uint64_t id) {
   id_ = id;
+  ActiveOwner dummy;
+  dummy.Reset(true, id_);
+  me_active_ = dummy.raw;
+  dummy.Reset(false, id_);
+  me_inactive_ = dummy.raw;
 }
 
 void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {

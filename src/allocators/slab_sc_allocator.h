@@ -31,6 +31,9 @@ class SlabScAllocator {
   void Refill(const size_t sc);
   SlabHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
   void* AllocateNoSlab(const size_t sc, const size_t size);
+
+  uint64_t me_active_;
+  uint64_t me_inactive_;
 } cache_aligned;
 
 always_inline void SlabScAllocator::SetActiveSlab(const size_t sc,
@@ -61,12 +64,10 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       hdr->flist.Push(p);
       return;
     } else {
-        ActiveOwner would_reactivate(false, id_);
-        ActiveOwner my(true, id_);
         if (!hdr->aowner.active &&
             __sync_bool_compare_and_swap(&hdr->aowner.raw,
-                                         would_reactivate.raw,
-                                         my.raw)) {
+                                         me_inactive_,
+                                         me_active_)) {
         LOG(kTrace, "[SlabAllcoator]: free in retired local block at %p, "
                     "sc: %lu, in_use: %lu", p, hdr->size_class, hdr->in_use);
         // lock a block (by making it active) that was previously used by the
