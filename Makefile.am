@@ -27,6 +27,8 @@ lib_LTLIBRARIES = libscalloc.la
 libscalloc_la_SOURCES = \
 	src/allocators/dq_sc_allocator.cc \
 	src/allocators/dq_sc_allocator.h \
+	src/allocators/global_sbrk_allocator.cc \
+	src/allocators/global_sbrk_allocator.h \
 	src/allocators/large_object_allocator.h \
 	src/allocators/page_heap.cc \
 	src/allocators/page_heap.h \

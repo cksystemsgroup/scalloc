@@ -5,8 +5,11 @@
 #ifndef SCALLOC_ALLOCATORS_PAGE_HEAP_H_
 #define SCALLOC_ALLOCATORS_PAGE_HEAP_H_
 
+#include <sys/mman.h>
+
 #include "common.h"
 #include "distributed_queue.h"
+#include "allocators/global_sbrk_allocator.h"
 
 namespace scalloc {
 
@@ -15,15 +18,15 @@ class PageHeap {
   static void InitModule();
   static PageHeap* GetHeap();
 
+  void Refill(const size_t refill);
+  void* AsyncRefill();
   void* Get();
   void Put(void* p);
-  void* AsyncRefill(const size_t refill);
 
  private:
-  static const size_t kPageHeapBackends = 8;
-  static const size_t kPageRefill = 256;
-
+  static const size_t kPageHeapBackends = 16;
   static PageHeap page_heap_ cache_aligned;
+  static size_t __thread refill_ cache_aligned;
 
   DistributedQueue page_pool_ cache_aligned;
 };
@@ -41,7 +44,7 @@ always_inline void* PageHeap::Get() {
   LOG(kTrace, "[PageHeap]: get request");
   void* result = page_pool_.Dequeue();
   if (UNLIKELY(result == NULL)) {
-    return AsyncRefill(kPageRefill);
+    return AsyncRefill();
   }
   LOG(kTrace, "[PageHeap]: get: %p", result);
   return result;

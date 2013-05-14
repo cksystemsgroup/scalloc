@@ -7,8 +7,10 @@
 #include <errno.h>
 #include <string.h>
 
+#include "allocators/global_sbrk_allocator.h"
 #include "allocators/large_object_allocator.h"
 #include "allocators/dq_sc_allocator.h"
+#include "allocators/page_heap.h"
 #include "allocators/slab_sc_allocator.h"
 #include "common.h"
 #include "runtime_vars.h"
@@ -22,9 +24,11 @@ ScallocGuard::ScallocGuard() {
     RuntimeVars::InitModule();
     scalloc::SizeMap::InitModule();
 
+    GlobalSbrkAllocator::InitModule();
     scalloc::DQScAllocator::InitModule();
     scalloc::SlabScAllocator::InitModule();
 
+    scalloc::PageHeap::GetHeap()->Refill(80);
     free(malloc(1));
   }
 }
