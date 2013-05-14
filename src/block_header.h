@@ -36,6 +36,27 @@ class PageHeader : public Header {
 };
 typedef PageHeader ForwardHeader;
 
+struct ActiveOwner {
+  union {
+    struct {
+      bool active : 1;
+      uint64_t owner : 63;
+    };
+    uint64_t raw;
+  };
+
+  inline ActiveOwner() {}
+
+  inline ActiveOwner(const bool active, const uint64_t owner) {
+    Reset(active, owner);
+  }
+
+  inline void Reset(const bool active, const uint64_t owner) {
+    this->active = active;
+    this->owner = owner;
+  }
+};
+
 class SpanHeader : public Header {
  public:
   // read-only properties
@@ -47,10 +68,7 @@ class SpanHeader : public Header {
 
   // mostly read properties
 
-  struct {
-  bool active;
-  size_t owner;
-  } cache_aligned;
+  cache_aligned ActiveOwner aowner;
 
   // thread-local read/write properties
 

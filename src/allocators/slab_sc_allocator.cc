@@ -33,7 +33,7 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
       if (hdr != NULL) {
         SetActiveSlab(sc, hdr);
       } else {
-        if (reinterpret_cast<SlabHeader*>(BlockHeader::GetFromObject(p))->owner != id_) {
+        if (reinterpret_cast<SlabHeader*>(BlockHeader::GetFromObject(p))->aowner.owner != id_) {
           Refill(sc);
         }
       }
@@ -64,8 +64,8 @@ SlabHeader* SlabScAllocator::InitSlab(uintptr_t block,
   size_t sys_page_size = RuntimeVars::SystemPageSize();
   SlabHeader* main_hdr = reinterpret_cast<SlabHeader*>(block);
   main_hdr->Reset(sc, id_);
-  main_hdr->owner = id_;
-  main_hdr->active = true;
+  main_hdr->aowner.owner = id_;
+  main_hdr->aowner.active = true;
 
   // We need to initialize the flist and place ForwardHeaders every system page
   // size bytes, since this is where we search for headers (for small AND large
