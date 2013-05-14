@@ -45,9 +45,5 @@ void DistributedQueue::Init(size_t p) {
 }
 
 DistributedQueue::State* DistributedQueue::NewState() {
-  State* state;
-  SpinLockHolder holder(&g_state_lock);
-  CompilerBarrier();
-  state = state_allocator_.New();
-  return state;
+  return state_allocator_.New();
 }
