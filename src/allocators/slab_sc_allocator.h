@@ -23,6 +23,7 @@ class SlabScAllocator {
   void* Allocate(const size_t size);
   void Free(void* p, SlabHeader* hdr);
   void SetActiveSlab(const size_t sc, const SlabHeader* hdr);
+  void Destroy();
 
  private:
   uint64_t id_;

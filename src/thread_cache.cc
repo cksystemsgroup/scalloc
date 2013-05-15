@@ -35,36 +35,6 @@ void ThreadCache::InitModule() {
   }
 }
 
-void ThreadCache::DestroyThreadCache(void* p) {
-  // TODO(mlippautz): sort out any possible problems in the destructor.
-  /*
-  if (p == NULL) {
-    return;
-  }
-  tl_cache_ = NULL;
-  
-  // TODO(mlippautz): Handle used/unused local blocks of this heap.
-  
-  SpinLockHolder holder(&g_threadcache_lock);
-  CompilerBarrier();
-  ThreadCache* cache = reinterpret_cast<ThreadCache*>(p);
-
-  // Remove thread-local cache from global list.
-  if (cache->next_ != NULL) {
-    cache->next_->prev_ = cache->prev_;
-  }
-  if (cache->prev_ != NULL) {
-    cache->prev_->next_ = cache->next_;
-  }
-  if (thread_caches_ == cache) {
-    thread_caches_ = cache->next_;
-  }
-
-  // Finally, delete the cache.
-  g_threadcache_alloc.Delete(cache);
-  */
-}
-
 ThreadCache* ThreadCache::NewCache() {
   ThreadCache* cache = g_threadcache_alloc.New();
   cache = g_threadcache_alloc.New();
@@ -79,6 +49,19 @@ ThreadCache* ThreadCache::NewCache() {
   // not called.
   pthread_setspecific(cache_key_, cache);
   return cache;
+}
+
+void ThreadCache::DestroyThreadCache(void* p) {
+  if (p == NULL) {
+    return;
+  }
+  tl_cache_ = NULL;
+
+  ThreadCache* cache = reinterpret_cast<ThreadCache*>(p);
+  cache->allocator_.Destroy();
+
+  // Finally, delete the cache.
+  g_threadcache_alloc.Delete(cache);
 }
 
 }  // namespace scalloc

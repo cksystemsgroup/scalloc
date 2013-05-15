@@ -101,4 +101,18 @@ SlabHeader* SlabScAllocator::InitSlab(uintptr_t block,
   return main_hdr;
 }
 
+void SlabScAllocator::Destroy() {
+  // Destroying basically means giving up all active spans.  We can only give up
+  // our current spans, since we do not have references to the others.  Assuming
+  // the mutator had no memory leak (i.e. all non-shared objects have been
+  // freed), a span now can stay active forever (all reusable blocks travel
+  // through the remote freelists), or it is already inactive (and thus
+  // available for reuse).
+  for (size_t i = 0; i < kNumClasses; i++) {
+    if (my_headers_[i]) {
+      my_headers_[i]->aowner.active = false;
+    }
+  }
+}
+
 }  // namespace scalloc
