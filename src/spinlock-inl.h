@@ -39,7 +39,7 @@ class SpinLock {
 class SpinLockHolder {
  public:
   inline explicit SpinLockHolder(SpinLock *lock) : lock_(lock) {
-    lock_->Lock(); 
+    lock_->Lock();
   }
 
   inline ~SpinLockHolder() {

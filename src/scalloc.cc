@@ -128,7 +128,8 @@ extern "C" void* scalloc_memalign(size_t __alignment, size_t __size) __THROW {
   ErrorOut("memalign() not yet implemented.");
 }
 
-extern "C" int scalloc_posix_memalign(void** ptr, size_t align, size_t size) __THROW {
+extern "C" int scalloc_posix_memalign(
+    void** ptr, size_t align, size_t size) __THROW {
   ErrorOut("posix_memalign() not yet implemented.");
 }
 

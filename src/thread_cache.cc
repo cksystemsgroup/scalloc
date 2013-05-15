@@ -1,3 +1,7 @@
+// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
+
 #include "thread_cache.h"
 
 #include "allocators/dq_sc_allocator.h"
@@ -6,7 +10,8 @@
 namespace {
 
 cache_aligned SpinLock g_threadcache_lock(LINKER_INITIALIZED);
-cache_aligned scalloc::PageHeapAllocator<scalloc::ThreadCache, 64> g_threadcache_alloc;
+cache_aligned scalloc::PageHeapAllocator<scalloc::ThreadCache, 64>
+    g_threadcache_alloc;
 cache_aligned uint64_t g_thread_id;
 
 }  // namespace
@@ -21,16 +26,17 @@ __thread TLS_MODE ThreadCache* ThreadCache::tl_cache_;
 void ThreadCache::InitModule() {
   SpinLockHolder holder(&g_threadcache_lock);
   CompilerBarrier();
-  if(!module_init_) {
+  if (!module_init_) {
     g_threadcache_alloc.Init(RuntimeVars::SystemPageSize());
     module_init_  = true;
     // http://pubs.opengroup.org/onlinepubs/009696799/functions/pthread_key_create.html
     //
     // At thread exit, if a key value has a non-NULL destructor pointer, and the
-    // thread has a non-NULL value associated with that key, the value of the key is
-    // set to NULL, and then the function pointed to is called with the previously
-    // associated value as its sole argument. The order of destructor calls is
-    // unspecified if more than one destructor exists for a thread when it exits.
+    // thread has a non-NULL value associated with that key, the value of the
+    // key is set to NULL, and then the function pointed to is called with the
+    // previously associated value as its sole argument. The order of destructor
+    // calls is unspecified if more than one destructor exists for a thread when
+    // it exits.
     pthread_key_create(&cache_key_, DestroyThreadCache);
   }
 }

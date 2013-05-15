@@ -11,7 +11,7 @@ namespace scalloc {
 
 // Allocates a memory block of a given size using mmap() and returns the block's
 // address.
-// 
+//
 // Also stores the actual allocation size in actual_size, if a non-NULL pointer
 // is provided.
 void* SystemAlloc_Mmap(size_t size, size_t* actual_size);

@@ -9,7 +9,8 @@
 #include "spinlock-inl.h"
 
 scalloc::PageHeapAllocator<Stack, 64> DistributedQueue::backend_allocator_;
-scalloc::PageHeapAllocator<DistributedQueue::State, 64> DistributedQueue::state_allocator_;
+scalloc::PageHeapAllocator<DistributedQueue::State, 64>
+    DistributedQueue::state_allocator_;
 __thread DistributedQueue::State* DistributedQueue::state_;
 
 void DistributedQueue::InitModule() {

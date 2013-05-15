@@ -60,7 +60,9 @@ class Freelist {
 #endif  // FREELIST_CHECK_BOUNDS
 };
 
-inline void Freelist::FromBlock(const void* start, const size_t size, size_t len) {
+inline void Freelist::FromBlock(const void* start,
+                                const size_t size,
+                                size_t len) {
   len_ = 0;
   list_ = NULL;
   uintptr_t start_ptr = reinterpret_cast<uintptr_t>(start);
@@ -74,7 +76,9 @@ inline void Freelist::FromBlock(const void* start, const size_t size, size_t len
   }
 }
 
-inline void Freelist::AddRange(const void* start, const size_t size, size_t len) {
+inline void Freelist::AddRange(const void* start,
+                               const size_t size,
+                               size_t len) {
   uintptr_t start_ptr = reinterpret_cast<uintptr_t>(start);
 #ifdef FREELIST_CHECK_BOUNDS
   if (start_ptr < lower_) {

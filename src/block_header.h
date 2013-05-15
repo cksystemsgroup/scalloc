@@ -86,7 +86,8 @@ class SpanHeader : public Header {
 
   // The utilization of the span in percent.
   inline size_t Utilization() {
-    return 100 - ((this->flist.Size() * 100) / scalloc::SizeMap::Instance().MaxObjectsPerClass(this->size_class));
+    return 100 - ((this->flist.Size() * 100) /
+        scalloc::SizeMap::Instance().MaxObjectsPerClass(this->size_class));
   }
 } cache_aligned;
 typedef SpanHeader SlabHeader;
