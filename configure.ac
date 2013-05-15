@@ -55,6 +55,12 @@ AC_ARG_ENABLE([loglevel],
     [AC_DEFINE([LOG_LEVEL], [kWarning], [log level])]
 )
 
+AC_ARG_ENABLE([sbrkspace],
+    AS_HELP_STRING([--enable-sbrkspace=SBRK_SPACE], []), 
+    [AC_DEFINE_UNQUOTED([SBRK_SPACE], [$enableval], [log level])],
+    []
+)
+
 dnl enable freelist bounds checks
 AC_ARG_ENABLE([check-freelist],
     AS_HELP_STRING([--check-freelist], [Enable bound checks in freelist]))
