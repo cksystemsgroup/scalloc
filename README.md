@@ -15,7 +15,7 @@ it is assumed that  `__thread` is present (until we move to C++11's
 * cmake (for googletest)
 * [googletest](https://code.google.com/p/googletest "googletest")
 
-## Building
+## Building [![Build Status](https://drone.io/github.com/cksystemsgroup/scalloc/status.png)](https://drone.io/github.com/cksystemsgroup/scalloc/latest)
 
 This is as easy as
 
@@ -29,6 +29,8 @@ additional integrity checks.
 Various tests can be performed with
 
     make check
+    
+If you just want a prebuilt binary, check out the [download section at drone.io](https://drone.io/github.com/cksystemsgroup/scalloc/files "scalloc downloads").
  
 ## Usage
 
