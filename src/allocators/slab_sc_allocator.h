@@ -39,11 +39,6 @@ class SlabScAllocator {
 
 always_inline void SlabScAllocator::SetActiveSlab(const size_t sc,
                                                   const SlabHeader* hdr) {
-  /*
-  if (my_headers_[sc] != NULL) {
-    my_headers_[sc]->aowner.active = false;
-  }
-  */
   my_headers_[sc] = const_cast<SlabHeader*>(hdr);
 }
 
