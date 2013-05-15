@@ -11,7 +11,13 @@
 uintptr_t GlobalSbrkAllocator::current_;
 
 void GlobalSbrkAllocator::InitModule() {
+#ifdef __x86_64__
   size_t size = 1UL << 35;  // 32GiB
+#endif
+#ifdef __i386__
+  size_t size = 1UL << 31;
+#endif
+
   void* p = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   if (p == MAP_FAILED) {
     ErrorOut("mmap failed");
