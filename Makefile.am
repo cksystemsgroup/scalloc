@@ -101,6 +101,7 @@ distributed_queue_unittest_CPPFLAGS = \
 distributed_queue_unittest_LDADD = \
 	$(GTEST_LIBS)
 distributed_queue_unittest_SOURCES = \
+	src/allocators/global_sbrk_allocator.cc \
 	src/distributed_queue.cc \
 	src/distributed_queue.h \
 	src/log.cc \
@@ -137,6 +138,7 @@ page_heap_allocator_unittest_CPPFLAGS = \
 page_heap_allocator_unittest_LDADD = \
 	$(GTEST_LIBS)
 page_heap_allocator_unittest_SOURCES = \
+	src/allocators/global_sbrk_allocator.cc \
 	src/log.cc \
 	src/test/page_heap_allocator_unittest.cc \
 	src/runtime_vars.cc \
@@ -148,6 +150,7 @@ page_heap_unittest_CPPFLAGS = \
 page_heap_unittest_LDADD = \
 	$(GTEST_LIBS)
 page_heap_unittest_SOURCES = \
+	src/allocators/global_sbrk_allocator.cc \
 	src/allocators/page_heap.cc \
 	src/distributed_queue.cc \
 	src/log.cc \
@@ -172,6 +175,7 @@ slab_sc_allocator_unittest_LDADD = \
 	$(GTEST_LIBS)
 slab_sc_allocator_unittest_SOURCES = \
 	src/allocators/dq_sc_allocator.cc \
+	src/allocators/global_sbrk_allocator.cc \
 	src/allocators/page_heap.cc \
 	src/allocators/slab_sc_allocator.cc \
 	src/distributed_queue.cc \

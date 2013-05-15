@@ -5,7 +5,9 @@
 #include <gtest/gtest.h>
 #include <string.h>
 
+#include "allocators/global_sbrk_allocator.h"
 #include "allocators/slab_sc_allocator.h"
+#include "distributed_queue.h"
 #include "runtime_vars.h"
 
 namespace {
@@ -18,6 +20,10 @@ class SlabScAllocatorTest : public testing::Test {
     // global initialization
     RuntimeVars::InitModule();
     scalloc::SizeMap::Instance().Init();
+
+    GlobalSbrkAllocator::InitModule();
+
+    DistributedQueue::InitModule();
     scalloc::SlabScAllocator::InitModule();
 
     // Let's play the linker and initialize memory to 0.
