@@ -19,7 +19,7 @@ class ThreadCache {
   static ThreadCache& GetCache();
 
   void* Allocate(const size_t size);
-  void Free(void* ptr, BlockHeader* hdr);
+  void Free(void* ptr, Header* hdr);
 
  private:
   // Fast path thread-local access point.
@@ -52,7 +52,7 @@ always_inline void* ThreadCache::Allocate(const size_t size) {
   return allocator_.Allocate(size);
 }
 
-always_inline void ThreadCache::Free(void* p, BlockHeader* hdr) {
+always_inline void ThreadCache::Free(void* p, Header* hdr) {
   allocator_.Free(p, reinterpret_cast<SlabHeader*>(hdr));
 }
 

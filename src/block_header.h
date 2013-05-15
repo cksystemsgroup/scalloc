@@ -101,17 +101,17 @@ class LargeObjectHeader : public Header {
   }
 } cache_aligned;
 
-always_inline BlockHeader* BlockHeader::GetFromObject(void* p) {
+always_inline Header* Header::GetFromObject(void* p) {
   const size_t sys_page_size = RuntimeVars::SystemPageSize();
   uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
   if (UNLIKELY(ptr % sys_page_size == 0)) {
-    BlockHeader* bh = reinterpret_cast<BlockHeader*>(ptr - sys_page_size);
+    Header* bh = reinterpret_cast<Header*>(ptr - sys_page_size);
     if (bh->type == kForward) {
       bh = reinterpret_cast<ForwardHeader*>(bh)->forward;
     }
   }
   uintptr_t page_ptr = ptr & ~(sys_page_size - 1);
-  BlockHeader* bh = reinterpret_cast<BlockHeader*>(page_ptr);
+  Header* bh = reinterpret_cast<Header*>(page_ptr);
   switch (bh->type) {
   case kForward:
     return reinterpret_cast<ForwardHeader*>(bh)->forward;
