@@ -59,7 +59,7 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       LOG(kTrace, "[SlabAllcoator]: free in active local block at %p", p);
       hdr->in_use--;
       hdr->flist.Push(p);
-      if (hdr != my_headers_[hdr->size_class] && hdr->Utilization() < 20) {
+      if (hdr != my_headers_[hdr->size_class] && hdr->Utilization() < kReuseThreshold) {
         hdr->aowner.active = false;
       }
       return;

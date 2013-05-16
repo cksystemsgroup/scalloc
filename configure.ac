@@ -61,6 +61,12 @@ AC_ARG_ENABLE([sbrkspace],
     []
 )
 
+AC_ARG_ENABLE([reuse-threshold],
+    AS_HELP_STRING([--enable-reuse-threshold=PERCENT], []),
+    [AC_DEFINE_UNQUOTED([REUSE_THRESHOLD], [$enableval], [reuse threshold])],
+    [AC_DEFINE([REUSE_THRESHOLD], [20], [reuse threshold])]
+)
+
 dnl enable freelist bounds checks
 AC_ARG_ENABLE([check-freelist],
     AS_HELP_STRING([--check-freelist], [Enable bound checks in freelist]))
