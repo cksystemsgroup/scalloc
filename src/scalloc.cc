@@ -19,6 +19,12 @@
 #include "size_map.h"
 #include "thread_cache.h"
 
+//TODO(maigner): add compile time option
+#ifdef PROFILER_ON 
+#include "profiler.h"
+scalloc::Profiler global_profiler;
+#endif //PROFILER_ON
+
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {

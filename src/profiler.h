@@ -9,14 +9,16 @@
 
 #include "common.h"
 
+namespace scalloc {
+
 class Profiler {
 
  public:
-  inline LogAllocation(size_t size) {
+  inline void LogAllocation(size_t size) {
     allocation_count_++;
     sizeclass_histogram_[Log2(size)]++;
   }
-  inline LogDeallocation(size_t blocksize = 0, bool remote = false) {
+  inline void LogDeallocation(size_t blocksize = 0, bool remote = false) {
     remote ? remote_free_count_++ : local_free_count_++;
   }
 
@@ -34,4 +36,5 @@ class Profiler {
 
 } cache_aligned;
 
+} //namespace scalloc
 #endif  // SCALLOC_PROFILER_H_
