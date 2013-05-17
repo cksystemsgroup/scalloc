@@ -51,6 +51,7 @@ libscalloc_la_SOURCES = \
 	src/thread_cache.cc \
 	src/thread_cache.h \
 	src/page_heap_allocator.h \
+	src/profiler.h \
 	src/spinlock-inl.h \
 	src/stack-inl.h \
 	src/system-alloc.cc \
@@ -130,6 +131,13 @@ large_object_allocator_unittest_SOURCES = \
 	src/system-alloc.cc \
 	src/test/large_object_allocator_unittest.cc
 
+TESTS += log2_unittest
+log2_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+log2_unittest_LDADD = \
+	$(GTEST_LIBS)
+log2_unittest_SOURCES = \
+	src/test/log2_unittest.cc
 
 TESTS += page_heap_allocator_unittest
 page_heap_allocator_unittest_CPPFLAGS = \
