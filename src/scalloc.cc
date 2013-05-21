@@ -19,11 +19,10 @@
 #include "size_map.h"
 #include "thread_cache.h"
 
-//TODO(maigner): add compile time option
 #ifdef PROFILER_ON 
 #include "profiler.h"
 scalloc::Profiler global_profiler;
-#endif //PROFILER_ON
+#endif  // PROFILER_ON
 
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
@@ -39,6 +38,9 @@ ScallocGuard::ScallocGuard() {
 
     scalloc::PageHeap::GetHeap()->Refill(80);
     free(malloc(1));
+#ifdef PROFILER_ON 
+    scalloc::Profiler::Enable();
+#endif  // PROFILER_ON
   }
 }
 
