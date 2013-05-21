@@ -8,6 +8,10 @@
 #include "runtime_vars.h"
 #include "system-alloc.h"
 
+#ifdef PROFILER_ON
+#include "profiler.h"
+#endif  // PROFILER_ON
+
 namespace scalloc {
 
 class LargeObjectAllocator {
@@ -25,12 +29,18 @@ inline void* LargeObjectAllocator::Alloc(size_t size) {
   }
   LargeObjectHeader* lbh = reinterpret_cast<LargeObjectHeader*>(p);
   lbh->Reset(actual_size);
+#ifdef PROFILER_ON
+  Profiler::GetProfiler().LogAllocation(actual_size);
+#endif  // PROFILER_ON
   LOG(kTrace, "[LargeObjectAllocator]: allocation size: %lu, actual size: %lu, "
               "p: %p", size, actual_size, reinterpret_cast<void*>(p));
   return reinterpret_cast<void*>(p + sizeof(*lbh)); 
 };
 
 inline void LargeObjectAllocator::Free(LargeObjectHeader* lbh) {
+#ifdef PROFILER_ON
+  Profiler::GetProfiler().LogDeallocation(lbh->size);
+#endif  // PROFILER_ON
   scalloc::SystemFree_Mmap(reinterpret_cast<void*>(lbh), lbh->size);
 }
 
