@@ -31,12 +31,14 @@ void* DQScAllocator::Allocate(const size_t sc,
     // We found an object, let's try to steal the whole block.
     SlabHeader* hdr = reinterpret_cast<SlabHeader*>(
         BlockHeader::GetFromObject(p));
-    if (hdr->active == false &&
-        hdr->Utilization() < 90 &&
-        __sync_lock_test_and_set(&hdr->active, 1) == 0) {  // try to steal it
-        // Got it!
-        *block = hdr;
-        hdr->owner = tid;
+    ActiveOwner would_steal(false, hdr->aowner.owner);
+    ActiveOwner my(true, tid);
+    if (!hdr->aowner.active &&
+        __sync_bool_compare_and_swap(&hdr->aowner.raw,
+                                     would_steal.raw,
+                                     my.raw)) {
+      // Got it!
+      *block = hdr;
     }
   }
 

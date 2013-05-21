@@ -4,17 +4,22 @@
 
 #include <gtest/gtest.h>
 
+#include "allocators/global_sbrk_allocator.h"
 #include "page_heap_allocator.h"
 #include "runtime_vars.h"
 
 TEST(PageHeapAllocator, Init) {
   RuntimeVars::InitModule();
+  GlobalSbrkAllocator::InitModule();
+
   scalloc::PageHeapAllocator<uint64_t> allocator;
   allocator.Init(4096);
 }
 
 TEST(PageHeapAllocator, NewDelete) {
   RuntimeVars::InitModule();
+  GlobalSbrkAllocator::InitModule();
+
   scalloc::PageHeapAllocator<uint64_t> allocator;
   allocator.Init(4096);
   uint64_t* v1 = allocator.New();

@@ -46,6 +46,8 @@ always_inline int Log2(size_t v) {
   return r;
 }
 
+const size_t kReuseThreshold = REUSE_THRESHOLD;
+
 // Prohibit reordering of instructions by the compiler.
 inline void CompilerBarrier() {
   __asm__ __volatile__("" : : : "memory");

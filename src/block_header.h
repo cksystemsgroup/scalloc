@@ -17,24 +17,47 @@ enum BlockType {
   kForward
 };
 
-class BlockHeader {
+class Header {
  public:
-  static BlockHeader* GetFromObject(void* p);
+  static Header* GetFromObject(void* p);
 
   BlockType type;
 };
+typedef Header BlockHeader;
 
-class ForwardHeader : public BlockHeader {
+class PageHeader : public Header {
  public:
-  BlockHeader* forward;
+  Header* forward;
 
-  inline void Reset(BlockHeader* forward) {
+  inline void Reset(Header* forward) {
     this->type = kForward;
     this->forward = forward;
   }
 };
+typedef PageHeader ForwardHeader;
 
-class SlabHeader : public BlockHeader {
+struct ActiveOwner {
+  union {
+    struct {
+      bool active : 1;
+      uint64_t owner : 63;
+    };
+    uint64_t raw;
+  };
+
+  inline ActiveOwner() {}
+
+  inline ActiveOwner(const bool active, const uint64_t owner) {
+    Reset(active, owner);
+  }
+
+  inline void Reset(const bool active, const uint64_t owner) {
+    this->active = active;
+    this->owner = owner;
+  }
+};
+
+class SpanHeader : public Header {
  public:
   // read-only properties
 
@@ -45,10 +68,7 @@ class SlabHeader : public BlockHeader {
 
   // mostly read properties
 
-  struct {
-  bool active;
-  size_t owner;
-  } cache_aligned;
+  cache_aligned ActiveOwner aowner;
 
   // thread-local read/write properties
 
@@ -66,11 +86,13 @@ class SlabHeader : public BlockHeader {
 
   // The utilization of the span in percent.
   inline size_t Utilization() {
-    return 100 - ((this->flist.Size() * 100) / scalloc::SizeMap::Instance().MaxObjectsPerClass(this->size_class));
+    return 100 - ((this->flist.Size() * 100) /
+        scalloc::SizeMap::Instance().MaxObjectsPerClass(this->size_class));
   }
 } cache_aligned;
+typedef SpanHeader SlabHeader;
 
-class LargeObjectHeader : public BlockHeader {
+class LargeObjectHeader : public Header {
  public:
   size_t size;
 
@@ -80,17 +102,17 @@ class LargeObjectHeader : public BlockHeader {
   }
 } cache_aligned;
 
-always_inline BlockHeader* BlockHeader::GetFromObject(void* p) {
+always_inline Header* Header::GetFromObject(void* p) {
   const size_t sys_page_size = RuntimeVars::SystemPageSize();
   uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
   if (UNLIKELY(ptr % sys_page_size == 0)) {
-    BlockHeader* bh = reinterpret_cast<BlockHeader*>(ptr - sys_page_size);
+    Header* bh = reinterpret_cast<Header*>(ptr - sys_page_size);
     if (bh->type == kForward) {
       bh = reinterpret_cast<ForwardHeader*>(bh)->forward;
     }
   }
   uintptr_t page_ptr = ptr & ~(sys_page_size - 1);
-  BlockHeader* bh = reinterpret_cast<BlockHeader*>(page_ptr);
+  Header* bh = reinterpret_cast<Header*>(page_ptr);
   switch (bh->type) {
   case kForward:
     return reinterpret_cast<ForwardHeader*>(bh)->forward;

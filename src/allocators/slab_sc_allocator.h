@@ -27,6 +27,7 @@ class SlabScAllocator {
   void* Allocate(const size_t size);
   void Free(void* p, SlabHeader* hdr);
   void SetActiveSlab(const size_t sc, const SlabHeader* hdr);
+  void Destroy();
 
  private:
   uint64_t id_;
@@ -35,13 +36,13 @@ class SlabScAllocator {
   void Refill(const size_t sc);
   SlabHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
   void* AllocateNoSlab(const size_t sc, const size_t size);
+
+  uint64_t me_active_;
+  uint64_t me_inactive_;
 } cache_aligned;
 
 always_inline void SlabScAllocator::SetActiveSlab(const size_t sc,
                                                   const SlabHeader* hdr) {
-  if (my_headers_[sc] != NULL) {
-    my_headers_[sc]->active = false;
-  }
   my_headers_[sc] = const_cast<SlabHeader*>(hdr);
 }
 
@@ -60,31 +61,30 @@ always_inline void* SlabScAllocator::Allocate(const size_t size) {
 }
 
 always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
-  if (hdr->owner == id_) {
-    if (hdr->active) {
+  if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used slab block.
 #ifdef PROFILER_ON
       Profiler::GetProfiler().LogDeallocation(hdr->size_class);
-#endif //PROFILER_ON
+#endif  // PROFILER_ON
       LOG(kTrace, "[SlabAllcoator]: free in active local block at %p", p);
       hdr->in_use--;
       hdr->flist.Push(p);
+      if (hdr != my_headers_[hdr->size_class] && hdr->Utilization() < kReuseThreshold) {
+        hdr->aowner.active = false;
+      }
       return;
-    } else if (!hdr->active &&
-               (__sync_lock_test_and_set(&hdr->active, 1) == 0)) {
+  } else if (hdr->aowner.raw == me_inactive_) {
+    if (__sync_bool_compare_and_swap(&hdr->aowner.raw, me_inactive_, me_active_)) {
 #ifdef PROFILER_ON
       Profiler::GetProfiler().LogDeallocation(hdr->size_class, false);
-#endif //PROFILER_ON
+#endif  // PROFILER_ON
       LOG(kTrace, "[SlabAllcoator]: free in retired local block at %p, "
                   "sc: %lu, in_use: %lu", p, hdr->size_class, hdr->in_use);
-      // lock a block (by making it active) that was previously used by the
-      // current thread.
       hdr->in_use--;
       hdr->flist.Push(p);
 
       SlabHeader* cur_sc_hdr = my_headers_[hdr->size_class];
-      if (cur_sc_hdr->Utilization() > 80 &&
-          hdr->Utilization() < 20) {
+      if (cur_sc_hdr->Utilization() > 80) {
         SetActiveSlab(hdr->size_class, hdr);
         return;
       }
@@ -94,13 +94,16 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
         return;
       }
 
-      __sync_lock_release(&hdr->active);
+      MemoryBarrier();
+      hdr->aowner.active = false;
       return;
     }
   }
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogDeallocation(hdr->size_class, false, true);
-#endif //PROFILER_ON
+#endif  // PROFILER_ON
+  LOG(kTrace, "[SlabAllocator]: remote free for %p, owner: %lu, me: %lu",
+      p, hdr->aowner.owner, id_);
   DQScAllocator::Instance().Free(p, hdr->size_class, hdr->remote_flist);
 }
 

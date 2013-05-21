@@ -1,3 +1,7 @@
+// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
+
 #ifndef SCALLOC_THREAD_CACHE_H_
 #define SCALLOC_THREAD_CACHE_H_
 
@@ -20,7 +24,7 @@ class ThreadCache {
   static ThreadCache& GetCache();
 
   void* Allocate(const size_t size);
-  void Free(void* ptr, BlockHeader* hdr);
+  void Free(void* ptr, Header* hdr);
 
 #ifdef PROFILER_ON
   Profiler& GetProfiler() {return profiler_;}
@@ -45,7 +49,7 @@ class ThreadCache {
 
 always_inline ThreadCache& ThreadCache::GetCache() {
   if (LIKELY(tl_cache_ != NULL)) {
-    return *tl_cache_; 
+    return *tl_cache_;
   }
   // We cannot trust that we are initialized, so do this first.
   if (!module_init_) {
@@ -60,7 +64,7 @@ always_inline void* ThreadCache::Allocate(const size_t size) {
   return allocator_.Allocate(size);
 }
 
-always_inline void ThreadCache::Free(void* p, BlockHeader* hdr) {
+always_inline void ThreadCache::Free(void* p, Header* hdr) {
   allocator_.Free(p, reinterpret_cast<SlabHeader*>(hdr));
 }
 
