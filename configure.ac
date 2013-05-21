@@ -56,8 +56,15 @@ AC_ARG_ENABLE([loglevel],
 )
 
 AC_ARG_ENABLE([sbrkspace],
-    AS_HELP_STRING([--enable-sbrkspace=SBRK_SPACE], []), 
-    [AC_DEFINE_UNQUOTED([SBRK_SPACE], [$enableval], [log level])],
+    AS_HELP_STRING([--enable-sbrkspace=SBRK_SPACE], [Enable a custom sbrk size
+                    for the backend allocator]), 
+    [AC_DEFINE_UNQUOTED([SBRK_SPACE], [$enableval], [sbrk space size])],
+    []
+)
+
+AC_ARG_ENABLE([profiler],
+    AS_HELP_STRING([--enable-profiler], [Enable allocation profiling]), 
+    [AC_DEFINE([PROFILER_ON], [], [enable profiling])],
     []
 )
 
