@@ -11,9 +11,9 @@ TEST(Log2, values) {
   ASSERT_EQ(Log2(0), -1);
   for (unsigned i = 0; i < 32; ++i) {
   
-    int val = 1 << i;
-    int next_val = 1 << (i + 1);
-    int increment = (val > 64) ? (val / 16) : 1;
+    unsigned val = 1 << i;
+    unsigned next_val = 1 << (i + 1);
+    unsigned increment = (val > 64) ? (val / 16) : 1;
     
     ASSERT_EQ(Log2(val), i);
     for (unsigned j = val; j < next_val; j = j + increment) {
