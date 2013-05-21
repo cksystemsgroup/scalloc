@@ -10,7 +10,9 @@
 #include "allocators/slab_sc_allocator.h"
 #include "block_header.h"
 #include "common.h"
+#ifdef PROFILER_ON
 #include "profiler.h"
+#endif // PROFILER_ON
 
 namespace scalloc {
 
@@ -28,7 +30,7 @@ class ThreadCache {
 
 #ifdef PROFILER_ON
   Profiler& GetProfiler() {return profiler_;}
-#endif //PROFILER_ON
+#endif  // PROFILER_ON
 
  private:
   // Fast path thread-local access point.
@@ -42,9 +44,9 @@ class ThreadCache {
   static void DestroyThreadCache(void* p);
 
   SlabScAllocator allocator_;
-//#ifdef PROFILER_ON
+#ifdef PROFILER_ON
   Profiler profiler_;
-//#endif //PROFILER_ON
+#endif  // PROFILER_ON
 } cache_aligned;
 
 always_inline ThreadCache& ThreadCache::GetCache() {
@@ -67,15 +69,6 @@ always_inline void* ThreadCache::Allocate(const size_t size) {
 always_inline void ThreadCache::Free(void* p, Header* hdr) {
   allocator_.Free(p, reinterpret_cast<SlabHeader*>(hdr));
 }
-
-//#ifdef PROFILER_ON
-//always_inline Profiler& ThreadCache::GetProfiler() {
-//  if (tl_cache_ == NULL) {
-//    ErrorOut("TC not initialized");
-//  }
-//  return GetCache().profiler_;
-//}
-//#endif //PROFILER_ON
 
 }  // namespace scalloc
 

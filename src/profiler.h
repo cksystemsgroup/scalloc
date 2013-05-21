@@ -5,24 +5,43 @@
 #ifndef SCALLOC_PROFILER_H_
 #define SCALLOC_PROFILER_H_
 
+#include <pthread.h>
 #include <stddef.h>  // size_t
+#include <stdint.h>
+#include <stdio.h>
 
 #include "common.h"
+#include "log.h"
 
 namespace scalloc {
 
-class Profiler {
+class ProfilerInterface {
+ public:
+  virtual void LogAllocation(size_t size) = 0;
+  virtual void LogDeallocation(size_t blocksize = 0, bool hot = true, bool remote = false) = 0;
+  virtual void LogBlockStealing() = 0;
+  virtual void LogSizeclassRefill() = 0;
+};
+
+class DummyProfiler : public ProfilerInterface {
+ public:
+  void LogAllocation(size_t size) {}
+  void LogDeallocation(size_t blocksize = 0, bool hot = true, bool remote = false) {}
+  void LogBlockStealing() {}
+  void LogSizeclassRefill() {}
+};
+
+class Profiler : public ProfilerInterface {
 
  public:
-  
   ~Profiler () {
     if (fp_) {
       fclose(fp_);
     }
   }
-
-  static Profiler& GetProfiler();
-  inline void LogAllocation(size_t size) {
+  static void Enable() { enabled_ = true; }
+  static ProfilerInterface& GetProfiler();
+  virtual void LogAllocation(size_t size) {
     if (UNLIKELY(fp_ == NULL)) Init();
     allocation_count_++;
     allocated_bytes_count_ += size;
@@ -32,7 +51,7 @@ class Profiler {
       PrintStatistics();
     }
   }
-  inline void LogDeallocation(size_t blocksize = 0, bool hot = true, bool remote = false) {
+  virtual void LogDeallocation(size_t blocksize = 0, bool hot = true, bool remote = false) {
     if (UNLIKELY(fp_ == NULL)) Init();
     if (remote) {
       slow_free_count_++;
@@ -41,33 +60,29 @@ class Profiler {
       hot ? hot_free_count_++ : warm_free_count_++;
     }
   }
-  inline void LogBlockStealing() {
+  virtual void LogBlockStealing() {
     block_stealing_count_++;
   }
-  inline void LogSizeclassRefill() {
+  virtual void LogSizeclassRefill() {
     sizeclass_refill_count_++;
   }
 
  private:
-  FILE *fp_ = NULL;
+  FILE *fp_;
   pthread_t tid_;
-  uint32_t sizeclass_histogram_[33] = {
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0,
-    0 // for everythong larger than 1<<32
-  };
-  uint64_t block_stealing_count_ = 0;
-  uint64_t sizeclass_refill_count_ = 0;
-  uint64_t allocation_count_ = 0;
-  uint64_t allocated_bytes_count_ = 0;
-  uint64_t hot_free_count_ = 0;
-  uint64_t warm_free_count_ = 0;
-  uint64_t fast_free_count_ = 0;
-  uint64_t slow_free_count_ = 0;
+  uint32_t sizeclass_histogram_[33];  // 33 for everythong larger than 1<<32
+  uint64_t block_stealing_count_;
+  uint64_t sizeclass_refill_count_;
+  uint64_t allocation_count_;
+  uint64_t allocated_bytes_count_;
+  uint64_t hot_free_count_;
+  uint64_t warm_free_count_;
+  uint64_t fast_free_count_;
+  uint64_t slow_free_count_;
 
   static const size_t kTimeQuantum_ = 1UL << 20;
+  static bool enabled_;
+
   void Init() {
     tid_ = pthread_self();
     char filename[128];
