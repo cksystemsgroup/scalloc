@@ -13,6 +13,10 @@
 #include "page_heap.h"
 #include "size_map.h"
 
+#ifdef PROFILER_ON
+#include "profiler.h"
+#endif //PROFILER_ON
+
 namespace scalloc {
 
 class SlabScAllocator {
@@ -46,6 +50,9 @@ always_inline void* SlabScAllocator::Allocate(const size_t size) {
   SlabHeader* hdr = my_headers_[sc];
   void* result;
   if (hdr && (result = hdr->flist.Pop())) {
+#ifdef PROFILER_ON
+    Profiler::GetProfiler().LogAllocation(sc);
+#endif //PROFILER_ON
     hdr->in_use++;
     return result;
   }
@@ -56,12 +63,18 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
   if (hdr->owner == id_) {
     if (hdr->active) {
       // Local free for the currently used slab block.
+#ifdef PROFILER_ON
+      Profiler::GetProfiler().LogDeallocation(hdr->size_class);
+#endif //PROFILER_ON
       LOG(kTrace, "[SlabAllcoator]: free in active local block at %p", p);
       hdr->in_use--;
       hdr->flist.Push(p);
       return;
     } else if (!hdr->active &&
                (__sync_lock_test_and_set(&hdr->active, 1) == 0)) {
+#ifdef PROFILER_ON
+      Profiler::GetProfiler().LogDeallocation(hdr->size_class, false);
+#endif //PROFILER_ON
       LOG(kTrace, "[SlabAllcoator]: free in retired local block at %p, "
                   "sc: %lu, in_use: %lu", p, hdr->size_class, hdr->in_use);
       // lock a block (by making it active) that was previously used by the
@@ -85,6 +98,9 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       return;
     }
   }
+#ifdef PROFILER_ON
+  Profiler::GetProfiler().LogDeallocation(hdr->size_class, false, true);
+#endif //PROFILER_ON
   DQScAllocator::Instance().Free(p, hdr->size_class, hdr->remote_flist);
 }
 

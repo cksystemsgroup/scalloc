@@ -30,6 +30,9 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
     SlabHeader* hdr;
     void* p = DQScAllocator::Instance().Allocate(sc, id_, id_, &hdr);
     if (p != NULL) {
+#ifdef PROFILER_ON
+      Profiler::GetProfiler().LogBlockStealing();
+#endif //PROFILER_ON
       if (hdr != NULL) {
         SetActiveSlab(sc, hdr);
       } else {
@@ -46,6 +49,9 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
 }
 
 void SlabScAllocator::Refill(const size_t sc) {
+#ifdef PROFILER_ON
+  Profiler::GetProfiler().LogSizeclassRefill();
+#endif //PROFILER_ON
   LOG(kTrace, "[SlabAllocator]: refilling size class: %lu", sc);
   uintptr_t block = reinterpret_cast<uintptr_t>(PageHeap::GetHeap()->Get());
   if (block == 0) {
