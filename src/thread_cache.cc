@@ -43,7 +43,6 @@ void ThreadCache::InitModule() {
 
 ThreadCache* ThreadCache::NewCache() {
   ThreadCache* cache = g_threadcache_alloc.New();
-  cache = g_threadcache_alloc.New();
   cache->allocator_.Init(__sync_fetch_and_add(&g_thread_id, 1));
 
   // pthread_setspecific() may call malloc() itself, thus we MUST set
