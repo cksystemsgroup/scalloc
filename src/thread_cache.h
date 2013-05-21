@@ -21,8 +21,9 @@ class ThreadCache {
 
   void* Allocate(const size_t size);
   void Free(void* ptr, BlockHeader* hdr);
+
 #ifdef PROFILER_ON
-  Profiler& GetProfiler();
+  Profiler& GetProfiler() {return profiler_;}
 #endif //PROFILER_ON
 
  private:
@@ -37,9 +38,9 @@ class ThreadCache {
   static void DestroyThreadCache(void* p);
 
   SlabScAllocator allocator_;
-#ifdef PROFILER_ON
+//#ifdef PROFILER_ON
   Profiler profiler_;
-#endif //PROFILER_ON
+//#endif //PROFILER_ON
 } cache_aligned;
 
 always_inline ThreadCache& ThreadCache::GetCache() {
@@ -63,11 +64,14 @@ always_inline void ThreadCache::Free(void* p, BlockHeader* hdr) {
   allocator_.Free(p, reinterpret_cast<SlabHeader*>(hdr));
 }
 
-#ifdef PROFILER_ON
-always_inline Profiler& ThreadCache::GetProfiler() {
-  return profiler_;
-}
-#endif //PROFILER_ON
+//#ifdef PROFILER_ON
+//always_inline Profiler& ThreadCache::GetProfiler() {
+//  if (tl_cache_ == NULL) {
+//    ErrorOut("TC not initialized");
+//  }
+//  return GetCache().profiler_;
+//}
+//#endif //PROFILER_ON
 
 }  // namespace scalloc
 
