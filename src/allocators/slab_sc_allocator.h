@@ -70,7 +70,7 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       hdr->in_use--;
       hdr->flist.Push(p);
       if (hdr != my_headers_[hdr->size_class] &&
-          (hdr->Utilization() < kReuseThreshold)) {
+          (hdr->Utilization() < kSpanReuseThreshold)) {
         hdr->aowner.active = false;
       }
       return;
@@ -86,7 +86,7 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       hdr->flist.Push(p);
 
       SlabHeader* cur_sc_hdr = my_headers_[hdr->size_class];
-      if (cur_sc_hdr->Utilization() > 80) {
+      if (cur_sc_hdr->Utilization() > kLocalReuseThreshold) {
         SetActiveSlab(hdr->size_class, hdr);
 #ifdef PROFILER_ON 
         Profiler::GetProfiler().LogSpanReuse();

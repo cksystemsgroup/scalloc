@@ -49,7 +49,8 @@ always_inline int Log2(size_t v) {
   return r;
 }
 
-const size_t kReuseThreshold = REUSE_THRESHOLD;
+const size_t kSpanReuseThreshold = SPAN_REUSE_THRESHOLD;
+const size_t kLocalReuseThreshold = LOCAL_REUSE_THRESHOLD;
 
 // Prohibit reordering of instructions by the compiler.
 inline void CompilerBarrier() {
