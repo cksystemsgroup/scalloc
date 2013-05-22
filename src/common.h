@@ -24,7 +24,10 @@ const size_t kPageMultiple = 2;
 
 const size_t kMinAlignment = 16;
 
-const size_t kMaxSmallSize = 512;
+const size_t kMaxSmallShift = 9;
+const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
+const size_t kMaxMediumShift = 21;
+const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
 
 const size_t kNumClasses = kMaxSmallSize / kMinAlignment + 1;
 
