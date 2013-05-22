@@ -15,7 +15,7 @@
 
 #ifdef PROFILER_ON
 #include "profiler.h"
-#endif //PROFILER_ON
+#endif  // PROFILER_ON
 
 namespace scalloc {
 
@@ -53,7 +53,7 @@ always_inline void* SlabScAllocator::Allocate(const size_t size) {
   if (hdr && (result = hdr->flist.Pop())) {
 #ifdef PROFILER_ON
     Profiler::GetProfiler().LogAllocation(size);
-#endif //PROFILER_ON
+#endif  // PROFILER_ON
     hdr->in_use++;
     return result;
   }
@@ -69,12 +69,14 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       LOG(kTrace, "[SlabAllcoator]: free in active local block at %p", p);
       hdr->in_use--;
       hdr->flist.Push(p);
-      if (hdr != my_headers_[hdr->size_class] && hdr->Utilization() < kReuseThreshold) {
+      if (hdr != my_headers_[hdr->size_class] &&
+          (hdr->Utilization() < kReuseThreshold)) {
         hdr->aowner.active = false;
       }
       return;
   } else if (hdr->aowner.raw == me_inactive_) {
-    if (__sync_bool_compare_and_swap(&hdr->aowner.raw, me_inactive_, me_active_)) {
+    if (__sync_bool_compare_and_swap(
+          &hdr->aowner.raw, me_inactive_, me_active_)) {
 #ifdef PROFILER_ON
       Profiler::GetProfiler().LogDeallocation(hdr->size_class, false);
 #endif  // PROFILER_ON
