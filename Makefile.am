@@ -36,6 +36,7 @@ libscalloc_la_SOURCES = \
 	src/allocators/slab_sc_allocator.h \
 	src/atomic.h \
 	src/block_header.h \
+	src/common.h \
 	src/distributed_queue.cc \
 	src/distributed_queue.h \
 	src/freelist.h \
@@ -46,6 +47,7 @@ libscalloc_la_SOURCES = \
 	src/runtime_vars.h \
 	src/scalloc.cc \
 	src/scalloc.h \
+	src/scalloc_guard.h \
 	src/size_map.cc \
 	src/size_map.h \
 	src/thread_cache.cc \
