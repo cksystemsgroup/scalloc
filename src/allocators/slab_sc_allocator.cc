@@ -31,6 +31,9 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
   }
 
   if (my_headers_[sc] != NULL) {
+#ifdef PROFILER_ON
+    Profiler::GetProfiler().LogAllocation(size);
+#endif //PROFILER_ON
     // Only try to steal we had a slab at least once.
     SlabHeader* hdr;
     void* p = DQScAllocator::Instance().Allocate(sc, id_, id_, &hdr);

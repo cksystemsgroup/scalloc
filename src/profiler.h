@@ -13,46 +13,47 @@
 #include "common.h"
 #include "log.h"
 
+#define SCALLOC_PROFILER_METHOD_GUARD \
+    if (UNLIKELY(!enabled_)) return; \
+    if (UNLIKELY(self_allocating_)) return; \
+    if (UNLIKELY(fp_ == NULL)) Init();
+
 namespace scalloc {
 
-class ProfilerInterface {
- public:
-  virtual void LogAllocation(size_t size) = 0;
-  virtual void LogDeallocation(size_t blocksize = 0, bool hot = true, bool remote = false) = 0;
-  virtual void LogBlockStealing() = 0;
-  virtual void LogSizeclassRefill() = 0;
-};
-
-class DummyProfiler : public ProfilerInterface {
- public:
-  void LogAllocation(size_t size) {}
-  void LogDeallocation(size_t blocksize = 0, bool hot = true, bool remote = false) {}
-  void LogBlockStealing() {}
-  void LogSizeclassRefill() {}
-};
-
-class Profiler : public ProfilerInterface {
+//class Profiler : public ProfilerInterface {
+class Profiler {
 
  public:
+  
   ~Profiler () {
+    if (UNLIKELY(!enabled_)) return;
     if (fp_) {
       fclose(fp_);
     }
   }
+  
+  int GetType () { return 1;}
+  
   static void Enable() { enabled_ = true; }
-  static ProfilerInterface& GetProfiler();
-  virtual void LogAllocation(size_t size) {
-    if (UNLIKELY(fp_ == NULL)) Init();
+  
+  static Profiler& GetProfiler();
+  
+  void LogAllocation(size_t size) {
+    SCALLOC_PROFILER_METHOD_GUARD
+
     allocation_count_++;
     allocated_bytes_count_ += size;
+    if (Log2(size) > 31) ErrorOut("FUCK");
     sizeclass_histogram_[Log2(size)]++;
     if (UNLIKELY(allocated_bytes_count_ >= kTimeQuantum_)) {
       allocated_bytes_count_ = 0;
       PrintStatistics();
     }
   }
-  virtual void LogDeallocation(size_t blocksize = 0, bool hot = true, bool remote = false) {
-    if (UNLIKELY(fp_ == NULL)) Init();
+
+  void LogDeallocation(size_t blocksize = 0, bool hot = true, bool remote = false) {
+    SCALLOC_PROFILER_METHOD_GUARD
+
     if (remote) {
       slow_free_count_++;
     } else {
@@ -60,16 +61,24 @@ class Profiler : public ProfilerInterface {
       hot ? hot_free_count_++ : warm_free_count_++;
     }
   }
-  virtual void LogBlockStealing() {
+
+  void LogBlockStealing() {
+    SCALLOC_PROFILER_METHOD_GUARD
     block_stealing_count_++;
   }
-  virtual void LogSizeclassRefill() {
+
+  void LogSizeclassRefill() {
+    SCALLOC_PROFILER_METHOD_GUARD
     sizeclass_refill_count_++;
   }
 
  private:
+  static const size_t kTimeQuantum_ = 1UL << 20;
+  static bool enabled_;
+
   FILE *fp_;
   pthread_t tid_;
+  bool self_allocating_;
   uint32_t sizeclass_histogram_[33];  // 33 for everythong larger than 1<<32
   uint64_t block_stealing_count_;
   uint64_t sizeclass_refill_count_;
@@ -80,10 +89,9 @@ class Profiler : public ProfilerInterface {
   uint64_t fast_free_count_;
   uint64_t slow_free_count_;
 
-  static const size_t kTimeQuantum_ = 1UL << 20;
-  static bool enabled_;
-
   void Init() {
+    if (!enabled_) return;
+    self_allocating_ = true;
     tid_ = pthread_self();
     char filename[128];
     snprintf(filename, 128, "memtrace-%lu", tid_);
@@ -91,8 +99,11 @@ class Profiler : public ProfilerInterface {
     if (fp_ == NULL) {
       ErrorOut("unable to open file %s", &filename);
     }
+    self_allocating_ = false;
   }
   void PrintStatistics() {
+    SCALLOC_PROFILER_METHOD_GUARD
+
     uint64_t free_count = fast_free_count_ + slow_free_count_;
     fprintf(fp_, "Thread %lu; A %lu; R %lu; BS %lu; F %lu; H %lu; W %lu; S %lu; "
             "R/A %3.1f%%; " 
@@ -101,14 +112,14 @@ class Profiler : public ProfilerInterface {
             "W/FF %3.1f%%; " 
             "S/F %3.1f%%\n", 
             tid_, allocation_count_, sizeclass_refill_count_, block_stealing_count_,
-            free_count,
-            hot_free_count_, warm_free_count_, slow_free_count_,
+            free_count, hot_free_count_, warm_free_count_, slow_free_count_,
             100.0*(double)sizeclass_refill_count_/(double)allocation_count_,
             100.0*(double)block_stealing_count_/(double)allocation_count_,
             100.0*(double)hot_free_count_/(double)fast_free_count_,
             100.0*(double)warm_free_count_/(double)fast_free_count_,
             100.0*(double)slow_free_count_/(double)free_count
             );
+    fprintf(fp_, "cont. SC-HISTO: ");
     for (unsigned i = 0; i < 33; ++i) {
       if (sizeclass_histogram_[i] > 1000)
         fprintf(fp_, "%d=%uk;", i, sizeclass_histogram_[i]/1000);
