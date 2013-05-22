@@ -21,24 +21,27 @@
 
 namespace scalloc {
 
-//class Profiler : public ProfilerInterface {
 class Profiler {
-
  public:
-  
-  ~Profiler () {
-    if (UNLIKELY(!enabled_)) return;
+  static void Enable() {
+    enabled_ = true;
+  }
+
+  static Profiler& GetProfiler();
+
+  ~Profiler() {
+    if (UNLIKELY(!enabled_)) {
+      return;
+    }
     if (fp_) {
       fclose(fp_);
     }
   }
-  
-  int GetType () { return 1;}
-  
-  static void Enable() { enabled_ = true; }
-  
-  static Profiler& GetProfiler();
-  
+
+  int GetType() {
+    return 1;
+  }
+
   void LogAllocation(size_t size) {
     SCALLOC_PROFILER_METHOD_GUARD
 
@@ -63,7 +66,9 @@ class Profiler {
     }
   }
 
-  void LogDeallocation(size_t blocksize = 0, bool hot = true, bool remote = false) {
+  void LogDeallocation(size_t blocksize = 0,
+                       bool hot = true,
+                       bool remote = false) {
     SCALLOC_PROFILER_METHOD_GUARD
 
     if (remote) {
@@ -91,7 +96,7 @@ class Profiler {
 
   FILE *fp_;
   pthread_t tid_;
-  bool self_allocating_; // to avoid loops while Init() calls a malloc
+  bool self_allocating_;  // to avoid loops while Init() calls a malloc
   uint32_t sizeclass_histogram_[33];  // 33 for everythong larger than 1<<32
   uint64_t block_stealing_count_;
   uint64_t sizeclass_refill_count_;
@@ -111,35 +116,35 @@ class Profiler {
     self_allocating_ = true;
     tid_ = pthread_self();
     char filename[128];
-    snprintf(filename, 128, "memtrace-%lu", tid_);
+    snprintf(filename, sizeof(filename), "memtrace-%lu", tid_);
     fp_ = fopen(filename, "w");
     if (fp_ == NULL) {
       ErrorOut("unable to open file %s", &filename);
     }
     self_allocating_ = false;
   }
+
   void PrintStatistics() {
     SCALLOC_PROFILER_METHOD_GUARD
 
     uint64_t free_count = fast_free_count_ + slow_free_count_;
     fprintf(fp_, "Thread %lu; A %lu; R %lu; BS %lu; F %lu; H %lu; W %lu; S %lu; "
-            "R/A %3.1f%%; " 
-            "BS/A %3.1f%%; " 
-            "H/FF %3.1f%%; " 
-            "W/FF %3.1f%%; " 
+            "R/A %3.1f%%; "
+            "BS/A %3.1f%%; "
+            "H/FF %3.1f%%; "
+            "W/FF %3.1f%%; "
             "S/F %3.1f%%; "
             "Medium/A %3.1f%%; "
-            "tMedium(kC) %3.1f\n", 
+            "tMedium(kC) %3.1f\n",
             tid_, allocation_count_, sizeclass_refill_count_, block_stealing_count_,
             free_count, hot_free_count_, warm_free_count_, slow_free_count_,
-            100.0*(double)sizeclass_refill_count_/(double)allocation_count_,
-            100.0*(double)block_stealing_count_/(double)allocation_count_,
-            100.0*(double)hot_free_count_/(double)fast_free_count_,
-            100.0*(double)warm_free_count_/(double)fast_free_count_,
-            100.0*(double)slow_free_count_/(double)free_count,
-            100.0*(double)medium_object_allocation_count_/(double)allocation_count_,
-            ((double)sum_of_interarrival_times_/(double)medium_object_allocation_count_)/1000
-            );
+            100.0*static_cast<double>(sizeclass_refill_count_)/static_cast<double>(allocation_count_),
+            100.0*static_cast<double>(block_stealing_count_)/static_cast<double>(allocation_count_),
+            100.0*static_cast<double>(hot_free_count_)/static_cast<double>(fast_free_count_),
+            100.0*static_cast<double>(warm_free_count_)/static_cast<double>(fast_free_count_),
+            100.0*static_cast<double>(slow_free_count_)/static_cast<double>(free_count),
+            100.0*static_cast<double>(medium_object_allocation_count_)/static_cast<double>(allocation_count_),
+            (static_cast<double>(sum_of_interarrival_times_)/static_cast<double>(medium_object_allocation_count_))/1000);
     fprintf(fp_, "cont. SC-HISTO: ");
     for (unsigned i = 0; i < 33; ++i) {
       if (sizeclass_histogram_[i] > 1000)
@@ -149,8 +154,8 @@ class Profiler {
     }
     fprintf(fp_, "\n");
   }
-
 } cache_aligned;
 
-} //namespace scalloc
+}  // namespace scalloc
+
 #endif  // SCALLOC_PROFILER_H_

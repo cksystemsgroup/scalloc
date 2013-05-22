@@ -10,9 +10,10 @@
 #include "allocators/slab_sc_allocator.h"
 #include "block_header.h"
 #include "common.h"
+
 #ifdef PROFILER_ON
 #include "profiler.h"
-#endif // PROFILER_ON
+#endif  // PROFILER_ON
 
 namespace scalloc {
 

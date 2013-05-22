@@ -19,7 +19,7 @@
 #include "size_map.h"
 #include "thread_cache.h"
 
-#ifdef PROFILER_ON 
+#ifdef PROFILER_ON
 #include "profiler.h"
 scalloc::Profiler global_profiler;
 #endif  // PROFILER_ON
@@ -38,7 +38,7 @@ ScallocGuard::ScallocGuard() {
 
     scalloc::PageHeap::GetHeap()->Refill(80);
     free(malloc(1));
-#ifdef PROFILER_ON 
+#ifdef PROFILER_ON
     scalloc::Profiler::Enable();
 #endif  // PROFILER_ON
   }

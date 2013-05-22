@@ -31,16 +31,16 @@ const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
 
 const size_t kNumClasses = kMaxSmallSize / kMinAlignment + 1;
 
-static const char log_table[256] = {
 #define LT(n) n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n
- -1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
- LT(4), LT(5), LT(5), LT(6), LT(6), LT(6), LT(6),
- LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7)
+static const char log_table[256] = {
+  -1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
+  LT(4), LT(5), LT(5), LT(6), LT(6), LT(6), LT(6),
+  LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7)
 };
 
 // base-2 logarithm of 32-bit integers
 always_inline int Log2(size_t v) {
-  unsigned int t, tt, r; //temp vars
+  unsigned int t, tt, r;  // temp vars
   if ((tt = (v >> 16))) {
     r =  (t = (tt >> 8)) ? 24 + log_table[t] : 16 + log_table[tt];
   } else {
