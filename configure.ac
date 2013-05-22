@@ -68,6 +68,13 @@ AC_ARG_ENABLE([profiler],
     []
 )
 
+AC_ARG_ENABLE([global-cleanup],
+    AS_HELP_STRING([--enable-global-cleanup], [Enable global cleanup in remote
+                    freelist]), 
+    [AC_DEFINE([GLOBAL_CLEANUP], [], [global cleanup])],
+    []
+)
+
 AC_ARG_ENABLE([reuse-threshold],
     AS_HELP_STRING([--enable-reuse-threshold=PERCENT], []),
     [AC_DEFINE_UNQUOTED([REUSE_THRESHOLD], [$enableval], [reuse threshold])],
