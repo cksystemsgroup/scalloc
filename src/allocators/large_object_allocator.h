@@ -30,7 +30,7 @@ inline void* LargeObjectAllocator::Alloc(size_t size) {
   LargeObjectHeader* lbh = reinterpret_cast<LargeObjectHeader*>(p);
   lbh->Reset(actual_size);
 #ifdef PROFILER_ON
-  Profiler::GetProfiler().LogAllocation(actual_size);
+  Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
   LOG(kTrace, "[LargeObjectAllocator]: allocation size: %lu, actual size: %lu, "
               "p: %p", size, actual_size, reinterpret_cast<void*>(p));

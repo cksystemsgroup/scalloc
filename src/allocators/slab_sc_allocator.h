@@ -52,7 +52,7 @@ always_inline void* SlabScAllocator::Allocate(const size_t size) {
   void* result;
   if (hdr && (result = hdr->flist.Pop())) {
 #ifdef PROFILER_ON
-    Profiler::GetProfiler().LogAllocation(sc);
+    Profiler::GetProfiler().LogAllocation(size);
 #endif //PROFILER_ON
     hdr->in_use++;
     return result;
