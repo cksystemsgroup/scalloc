@@ -43,6 +43,10 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
 #endif  // PROFILER_ON
       if (hdr != NULL) {
         SetActiveSlab(sc, hdr);
+#ifdef PROFILER_ON
+        Profiler::GetProfiler().LogSpanReuse(true);
+#endif  // PROFILER_ON
+
       } else {
 #ifdef GLOBAL_CLEANUP
         if (reinterpret_cast<SlabHeader*>(

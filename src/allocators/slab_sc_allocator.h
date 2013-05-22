@@ -88,6 +88,9 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       SlabHeader* cur_sc_hdr = my_headers_[hdr->size_class];
       if (cur_sc_hdr->Utilization() > 80) {
         SetActiveSlab(hdr->size_class, hdr);
+#ifdef PROFILER_ON 
+        Profiler::GetProfiler().LogSpanReuse();
+#endif  // PROFILER_ON
         return;
       }
 
