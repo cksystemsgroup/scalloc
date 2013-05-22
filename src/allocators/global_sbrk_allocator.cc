@@ -27,7 +27,12 @@ const size_t kMmapSize = 1UL << 31;  // 2GiB
 uintptr_t GlobalSbrkAllocator::current_;
 
 void GlobalSbrkAllocator::InitModule() {
-  void* p = mmap(0, kMmapSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  void* p = mmap(0,
+                 kMmapSize,
+                 PROT_READ | PROT_WRITE,
+                 MAP_PRIVATE | MAP_ANONYMOUS,
+                 -1,
+                 0);
   if (p == MAP_FAILED) {
     ErrorOut("[GlobalSbrkAllocator] mmap failed. errno: %lu", errno);
   }

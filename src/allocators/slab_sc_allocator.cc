@@ -45,7 +45,8 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
         SetActiveSlab(sc, hdr);
       } else {
 #ifdef GLOBAL_CLEANUP
-        if (reinterpret_cast<SlabHeader*>(BlockHeader::GetFromObject(p))->aowner.owner != id_) {
+        if (reinterpret_cast<SlabHeader*>(
+                BlockHeader::GetFromObject(p))->aowner.owner != id_) {
           Refill(sc);
         }
 #endif  // GLOBAL_CLEANUP

@@ -1,3 +1,7 @@
+// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
+
 #ifndef SCALLOC_ALLOCATORS_LARGE_OBJECT_ALLOCATOR_H_
 #define SCALLOC_ALLOCATORS_LARGE_OBJECT_ALLOCATOR_H_
 
@@ -21,9 +25,11 @@ class LargeObjectAllocator {
 };
 
 inline void* LargeObjectAllocator::Alloc(size_t size) {
-  size = PadSize(size + sizeof(LargeObjectHeader), RuntimeVars::SystemPageSize());
+  size = PadSize(size + sizeof(LargeObjectHeader),
+                 RuntimeVars::SystemPageSize());
   size_t actual_size;
-  uintptr_t p = reinterpret_cast<uintptr_t>(scalloc::SystemAlloc_Mmap(size, &actual_size));
+  uintptr_t p = reinterpret_cast<uintptr_t>(
+      scalloc::SystemAlloc_Mmap(size, &actual_size));
   if (UNLIKELY(p % RuntimeVars::SystemPageSize() != 0)) {
     ErrorOut("large malloc alignment failed");
   }
@@ -34,7 +40,7 @@ inline void* LargeObjectAllocator::Alloc(size_t size) {
 #endif  // PROFILER_ON
   LOG(kTrace, "[LargeObjectAllocator]: allocation size: %lu, actual size: %lu, "
               "p: %p", size, actual_size, reinterpret_cast<void*>(p));
-  return reinterpret_cast<void*>(p + sizeof(*lbh)); 
+  return reinterpret_cast<void*>(p + sizeof(*lbh));
 };
 
 inline void LargeObjectAllocator::Free(LargeObjectHeader* lbh) {
