@@ -88,6 +88,12 @@ AC_ARG_ENABLE([local-reuse-threshold],
      active span with a potentially reusable span])]
 )
 
+AC_ARG_ENABLE([span-size],
+    AS_HELP_STRING([--enable-pan-size=PAGES], []),
+    [AC_DEFINE_UNQUOTED([SPAN_SIZE], [$enableval], [span size in system pages])],
+    [AC_DEFINE([SPAN_SIZE], [2], [span size in system pages])]
+)
+
 dnl enable freelist bounds checks
 AC_ARG_ENABLE([check-freelist],
     AS_HELP_STRING([--check-freelist], [Enable bound checks in freelist]))
