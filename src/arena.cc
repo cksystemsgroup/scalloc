@@ -6,8 +6,8 @@
 
 #include "common.h"
 
-cache_aligned GlobalSbrkAllocator SmallArena; 
-cache_aligned GlobalSbrkAllocator MediumArena; 
+cache_aligned GlobalSbrkAllocator SmallArena;
+cache_aligned GlobalSbrkAllocator MediumArena;
 
 void InitArenas() {
   SmallArena.Init(kSmallSpace);

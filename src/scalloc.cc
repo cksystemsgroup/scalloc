@@ -77,7 +77,6 @@ always_inline void free(void* p) {
     ThreadCache::GetCache().Free(p, reinterpret_cast<SlabHeader*>(
         BlockHeader::GetFromObject(p)));
   } else if (MediumArena.InArena(p)) {
-
   } else {
     LargeObjectAllocator::Free(reinterpret_cast<LargeObjectHeader*>(
         BlockHeader::GetFromObject(p)));
