@@ -118,12 +118,14 @@ extern "C" void* scalloc_realloc(void* ptr, size_t size) __THROW {
   }
   void* new_ptr;
   size_t old_size;
-  BlockHeader* hdr = BlockHeader::GetFromObject(ptr);
-  if (LIKELY(hdr->type == kSlab)) {
+  if (SmallArena.InArena(ptr)) {
     old_size = scalloc::SizeMap::Instance().ClassToSize(
-        reinterpret_cast<SlabHeader*>(hdr)->size_class);
+        reinterpret_cast<SlabHeader*>(BlockHeader::GetFromObject(ptr))->size_class);
+
+  } else if (MediumArena.InArena(ptr)) {
+    // TODO(mlippautz): medium size
   } else {
-    old_size = reinterpret_cast<LargeObjectHeader*>(hdr)->size -
+    old_size = reinterpret_cast<LargeObjectHeader*>(BlockHeader::GetFromObject(ptr))->size -
                sizeof(LargeObjectHeader);
   }
   if (size <= old_size) {
