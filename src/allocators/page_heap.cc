@@ -4,6 +4,7 @@
 
 #include "allocators/page_heap.h"
 
+#include "arena.h"
 #include "common.h"
 #include "log.h"
 #include "runtime_vars.h"
@@ -24,7 +25,7 @@ void* PageHeap::AsyncRefill() {
     refill_ = 1;
   }
   uintptr_t ptr = reinterpret_cast<uintptr_t>(
-      GlobalSbrkAllocator::Allocate(refill_ * block_size));
+      SmallArena.Allocate(refill_ * block_size));
   void* result = reinterpret_cast<void*>(ptr);
   ptr += block_size;
   for (size_t i = 1; i < refill_; i++) {
@@ -38,7 +39,7 @@ void* PageHeap::AsyncRefill() {
 void PageHeap::Refill(const size_t refill) {
   const size_t block_size = RuntimeVars::SystemPageSize() * kPageMultiple;
   uintptr_t ptr = reinterpret_cast<uintptr_t>(
-      GlobalSbrkAllocator::Allocate(refill * block_size));
+      SmallArena.Allocate(refill * block_size));
   for (size_t i = 0; i < refill; i++) {
     Put(reinterpret_cast<void*>(ptr));
     ptr += block_size;

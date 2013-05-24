@@ -34,6 +34,8 @@ libscalloc_la_SOURCES = \
 	src/allocators/page_heap.h \
 	src/allocators/slab_sc_allocator.cc \
 	src/allocators/slab_sc_allocator.h \
+	src/arena.h \
+	src/arena.cc \
 	src/atomic.h \
 	src/block_header.h \
 	src/common.h \
@@ -106,6 +108,7 @@ distributed_queue_unittest_LDADD = \
 	$(GTEST_LIBS)
 distributed_queue_unittest_SOURCES = \
 	src/allocators/global_sbrk_allocator.cc \
+	src/arena.cc \
 	src/distributed_queue.cc \
 	src/distributed_queue.h \
 	src/log.cc \
@@ -150,6 +153,7 @@ page_heap_allocator_unittest_LDADD = \
 	$(GTEST_LIBS)
 page_heap_allocator_unittest_SOURCES = \
 	src/allocators/global_sbrk_allocator.cc \
+	src/arena.cc \
 	src/log.cc \
 	src/test/page_heap_allocator_unittest.cc \
 	src/runtime_vars.cc \
@@ -163,6 +167,7 @@ page_heap_unittest_LDADD = \
 page_heap_unittest_SOURCES = \
 	src/allocators/global_sbrk_allocator.cc \
 	src/allocators/page_heap.cc \
+	src/arena.cc \
 	src/distributed_queue.cc \
 	src/log.cc \
 	src/test/page_heap_unittest.cc \
@@ -189,6 +194,7 @@ slab_sc_allocator_unittest_SOURCES = \
 	src/allocators/global_sbrk_allocator.cc \
 	src/allocators/page_heap.cc \
 	src/allocators/slab_sc_allocator.cc \
+	src/arena.cc \
 	src/distributed_queue.cc \
 	src/log.cc \
 	src/size_map.cc \

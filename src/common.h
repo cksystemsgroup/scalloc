@@ -31,6 +31,16 @@ const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
 
 const size_t kNumClasses = kMaxSmallSize / kMinAlignment + 1;
 
+#ifdef SBRK_SPACE  // TODO(mlippautz): rename
+const size_t kSmallSpace = SBRK_SPACE;
+#elif defined  __x86_64__
+const size_t kSmallSpace = 1UL << 35;  // 32GiB
+#elif defined __i386__
+const size_t kSmallSpace = 1UL << 31;  // 2GiB
+#else
+#error "platform not supported"
+#endif
+
 #define LT(n) n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n
 static const char log_table[256] = {
   -1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,

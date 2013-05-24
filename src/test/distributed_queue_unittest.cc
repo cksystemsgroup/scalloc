@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 
 #include "allocators/global_sbrk_allocator.h"
+#include "arena.h"
+#include "common.h"
 #include "distributed_queue.h"
 #include "runtime_vars.h"
 
@@ -23,7 +25,7 @@ void* GetObject() {
 
 DistributedQueue* InitDQ() {
   RuntimeVars::InitModule();
-  GlobalSbrkAllocator::InitModule();
+  InitArenas();
   DistributedQueue::InitModule();
 
   static DistributedQueue dq;

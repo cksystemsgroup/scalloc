@@ -12,6 +12,7 @@
 #include "allocators/dq_sc_allocator.h"
 #include "allocators/page_heap.h"
 #include "allocators/slab_sc_allocator.h"
+#include "arena.h"
 #include "common.h"
 #include "distributed_queue.h"
 #include "runtime_vars.h"
@@ -24,13 +25,15 @@
 scalloc::Profiler global_profiler;
 #endif  // PROFILER_ON
 
+GlobalSbrkAllocator SmallArea;
+
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
     RuntimeVars::InitModule();
     scalloc::SizeMap::InitModule();
 
-    GlobalSbrkAllocator::InitModule();
+    InitArenas();
 
     DistributedQueue::InitModule();
     scalloc::DQScAllocator::InitModule();

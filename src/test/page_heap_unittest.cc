@@ -4,8 +4,8 @@
 
 #include <gtest/gtest.h>
 
-#include "allocators/global_sbrk_allocator.h"
 #include "allocators/page_heap.h"
+#include "arena.h"
 #include "distributed_queue.h"
 #include "runtime_vars.h"
 
@@ -13,7 +13,7 @@ namespace {
 
 void InitHeap() {
   RuntimeVars::InitModule();
-  GlobalSbrkAllocator::InitModule();
+  InitArenas();
 
   DistributedQueue::InitModule();
   scalloc::PageHeap::InitModule();
