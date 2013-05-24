@@ -55,10 +55,10 @@ AC_ARG_ENABLE([loglevel],
     [AC_DEFINE([LOG_LEVEL], [kWarning], [log level])]
 )
 
-AC_ARG_ENABLE([sbrkspace],
-    AS_HELP_STRING([--enable-sbrkspace=SBRK_SPACE], [Enable a custom sbrk size
-                    for the backend allocator]), 
-    [AC_DEFINE_UNQUOTED([SBRK_SPACE], [$enableval], [sbrk space size])],
+AC_ARG_ENABLE([small-space],
+    AS_HELP_STRING([--enable-small-space=SMALL_SPACE_SIZE], [enable custom smalls
+                    space size]), 
+    [AC_DEFINE_UNQUOTED([SMALL_SPACE_SIZE], [$enableval], [small space size])],
     []
 )
 
