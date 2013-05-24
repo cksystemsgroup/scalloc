@@ -32,7 +32,7 @@ const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
 const size_t kNumClasses = kMaxSmallSize / kMinAlignment + 1;
 
 #ifdef SMALL_SPACE_SIZE
-const size_t kSmallSpace = SBRK_SPACE;
+const size_t kSmallSpace = SMALL_SPACE_SIZE;
 #elif defined  __x86_64__
 const size_t kSmallSpace = 1UL << 35;  // 32GiB
 #elif defined __i386__
