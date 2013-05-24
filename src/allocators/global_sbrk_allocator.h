@@ -18,11 +18,17 @@ class GlobalSbrkAllocator {
   void Init(size_t size);
   void* Allocate(const size_t size);
   void Free(void* p, size_t len);
+  bool InArena(void* p);
 
  private:
+  uintptr_t start_;
   uintptr_t current_;
   size_t size_;
 } cache_aligned;
+
+always_inline bool GlobalSbrkAllocator::InArena(void* p) {
+  return (reinterpret_cast<uintptr_t>(p) ^ start_) < size_;
+}
 
 inline void* GlobalSbrkAllocator::Allocate(const size_t size) {
   return reinterpret_cast<void*>(__sync_fetch_and_add(&current_, size));

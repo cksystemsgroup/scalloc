@@ -73,11 +73,14 @@ always_inline void free(void* p) {
   if (UNLIKELY(p == NULL)) {
     return;
   }
-  BlockHeader* hdr = BlockHeader::GetFromObject(p);
-  if (hdr->type == kSlab) {
-    ThreadCache::GetCache().Free(p, reinterpret_cast<SlabHeader*>(hdr));
-  } else if (hdr->type == kLargeObject) {
-    LargeObjectAllocator::Free(reinterpret_cast<LargeObjectHeader*>(hdr));
+  if (SmallArena.InArena(p)) {
+    ThreadCache::GetCache().Free(p, reinterpret_cast<SlabHeader*>(
+        BlockHeader::GetFromObject(p)));
+  } else if (MediumArena.InArena(p)) {
+
+  } else {
+    LargeObjectAllocator::Free(reinterpret_cast<LargeObjectHeader*>(
+        BlockHeader::GetFromObject(p)));
   }
   return;
 }
