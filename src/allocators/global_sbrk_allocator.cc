@@ -13,6 +13,6 @@ void GlobalSbrkAllocator::Init(size_t size) {
   if (reinterpret_cast<void*>(p) == MAP_FAILED) {
     ErrorOut("[GlobalSbrkAllocator] mmap failed. errno: %lu", errno);
   }
-  p += p % size_;
+  p += size_ - (p % size_);
   current_ = p;
 }
