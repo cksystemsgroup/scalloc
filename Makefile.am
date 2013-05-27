@@ -27,6 +27,8 @@ lib_LTLIBRARIES = libscalloc.la
 libscalloc_la_SOURCES = \
 	src/allocators/dq_sc_allocator.cc \
 	src/allocators/dq_sc_allocator.h \
+	src/allocators/half_fit.cc \
+	src/allocators/half_fit.h \
 	src/allocators/global_sbrk_allocator.cc \
 	src/allocators/global_sbrk_allocator.h \
 	src/allocators/large_object_allocator.h \
@@ -71,7 +73,8 @@ TEST_CPPFLAGS = \
 	-Wall -Werror \
 	-std=c++0x \
 	-I$(top_srcdir)/src \
-	-m64
+	-m64 \
+	-ggdb
 
 #
 # Unit tests using googletest
@@ -126,6 +129,16 @@ freelist_unittest_LDADD = \
 freelist_unittest_SOURCES = \
 	src/log.cc \
 	src/test/freelist_unittest.cc
+
+TESTS += half_fit_unittest
+half_fit_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+half_fit_unittest_LDADD = \
+	$(GTEST_LIBS)
+half_fit_unittest_SOURCES = \
+	src/allocators/half_fit.cc \
+	src/log.cc \
+	src/test/half_fit_unittest.cc
 
 TESTS += large_object_allocator_unittest
 large_object_allocator_unittest_CPPFLAGS = \
