@@ -68,6 +68,7 @@ HalfFit::ListHeader* HalfFit::ListGet(const size_t sc) {
 }
 
 void* HalfFit::Allocate(const size_t size) {
+  SpinLockHolder holder(&lock_);
   size_t sc = SizeToSizeClass(size);
   used_++;
   ListHeader* elem = NULL;
@@ -96,6 +97,7 @@ HalfFit::ObjectHeader* HalfFit::Split(ObjectHeader* oh, size_t level) {
 }
 
 void HalfFit::Free(void* p) {
+  SpinLockHolder holder(&lock_);
   used_--;
   ListHeader* lh = reinterpret_cast<ListHeader*>(p);
   TryMerge(GetObjectHeader(lh));

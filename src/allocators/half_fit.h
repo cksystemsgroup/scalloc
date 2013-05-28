@@ -6,6 +6,7 @@
 #include <stdint.h>
 
 #include "common.h"
+#include "spinlock-inl.h"
 
 class HalfFit {
  public:
@@ -35,6 +36,7 @@ class HalfFit {
     ListHeader* next;
   };
 
+  SpinLock lock_;
   ListHeader* flist_[kClasses];
   size_t used_;
 
@@ -100,5 +102,6 @@ inline HalfFit::ObjectHeader* HalfFit::GetFooter(ObjectHeader* oh) {
 }
 
 inline bool HalfFit::Empty() {
+  SpinLockHolder holder(&lock_);
   return used_ == 0;
 }
