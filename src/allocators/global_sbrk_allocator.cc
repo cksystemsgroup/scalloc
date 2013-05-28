@@ -15,4 +15,5 @@ void GlobalSbrkAllocator::Init(size_t size) {
   }
   p += size_ - (p % size_);
   current_ = p;
+  start_ = current_;
 }
