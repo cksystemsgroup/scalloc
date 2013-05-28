@@ -10,16 +10,14 @@
 
 class HalfFit {
  public:
+  static size_t SizeOf(void* p);
+
   void Init(void* block, size_t len);
   void* Allocate(const size_t size);
   void Free(void* p);
   bool Empty();
 
  private:
-  static const size_t kMinShift = 10;
-  static const size_t kMinSize = 1UL << kMinShift;
-  static const size_t kClasses = 12;
-  static const size_t kLargestSize = 1UL << (kMinShift + kClasses - 1);
 
   struct ObjectHeader {
     bool used;
@@ -36,6 +34,15 @@ class HalfFit {
     ListHeader* next;
   };
 
+  static const size_t kMinShift = 10;
+  static const size_t kMinSize = 1UL << kMinShift;
+  static const size_t kClasses = 12;
+  static const size_t kLargestSize = 1UL << (kMinShift + kClasses - 1);
+
+  static size_t SizeToSizeClass(size_t size);
+  static size_t SizeClassToSize(size_t sc);
+  static ObjectHeader* GetObjectHeader(ListHeader* lh);
+
   SpinLock lock_;
   ListHeader* flist_[kClasses];
   size_t used_;
@@ -43,16 +50,18 @@ class HalfFit {
   void ListRemove(ListHeader* elem, const size_t sc);
   void ListAdd(ListHeader* elem, const size_t sc);
   ListHeader* ListGet(const size_t sc);
-  size_t SizeToSizeClass(size_t size);
-  size_t SizeClassToSize(size_t sc);
   ObjectHeader* GetLeftHeader(ObjectHeader* oh);
   ObjectHeader* GetRightHeader(ObjectHeader* oh);
   ObjectHeader* GetFooter(ObjectHeader* oh);
-  ObjectHeader* GetObjectHeader(ListHeader* lh);
   ListHeader* GetListHeader(ObjectHeader* oh);
   ObjectHeader* Split(ObjectHeader* oh, size_t level);
   void TryMerge(ObjectHeader* oh);
 };
+
+inline size_t HalfFit::SizeOf(void* p) {
+  ObjectHeader* oh = GetObjectHeader(reinterpret_cast<ListHeader*>(p));
+  return SizeClassToSize(oh->sc);
+}
 
 inline size_t HalfFit::SizeToSizeClass(size_t size) {
   size += 2 * sizeof(ObjectHeader);
