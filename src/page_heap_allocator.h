@@ -48,7 +48,7 @@ class PageHeapAllocator {
     }
 
     if (tsize_ > alloc_increment_) {
-      ErrorOut("PageHeapAllocator: type T is too largefor current "
+      ErrorOut("PageHeapAllocator: type T is too large for current "
                "allocation increment.");
     }
 
