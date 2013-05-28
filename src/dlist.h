@@ -58,6 +58,7 @@ inline size_t DList<T>::Len() {
 
 template<typename T>
 inline void DList<T>::Insert(T data) {
+  len_++;
   Node<T>* n = allocator_.New();
   n->next = list_;
   n->prev = NULL;
@@ -70,6 +71,7 @@ inline void DList<T>::Insert(T data) {
 
 template<typename T>
 inline void DList<T>::Remove(T data) {
+  len_--;
   Node<T>* n = list_;
   while (n != NULL) {
     if (n->data == data) {
