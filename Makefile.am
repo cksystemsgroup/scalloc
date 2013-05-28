@@ -121,6 +121,18 @@ distributed_queue_unittest_SOURCES = \
 	src/system-alloc.cc \
 	src/test/distributed_queue_unittest.cc
 
+TESTS += dlist_unittest
+dlist_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+dlist_unittest_LDADD = \
+	$(GTEST_LIBS)
+dlist_unittest_SOURCES = \
+	src/allocators/global_sbrk_allocator.cc \
+	src/arena.cc \
+	src/log.cc \
+	src/test/dlist_unittest.cc \
+	src/runtime_vars.cc
+
 TESTS += freelist_unittest
 freelist_unittest_CPPFLAGS = \
 	$(TEST_CPPFLAGS)
