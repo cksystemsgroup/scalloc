@@ -2,13 +2,11 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#include "arena.h"
+#include "allocators/medium_size_allocator.h"
 
-#include "common.h"
+bool MediumSizeAllocator::enabled_;
+GlobalSbrkAllocator MediumSizeAllocator::arena_;
+SpinLock MediumSizeAllocator::lock_;
+DList<HalfFit*> MediumSizeAllocator::list_;
 
-cache_aligned GlobalSbrkAllocator SmallArena;
-
-void InitArenas() {
-  SmallArena.Init(kSmallSpace);
-}
 

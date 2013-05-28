@@ -8,7 +8,6 @@
 #include "allocators/global_sbrk_allocator.h"
 
 extern GlobalSbrkAllocator SmallArena;
-extern GlobalSbrkAllocator MediumArena;
 
 void InitArenas();
 

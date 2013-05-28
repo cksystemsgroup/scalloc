@@ -10,6 +10,7 @@
 #include "allocators/global_sbrk_allocator.h"
 #include "allocators/large_object_allocator.h"
 #include "allocators/dq_sc_allocator.h"
+#include "allocators/medium_size_allocator.h"
 #include "allocators/page_heap.h"
 #include "allocators/slab_sc_allocator.h"
 #include "arena.h"
@@ -38,6 +39,7 @@ ScallocGuard::ScallocGuard() {
     DistributedQueue::InitModule();
     scalloc::DQScAllocator::InitModule();
     scalloc::SlabScAllocator::InitModule();
+    MediumSizeAllocator::InitModule();
 
     scalloc::PageHeap::GetHeap()->Refill(80);
     free(malloc(1));
@@ -60,6 +62,8 @@ always_inline void* malloc(const size_t size) {
   void* p;
   if (LIKELY(size <= kMaxSmallSize)) {
     p = ThreadCache::GetCache().Allocate(size);
+  } else if (size < kMaxMediumSize && MediumSizeAllocator::Enabled()) {
+    p = MediumSizeAllocator::Allocate(size);
   } else {
     p = LargeObjectAllocator::Alloc(size);
   }
@@ -76,7 +80,8 @@ always_inline void free(void* p) {
   if (SmallArena.InArena(p)) {
     ThreadCache::GetCache().Free(p, reinterpret_cast<SlabHeader*>(
         BlockHeader::GetFromObject(p)));
-  } else if (MediumArena.InArena(p)) {
+  } else if (MediumSizeAllocator::InRange(p)) {
+    MediumSizeAllocator::Free(p);
   } else {
     LargeObjectAllocator::Free(reinterpret_cast<LargeObjectHeader*>(
         BlockHeader::GetFromObject(p)));
@@ -121,8 +126,8 @@ extern "C" void* scalloc_realloc(void* ptr, size_t size) __THROW {
     old_size = scalloc::SizeMap::Instance().ClassToSize(
         reinterpret_cast<SlabHeader*>(BlockHeader::GetFromObject(ptr))->size_class);
 
-  } else if (MediumArena.InArena(ptr)) {
-    // TODO(mlippautz): medium size
+  } else if (MediumSizeAllocator::InRange(ptr)) {
+    old_size = MediumSizeAllocator::SizeOf(ptr); 
   } else {
     old_size = reinterpret_cast<LargeObjectHeader*>(BlockHeader::GetFromObject(ptr))->size -
                sizeof(LargeObjectHeader);

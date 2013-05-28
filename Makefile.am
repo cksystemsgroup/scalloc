@@ -32,6 +32,8 @@ libscalloc_la_SOURCES = \
 	src/allocators/global_sbrk_allocator.cc \
 	src/allocators/global_sbrk_allocator.h \
 	src/allocators/large_object_allocator.h \
+	src/allocators/medium_size_allocator.cc \
+	src/allocators/medium_size_allocator.h \
 	src/allocators/page_heap.cc \
 	src/allocators/page_heap.h \
 	src/allocators/slab_sc_allocator.cc \
