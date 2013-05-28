@@ -12,6 +12,7 @@
 #include "size_map.h"
 
 enum BlockType {
+  UNDEF,
   kSlab,
   kLargeObject,
   kForward
