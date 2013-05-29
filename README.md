@@ -17,7 +17,13 @@ it is assumed that  `__thread` is present (until we move to C++11's
 
 ## Building [![Build Status](https://drone.io/github.com/cksystemsgroup/scalloc/status.png)](https://drone.io/github.com/cksystemsgroup/scalloc/latest)
 
-This is as easy as
+Checkout the latest release version
+
+    git clone https://github.com/cksystemsgroup/scalloc.git
+    cd scalloc
+    git checkout release
+
+Then buildig is as easy as
 
     ./autogen.sh
     ./configure
