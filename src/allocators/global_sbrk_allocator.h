@@ -31,7 +31,11 @@ always_inline bool GlobalSbrkAllocator::InArena(void* p) {
 }
 
 inline void* GlobalSbrkAllocator::Allocate(const size_t size) {
-  return reinterpret_cast<void*>(__sync_fetch_and_add(&current_, size));
+  void* p =  reinterpret_cast<void*>(__sync_fetch_and_add(&current_, size));
+  if (reinterpret_cast<uintptr_t>(p) > (start_ + size_)) {
+    ErrorOut("GlobalSbrkAllocator]: oom (arena full)");
+  }
+  return p;
 }
 
 inline void GlobalSbrkAllocator::Free(void* p, size_t len) {
