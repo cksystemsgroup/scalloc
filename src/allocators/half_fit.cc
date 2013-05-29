@@ -5,53 +5,26 @@
 #include "allocators/half_fit.h"
 
 #include "common.h"
-#include "log.h"
 
-void HalfFit::Init(void* block, size_t len) {
-  for (size_t i = 0; i < kClasses; i++) {
-    flist_[i] = NULL;
-  }
-  used_ = 0;
-  uintptr_t ptr = reinterpret_cast<uintptr_t>(block);
-  const size_t span_hdr_sz = sizeof(this) +
-                             sizeof(ObjectHeader);  // including dummy header
-  ptr += span_hdr_sz;
-  len -= span_hdr_sz;
-  const size_t rest = kLargestSize - (ptr % kLargestSize);
-  ptr += rest;
-  len -= rest;
-  len -= kLargestSize;  // dummy trailer
-  ObjectHeader* oh = reinterpret_cast<ObjectHeader*>(
-      ptr - sizeof(ObjectHeader));
-  oh->used = true;  // set the dummy header
-  oh->sc = 42;
-  for (size_t i = 0; i < (len / kLargestSize); i++) {
-    oh = reinterpret_cast<ObjectHeader*>(ptr);
-    oh->Set(false, kClasses - 1);
-    GetFooter(oh)->Set(false, oh->sc);
-    ListAdd(GetListHeader(oh), oh->sc);
-    ptr += kLargestSize;
-  }
-  oh = reinterpret_cast<ObjectHeader*>(ptr);
-  oh->used = true;  // set the dummy trailer
-  oh->sc = 42;
-}
+//
+// In memory doubly-linked list.
+//
 
 void HalfFit::ListRemove(ListHeader* elem, const size_t sc) {
-  if (elem->prev) {
-    elem->prev->next = elem->next;
-  }
-  if (elem->next) {
-    elem->next->prev = elem->prev;
-  }
   if (flist_[sc] == elem) {
     flist_[sc] = elem->next;
+  }
+  if (elem->prev != NULL) {
+    elem->prev->next = elem->next;
+  }
+  if (elem->next != NULL) {
+    elem->next->prev = elem->prev;
   }
 }
 
 void HalfFit::ListAdd(ListHeader* elem, const size_t sc) {
-  elem->next = flist_[sc];
   elem->prev = NULL;
+  elem->next = flist_[sc];
   if (flist_[sc] != NULL) {
     flist_[sc]->prev = elem;
   }
@@ -59,24 +32,76 @@ void HalfFit::ListAdd(ListHeader* elem, const size_t sc) {
 }
 
 HalfFit::ListHeader* HalfFit::ListGet(const size_t sc) {
-  if (flist_[sc] == NULL) {
-    return NULL;
-  }
   ListHeader* elem = flist_[sc];
-  flist_[sc] = flist_[sc]->next;
+  if (elem != NULL) {
+    flist_[sc] = flist_[sc]->next;
+  }
   return elem;
 }
 
+//
+// Actual Half-Fit.
+//
+
+void HalfFit::Init(const size_t len) {
+  // init fields; lock_ has a constructor, so it's fine.
+  for (size_t i = 0; i < kClasses; i++) {
+    flist_[i] = NULL;
+  }
+  used_ = 0;
+
+  // calculate the actually usable area for half-fit
+  size_t usable_len = len;
+  uintptr_t ptr = reinterpret_cast<uintptr_t>(this);
+  // acount for the actual object (this) and a dummy header.
+  const size_t span_hdr_sz = sizeof(this) +
+                             sizeof(ObjectHeader);
+  ptr += span_hdr_sz;
+  usable_len -= span_hdr_sz;
+  // account for properly aligned (to kLargestSize) memory
+  const size_t rest = kLargestSize - (ptr % kLargestSize);
+  ptr += rest;
+  usable_len -= rest;
+  // account for a dummy trailer
+  usable_len -= kLargestSize;
+
+  // set the dummy header
+  ObjectHeader* oh = reinterpret_cast<ObjectHeader*>(
+      ptr - sizeof(ObjectHeader));
+  oh->Set(true, -1 /*unused*/);
+
+  // split up the available memory into kLargestSize chunks and add them to the
+  // largest size class
+  for (size_t i = 0; i < (usable_len / kLargestSize); i++) {
+    oh = reinterpret_cast<ObjectHeader*>(ptr);
+    SetHeaderThenFooter(oh, false, kClasses - 1);
+    ListAdd(GetListHeader(oh), oh->sc);
+    ptr += kLargestSize;
+  }
+
+  // set the dummy trailer
+  oh = reinterpret_cast<ObjectHeader*>(ptr);
+  oh->Set(true, -1 /*unused*/);
+}
+
+
 void* HalfFit::Allocate(const size_t size) {
   SpinLockHolder holder(&lock_);
-  size_t sc = SizeToSizeClass(size);
+  CompilerBarrier();
+
   used_++;
+  size_t sc = SizeToSizeClass(size);
   ListHeader* elem = NULL;
   for (size_t i = sc; i < kClasses; i++) {
     elem = ListGet(i);
     if (elem != NULL) {
-      ObjectHeader* oh = Split(GetObjectHeader(elem), i - sc);
+      ObjectHeader* oh = GetObjectHeader(elem);
+      if (oh->sc != i) {
+        ErrorOut("something is wrong");
+      }
+      oh = Split(oh, i - sc);
       elem = GetListHeader(oh);
+      break;
     }
   }
   return elem;
@@ -84,47 +109,64 @@ void* HalfFit::Allocate(const size_t size) {
 
 HalfFit::ObjectHeader* HalfFit::Split(ObjectHeader* oh, size_t level) {
   if (level == 0) {
+    SetHeaderThenFooter(oh, true, oh->sc);
     return oh;
   }
-  oh->Set(false, oh->sc - 1);
-  GetFooter(oh)->Set(false, oh->sc);
+  ScallocAssert(oh->sc != 0, "size class 0 cannot be split");
+  SetHeaderThenFooter(oh, false, oh->sc - 1);
   ObjectHeader* right = reinterpret_cast<ObjectHeader*>(
       reinterpret_cast<uintptr_t>(oh) + SizeClassToSize(oh->sc));
-  right->Set(false, oh->sc);
-  GetFooter(right)->Set(false, oh->sc);
+  SetHeaderThenFooter(right, false, oh->sc);
   ListAdd(GetListHeader(right), right->sc);
   return Split(oh, level - 1);
 }
 
 void HalfFit::Free(void* p) {
   SpinLockHolder holder(&lock_);
+  CompilerBarrier();
+
   used_--;
   ListHeader* lh = reinterpret_cast<ListHeader*>(p);
-  TryMerge(GetObjectHeader(lh));
+  ObjectHeader* oh = GetObjectHeader(lh);
+  SetHeaderThenFooter(oh, false, oh->sc);
+  TryMerge(oh);
 }
 
+// We want to merge (do coalescing) on neighbored blockes.  Besides making sure
+// that we actualy can coalesce (size class, used), we also have to make sure
+// that we only coalesce blocks that would then result in a merged block that is
+// corectly aligned.  Otherwise one cannot guarantee to reach the starting state
+// again.
 void HalfFit::TryMerge(ObjectHeader* oh) {
   ObjectHeader* lh = GetLeftHeader(oh);
   if (lh &&
       oh->sc < (kClasses - 1) &&
       lh->sc == oh->sc &&
-      (((1UL << (lh->sc + kMinShift)) - 1) &
+      (((1UL << ((lh->sc + 1) + kMinShift)) - 1) &
           reinterpret_cast<uintptr_t>(lh)) == 0) {
     ListRemove(GetListHeader(lh), lh->sc);
     oh = lh;
-    oh->Set(false, oh->sc + 1);
-    return TryMerge(oh);
+    SetHeaderThenFooter(oh, false, oh->sc +1 );
+    TryMerge(oh);
+    return;
   }
   ObjectHeader* rh = GetRightHeader(oh);
   if (rh &&
       oh->sc < (kClasses - 1) &&
       rh->sc == oh->sc &&
-      (((1UL << (oh->sc + kMinShift)) - 1) &
+      (((1UL << ((oh->sc + 1) + kMinShift)) - 1) &
           reinterpret_cast<uintptr_t>(oh)) == 0) {
     ListRemove(GetListHeader(rh), rh->sc);
-    oh->Set(false, oh->sc + 1);
-    GetFooter(oh)->Set(false, oh->sc);
-    return TryMerge(oh);
+    SetHeaderThenFooter(oh, false, oh->sc + 1);
+    TryMerge(oh);
+    return;
   }
+  
   ListAdd(GetListHeader(oh), oh->sc);
+}
+
+bool HalfFit::Empty() {
+  SpinLockHolder holder(&lock_);
+
+  return used_ == 0;
 }

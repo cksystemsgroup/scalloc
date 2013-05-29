@@ -29,6 +29,8 @@ const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
 const size_t kMaxMediumShift = 21;
 const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
 
+const size_t kMediumSpanSize = 1UL << 28;  // 256 MiB
+
 const size_t kNumClasses = kMaxSmallSize / kMinAlignment + 1;
 
 #ifdef SMALL_SPACE_SIZE

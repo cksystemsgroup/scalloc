@@ -45,7 +45,9 @@ TEST(HalfFit, AllocFree) {
   void* p = GetMem(size);
   HalfFit* hf = reinterpret_cast<HalfFit*>(p);
   hf->Init(p, size);
-  void* np =hf->Allocate(1UL << 10);
-  hf->Free(np);
+  void* np1 =hf->Allocate(1UL << 10);
+  void* np2 =hf->Allocate(1UL << 10);
+  hf->Free(np2);
+  hf->Free(np1);
   ASSERT_TRUE(hf->Empty());
 }

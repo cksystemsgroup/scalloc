@@ -8,5 +8,3 @@ bool MediumSizeAllocator::enabled_;
 GlobalSbrkAllocator MediumSizeAllocator::arena_;
 SpinLock MediumSizeAllocator::lock_;
 DList<HalfFit*> MediumSizeAllocator::list_;
-
-

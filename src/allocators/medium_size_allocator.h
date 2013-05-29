@@ -19,8 +19,6 @@ class MediumSizeAllocator {
   static bool Enabled();
 
  private:
-  static const size_t kSpanSize = 1UL << 28;  // 256MiB
-
   static bool enabled_;
   static GlobalSbrkAllocator arena_;
   static SpinLock lock_;
@@ -50,17 +48,19 @@ inline void* MediumSizeAllocator::Allocate(size_t size) {
     list_.Insert(NewHalfFitSpan());
   }
   HalfFit* hf;
-  void* p;
+  void* p = NULL;
+  size_t cnt = 0;
   for (DList<HalfFit*>::iterator it = list_.begin();
        it != list_.end();
        it = it->next) {
+    cnt++;
     hf = it->data;
     p = hf->Allocate(size);
     if (p) {
       break;
     }
   }
-  if (!p) {
+  if (p == NULL) {
     // all spans have been full, lets get a new one
     goto FULL;
   }
@@ -68,7 +68,7 @@ inline void* MediumSizeAllocator::Allocate(size_t size) {
 }
 
 inline void MediumSizeAllocator::Free(void* p) {
-  uintptr_t ptr = reinterpret_cast<uintptr_t>(p) & ~(kSpanSize - 1);
+  uintptr_t ptr = reinterpret_cast<uintptr_t>(p) & ~(kMediumSpanSize - 1);
   HalfFit* hf = reinterpret_cast<HalfFit*>(ptr);
   hf->Free(p);
 
@@ -76,13 +76,14 @@ inline void MediumSizeAllocator::Free(void* p) {
   SpinLockHolder holder(&lock_);
   if (hf->Empty() && list_.Len() > 1) {
     list_.Remove(hf);
+    arena_.Free(reinterpret_cast<void*>(hf));
   }
 }
 
 inline HalfFit* MediumSizeAllocator::NewHalfFitSpan() {
-  void* p = arena_.Allocate(kSpanSize);
+  void* p = arena_.Allocate(kMediumSpanSize);
   HalfFit* hf = reinterpret_cast<HalfFit*>(p);
-  hf->Init(p, kSpanSize);
+  hf->Init(kMediumSpanSize);
   return hf;
 }
 
