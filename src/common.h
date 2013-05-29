@@ -76,4 +76,9 @@ always_inline size_t PadSize(size_t size, size_t multiple) {
   return (size + multiple - 1) / multiple * multiple;
 }
 
+#define ScallocAssert(c,msg)  \
+  if (!(c)) {                 \
+    ErrorOut(msg);            \
+  }
+
 #endif  // SCALLOC_COMMON_H_
