@@ -28,14 +28,14 @@ TEST(HalfFit, Init) {
   size_t size = 1UL << 28;
   void* p = GetMem(size);
   HalfFit* hf = reinterpret_cast<HalfFit*>(p);
-  hf->Init(p, size);
+  hf->Init(size);
 }
 
 TEST(HalfFit, Alloc) {
   size_t size = 1UL << 28;
   void* p = GetMem(size);
   HalfFit* hf = reinterpret_cast<HalfFit*>(p);
-  hf->Init(p, size);
+  hf->Init(size);
   hf->Allocate(1UL << 10);
   ASSERT_FALSE(hf->Empty());
 }
@@ -44,7 +44,7 @@ TEST(HalfFit, AllocFree) {
   size_t size = 1UL << 28;
   void* p = GetMem(size);
   HalfFit* hf = reinterpret_cast<HalfFit*>(p);
-  hf->Init(p, size);
+  hf->Init(size);
   void* np1 =hf->Allocate(1UL << 10);
   void* np2 =hf->Allocate(1UL << 10);
   hf->Free(np2);
