@@ -45,6 +45,7 @@ libscalloc_la_SOURCES = \
 	src/common.h \
 	src/distributed_queue.cc \
 	src/distributed_queue.h \
+	src/dlist.h \
 	src/freelist.h \
 	src/log.cc \
 	src/log.h \

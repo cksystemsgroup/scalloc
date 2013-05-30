@@ -8,6 +8,7 @@
 #include <stddef.h>  // size_t
 
 #include "config.h"
+#include "log.h"
 
 #define UNLIKELY(x)   __builtin_expect((x), 0)
 #define LIKELY(x)     __builtin_expect((x), 1)

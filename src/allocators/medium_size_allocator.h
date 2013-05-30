@@ -76,7 +76,7 @@ inline void MediumSizeAllocator::Free(void* p) {
   SpinLockHolder holder(&lock_);
   if (hf->Empty() && list_.Len() > 1) {
     list_.Remove(hf);
-    arena_.Free(reinterpret_cast<void*>(hf));
+    arena_.Free(reinterpret_cast<void*>(hf), kMediumSpanSize);
   }
 }
 
