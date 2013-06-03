@@ -4,39 +4,33 @@
 
 #include <gtest/gtest.h>
 
-#include "allocators/page_heap.h"
-#include "arena.h"
+#include "allocators/span_pool.h"
 #include "distributed_queue.h"
 #include "runtime_vars.h"
+#include "scalloc_arenas.h"
 
 namespace {
 
 void InitHeap() {
   RuntimeVars::InitModule();
-  InitArenas();
+  scalloc::InitArenas();
 
   DistributedQueue::InitModule();
-  scalloc::PageHeap::InitModule();
+  scalloc::SpanPool::InitModule();
 }
 
 }  // namespace
 
-TEST(PageHeap, Init) {
+TEST(SpanPool, Get) {
   InitHeap();
-  scalloc::PageHeap* p = scalloc::PageHeap::GetHeap();
-  EXPECT_TRUE(p != NULL);
-}
-
-TEST(PageHeap, Get) {
-  InitHeap();
-  scalloc::PageHeap* p = scalloc::PageHeap::GetHeap();
-  void* mem = p->Get();
+  scalloc::SpanPool& p = scalloc::SpanPool::Instance();
+  void* mem = p.Get();
   EXPECT_TRUE(mem != NULL);
 }
 
-TEST(PageHeap, PutNoSegfault) {
+TEST(SpanPool, PutNoSegfault) {
   InitHeap();
-  scalloc::PageHeap* p = scalloc::PageHeap::GetHeap();
-  void* mem = p->Get();
-  p->Put(mem);
+  scalloc::SpanPool& p = scalloc::SpanPool::Instance();
+  void* mem = p.Get();
+  p.Put(mem);
 }

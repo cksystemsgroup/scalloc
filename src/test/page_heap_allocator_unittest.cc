@@ -4,13 +4,13 @@
 
 #include <gtest/gtest.h>
 
-#include "arena.h"
 #include "page_heap_allocator.h"
 #include "runtime_vars.h"
+#include "scalloc_arenas.h"
 
 TEST(PageHeapAllocator, Init) {
   RuntimeVars::InitModule();
-  InitArenas();
+  scalloc::InitArenas();
 
   scalloc::PageHeapAllocator<uint64_t> allocator;
   allocator.Init(4096);
@@ -18,7 +18,7 @@ TEST(PageHeapAllocator, Init) {
 
 TEST(PageHeapAllocator, NewDelete) {
   RuntimeVars::InitModule();
-  InitArenas();
+  scalloc::InitArenas();
 
   scalloc::PageHeapAllocator<uint64_t> allocator;
   allocator.Init(4096);

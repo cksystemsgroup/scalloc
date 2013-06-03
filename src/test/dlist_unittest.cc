@@ -5,15 +5,15 @@
 #include <gtest/gtest.h>
 #include <stdint.h>
 
-#include "arena.h"
 #include "dlist.h"
 #include "runtime_vars.h"
+#include "scalloc_arenas.h"
 
 namespace {
 
 void Init() {
   RuntimeVars::InitModule();
-  InitArenas();
+  scalloc::InitArenas();
 }
 
 }

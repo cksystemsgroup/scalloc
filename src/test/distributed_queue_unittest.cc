@@ -4,11 +4,11 @@
 
 #include <gtest/gtest.h>
 
-#include "allocators/global_sbrk_allocator.h"
-#include "arena.h"
+#include "allocators/arena.h"
 #include "common.h"
 #include "distributed_queue.h"
 #include "runtime_vars.h"
+#include "scalloc_arenas.h"
 
 namespace {
 
@@ -25,7 +25,7 @@ void* GetObject() {
 
 DistributedQueue* InitDQ() {
   RuntimeVars::InitModule();
-  InitArenas();
+  scalloc::InitArenas();
   DistributedQueue::InitModule();
 
   static DistributedQueue dq;

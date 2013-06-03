@@ -4,20 +4,20 @@
 
 #include <gtest/gtest.h>
 
-#include "allocators/large_object_allocator.h"
+#include "allocators/large_allocator.h"
 #include "runtime_vars.h"
 
-TEST(LargeObjectAllocator, Alloc) {
+TEST(LargeAllocator, Alloc) {
   RuntimeVars::InitModule();
-  void* mem = scalloc::LargeObjectAllocator::Alloc(512);
+  void* mem = scalloc::LargeAllocator::Alloc(512);
   EXPECT_TRUE(mem != NULL);
 }
 
-TEST(LargeObjectAllocator, AllocFree) {
+TEST(LargeAllocator, AllocFree) {
   RuntimeVars::InitModule();
-  void* mem = scalloc::LargeObjectAllocator::Alloc(512);
+  void* mem = scalloc::LargeAllocator::Alloc(512);
   EXPECT_TRUE(mem != NULL);
   BlockHeader* bh = BlockHeader::GetFromObject(mem);
   EXPECT_EQ(bh->type, kLargeObject);
-  scalloc::LargeObjectAllocator::Free(reinterpret_cast<LargeObjectHeader*>(bh)); 
+  scalloc::LargeAllocator::Free(reinterpret_cast<LargeObjectHeader*>(bh)); 
 }
