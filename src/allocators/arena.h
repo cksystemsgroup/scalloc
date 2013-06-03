@@ -2,8 +2,8 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#ifndef SCALLOC_ALLOCATORS_GLOBAL_SBRK_ALLOCATOR_H_
-#define SCALLOC_ALLOCATORS_GLOBAL_SBRK_ALLOCATOR_H_
+#ifndef SCALLOC_ALLOCATORS_ARENA_H_
+#define SCALLOC_ALLOCATORS_ARENA_H_
 
 #include <errno.h>
 #include <stdint.h>
@@ -13,12 +13,12 @@
 #include "log.h"
 #include "runtime_vars.h"
 
-class GlobalSbrkAllocator {
+class Arena {
  public:
   void Init(size_t size);
   void* Allocate(const size_t size);
   void Free(void* p, size_t len);
-  bool InArena(void* p);
+  bool Contains(void* p);
 
  private:
   uintptr_t start_;
@@ -26,25 +26,25 @@ class GlobalSbrkAllocator {
   size_t size_;
 } cache_aligned;
 
-always_inline bool GlobalSbrkAllocator::InArena(void* p) {
+always_inline bool Arena::Contains(void* p) {
   return (reinterpret_cast<uintptr_t>(p) ^ start_) < size_;
 }
 
-inline void* GlobalSbrkAllocator::Allocate(const size_t size) {
+inline void* Arena::Allocate(const size_t size) {
   void* p =  reinterpret_cast<void*>(__sync_fetch_and_add(&current_, size));
   if (reinterpret_cast<uintptr_t>(p) > (start_ + size_)) {
-    ErrorOut("GlobalSbrkAllocator]: oom (arena full)");
+    ErrorOut("[Arena]: oom");
   }
   return p;
 }
 
-inline void GlobalSbrkAllocator::Free(void* p, size_t len) {
+inline void Arena::Free(void* p, size_t len) {
   if (reinterpret_cast<uintptr_t>(p) > current_) {
-    ErrorOut("[GlobalSbrkAllocator]: cannot free space");
+    ErrorOut("[Arena]: cannot free space");
   }
   if (madvise(p, len, MADV_DONTNEED) == -1) {
-    ErrorOut("[GlobalSbrkAllocator]: madvise failed. errno: %lu", errno);
+    ErrorOut("[Arena]: madvise failed. errno: %lu", errno);
   }
 }
 
-#endif  // SCALLOC_ALLOCATORS_GLOBAL_SBRK_ALLOCATOR_H_
+#endif  // SCALLOC_ALLOCATORS_ARENA_H_

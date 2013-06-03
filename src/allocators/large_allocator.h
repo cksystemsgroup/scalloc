@@ -2,8 +2,8 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#ifndef SCALLOC_ALLOCATORS_LARGE_OBJECT_ALLOCATOR_H_
-#define SCALLOC_ALLOCATORS_LARGE_OBJECT_ALLOCATOR_H_
+#ifndef SCALLOC_ALLOCATORS_LARGE_ALLOCATOR_H_
+#define SCALLOC_ALLOCATORS_LARGE_ALLOCATOR_H_
 
 #include <cstddef>
 
@@ -18,13 +18,13 @@
 
 namespace scalloc {
 
-class LargeObjectAllocator {
+class LargeAllocator {
  public:
   static void* Alloc(size_t size);
   static void Free(LargeObjectHeader* lbh);
 };
 
-inline void* LargeObjectAllocator::Alloc(size_t size) {
+inline void* LargeAllocator::Alloc(size_t size) {
   size = PadSize(size + sizeof(LargeObjectHeader),
                  RuntimeVars::SystemPageSize());
   size_t actual_size;
@@ -38,12 +38,12 @@ inline void* LargeObjectAllocator::Alloc(size_t size) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
-  LOG(kTrace, "[LargeObjectAllocator]: allocation size: %lu, actual size: %lu, "
+  LOG(kTrace, "[LargeAllocator]: allocation size: %lu, actual size: %lu, "
               "p: %p", size, actual_size, reinterpret_cast<void*>(p));
   return reinterpret_cast<void*>(p + sizeof(*lbh));
 };
 
-inline void LargeObjectAllocator::Free(LargeObjectHeader* lbh) {
+inline void LargeAllocator::Free(LargeObjectHeader* lbh) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogDeallocation(lbh->size);
 #endif  // PROFILER_ON
@@ -52,4 +52,4 @@ inline void LargeObjectAllocator::Free(LargeObjectHeader* lbh) {
 
 }  // namespace scalloc
 
-#endif  // SCALLOC_ALLOCATORS_LARGE_OBJECT_ALLOCATOR_H_
+#endif  // SCALLOC_ALLOCATORS_LARGE_ALLOCATOR_H_

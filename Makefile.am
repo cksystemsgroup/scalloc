@@ -25,21 +25,21 @@ lib_LTLIBRARIES = libscalloc.la
 # also include .h files into sources, since the distribution tarball is
 # generated from this list
 libscalloc_la_SOURCES = \
-	src/allocators/dq_sc_allocator.cc \
-	src/allocators/dq_sc_allocator.h \
+	src/allocators/block_pool.cc \
+	src/allocators/block_pool.h \
 	src/allocators/half_fit.cc \
 	src/allocators/half_fit.h \
-	src/allocators/global_sbrk_allocator.cc \
-	src/allocators/global_sbrk_allocator.h \
-	src/allocators/large_object_allocator.h \
-	src/allocators/medium_size_allocator.cc \
-	src/allocators/medium_size_allocator.h \
-	src/allocators/page_heap.cc \
-	src/allocators/page_heap.h \
-	src/allocators/slab_sc_allocator.cc \
-	src/allocators/slab_sc_allocator.h \
-	src/arena.h \
-	src/arena.cc \
+	src/allocators/arena.cc \
+	src/allocators/arena.h \
+	src/allocators/large_allocator.h \
+	src/allocators/medium_allocator.cc \
+	src/allocators/medium_allocator.h \
+	src/allocators/span_pool.cc \
+	src/allocators/span_pool.h \
+	src/allocators/small_allocator.cc \
+	src/allocators/small_allocator.h \
+	src/scalloc_arenas.h \
+	src/scalloc_arenas.cc \
 	src/atomic.h \
 	src/block_header.h \
 	src/common.h \
@@ -113,8 +113,8 @@ distributed_queue_unittest_CPPFLAGS = \
 distributed_queue_unittest_LDADD = \
 	$(GTEST_LIBS)
 distributed_queue_unittest_SOURCES = \
-	src/allocators/global_sbrk_allocator.cc \
-	src/arena.cc \
+	src/allocators/arena.cc \
+	src/scalloc_arenas.cc \
 	src/distributed_queue.cc \
 	src/distributed_queue.h \
 	src/log.cc \
@@ -130,8 +130,8 @@ dlist_unittest_CPPFLAGS = \
 dlist_unittest_LDADD = \
 	$(GTEST_LIBS)
 dlist_unittest_SOURCES = \
-	src/allocators/global_sbrk_allocator.cc \
-	src/arena.cc \
+	src/allocators/arena.cc \
+	src/scalloc_arenas.cc \
 	src/log.cc \
 	src/test/dlist_unittest.cc \
 	src/runtime_vars.cc
@@ -155,16 +155,16 @@ half_fit_unittest_SOURCES = \
 	src/log.cc \
 	src/test/half_fit_unittest.cc
 
-TESTS += large_object_allocator_unittest
-large_object_allocator_unittest_CPPFLAGS = \
+TESTS += large_allocator_unittest
+large_allocator_unittest_CPPFLAGS = \
 	$(TEST_CPPFLAGS)
-large_object_allocator_unittest_LDADD = \
+large_allocator_unittest_LDADD = \
 	$(GTEST_LIBS)
-large_object_allocator_unittest_SOURCES = \
+large_allocator_unittest_SOURCES = \
 	src/log.cc \
 	src/runtime_vars.cc \
 	src/system-alloc.cc \
-	src/test/large_object_allocator_unittest.cc
+	src/test/large_allocator_unittest.cc
 
 TESTS += log2_unittest
 log2_unittest_CPPFLAGS = \
@@ -180,8 +180,8 @@ page_heap_allocator_unittest_CPPFLAGS = \
 page_heap_allocator_unittest_LDADD = \
 	$(GTEST_LIBS)
 page_heap_allocator_unittest_SOURCES = \
-	src/allocators/global_sbrk_allocator.cc \
-	src/arena.cc \
+	src/allocators/arena.cc \
+	src/scalloc_arenas.cc \
 	src/log.cc \
 	src/test/page_heap_allocator_unittest.cc \
 	src/runtime_vars.cc \
@@ -193,9 +193,9 @@ page_heap_unittest_CPPFLAGS = \
 page_heap_unittest_LDADD = \
 	$(GTEST_LIBS)
 page_heap_unittest_SOURCES = \
-	src/allocators/global_sbrk_allocator.cc \
-	src/allocators/page_heap.cc \
-	src/arena.cc \
+	src/allocators/arena.cc \
+	src/allocators/span_pool.cc \
+	src/scalloc_arenas.cc \
 	src/distributed_queue.cc \
 	src/log.cc \
 	src/test/page_heap_unittest.cc \
@@ -212,23 +212,23 @@ runtime_vars_unittest_SOURCES = \
 	src/runtime_vars.cc \
 	src/test/runtime_vars_unittest.cc
 
-TESTS += slab_sc_allocator_unittest
-slab_sc_allocator_unittest_CPPFLAGS = \
+TESTS += small_allocator_unittest
+small_allocator_unittest_CPPFLAGS = \
 	$(TEST_CPPFLAGS)
-slab_sc_allocator_unittest_LDADD = \
+small_allocator_unittest_LDADD = \
 	$(GTEST_LIBS)
-slab_sc_allocator_unittest_SOURCES = \
-	src/allocators/dq_sc_allocator.cc \
-	src/allocators/global_sbrk_allocator.cc \
-	src/allocators/page_heap.cc \
-	src/allocators/slab_sc_allocator.cc \
-	src/arena.cc \
+small_allocator_unittest_SOURCES = \
+	src/allocators/block_pool.cc \
+	src/allocators/arena.cc \
+	src/allocators/span_pool.cc \
+	src/allocators/small_allocator.cc \
+	src/scalloc_arenas.cc \
 	src/distributed_queue.cc \
 	src/log.cc \
 	src/size_map.cc \
 	src/runtime_vars.cc \
 	src/system-alloc.cc \
-	src/test/slab_sc_allocator_unittest.cc
+	src/test/small_allocator_unittest.cc
 
 TESTS += stack_unittest
 stack_unittest_CPPFLAGS = \

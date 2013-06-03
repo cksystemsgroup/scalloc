@@ -5,10 +5,16 @@
 #ifndef SCALLOC_ARENA_H_
 #define SCALLOC_ARENA_H_
 
-#include "allocators/global_sbrk_allocator.h"
+#include "allocators/arena.h"
 
-extern GlobalSbrkAllocator SmallArena;
+namespace scalloc {
+
+extern Arena SmallArena;
+extern Arena MediumArena;
+extern Arena InternalArena;
 
 void InitArenas();
+
+}  // namespace scalloc
 
 #endif  // SCALLOC_ARENA_H_

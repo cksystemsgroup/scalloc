@@ -2,13 +2,12 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#include "arena.h"
+#include "allocators/medium_allocator.h"
 
-#include "common.h"
+namespace scalloc {
 
-cache_aligned GlobalSbrkAllocator SmallArena;
+bool MediumAllocator::enabled_;
+SpinLock MediumAllocator::lock_;
+DList<HalfFit*> MediumAllocator::list_;
 
-void InitArenas() {
-  SmallArena.Init(kSmallSpace);
-}
-
+}  // namespace scalloc

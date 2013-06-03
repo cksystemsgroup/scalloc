@@ -2,15 +2,16 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#ifndef SCALLOC_ALLOCATORS_SLAB_SC_ALLOCATOR_H_
-#define SCALLOC_ALLOCATORS_SLAB_SC_ALLOCATOR_H_
+#ifndef SCALLOC_ALLOCATORS_SMALL_ALLOCATOR_H_
+#define SCALLOC_ALLOCATORS_SMALL_ALLOCATOR_H_
 
 #include <stdint.h>
 
-#include "allocators/dq_sc_allocator.h"
+#include "allocators/arena.h"
+#include "allocators/block_pool.h"
 #include "common.h"
 #include "block_header.h"
-#include "page_heap.h"
+#include "span_pool.h"
 #include "size_map.h"
 
 #ifdef PROFILER_ON
@@ -19,7 +20,7 @@
 
 namespace scalloc {
 
-class SlabScAllocator {
+class SmallAllocator {
  public:
   static void InitModule();
 
@@ -41,12 +42,12 @@ class SlabScAllocator {
   uint64_t me_inactive_;
 } cache_aligned;
 
-always_inline void SlabScAllocator::SetActiveSlab(const size_t sc,
+always_inline void SmallAllocator::SetActiveSlab(const size_t sc,
                                                   const SlabHeader* hdr) {
   my_headers_[sc] = const_cast<SlabHeader*>(hdr);
 }
 
-always_inline void* SlabScAllocator::Allocate(const size_t size) {
+always_inline void* SmallAllocator::Allocate(const size_t size) {
   const size_t sc = SizeMap::SizeToClass(size);
   SlabHeader* hdr = my_headers_[sc];
   void* result;
@@ -60,7 +61,7 @@ always_inline void* SlabScAllocator::Allocate(const size_t size) {
   return AllocateNoSlab(sc, size);
 }
 
-always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
+always_inline void SmallAllocator::Free(void* p, SlabHeader* hdr) {
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used slab block.
 #ifdef PROFILER_ON
@@ -95,7 +96,7 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
       }
 
       if (hdr->in_use == 0) {
-        PageHeap::GetHeap()->Put(hdr);
+        SpanPool::Instance().Put(hdr);
         return;
       }
 
@@ -109,9 +110,9 @@ always_inline void SlabScAllocator::Free(void* p, SlabHeader* hdr) {
 #endif  // PROFILER_ON
   LOG(kTrace, "[SlabAllocator]: remote free for %p, owner: %lu, me: %lu",
       p, hdr->aowner.owner, id_);
-  DQScAllocator::Instance().Free(p, hdr->size_class, hdr->remote_flist);
+  BlockPool::Instance().Free(p, hdr->size_class, hdr->remote_flist);
 }
 
 }  // namespace scalloc
 
-#endif  // SCALLOC_ALLOCATORS_SLAB_SC_ALLOCATOR_H_
+#endif  // SCALLOC_ALLOCATORS_SMALL_ALLOCATOR_H_

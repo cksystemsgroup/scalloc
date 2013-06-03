@@ -7,7 +7,7 @@
 
 #include <pthread.h>
 
-#include "allocators/slab_sc_allocator.h"
+#include "allocators/small_allocator.h"
 #include "block_header.h"
 #include "common.h"
 
@@ -44,7 +44,7 @@ class ThreadCache {
   static ThreadCache* NewCache();
   static void DestroyThreadCache(void* p);
 
-  SlabScAllocator allocator_;
+  SmallAllocator allocator_;
 #ifdef PROFILER_ON
   Profiler profiler_;
 #endif  // PROFILER_ON

@@ -2,9 +2,9 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#include "allocators/page_heap.h"
+#include "allocators/span_pool.h"
 
-#include "arena.h"
+#include "scalloc_arenas.h"
 #include "common.h"
 #include "log.h"
 #include "runtime_vars.h"
@@ -12,31 +12,24 @@
 
 namespace scalloc {
 
-PageHeap PageHeap::page_heap_ cache_aligned;
-__thread TLS_MODE size_t PageHeap::refill_ cache_aligned;
+SpanPool SpanPool::page_heap_ cache_aligned;
+__thread TLS_MODE size_t SpanPool::refill_ cache_aligned;
 
-void PageHeap::InitModule() {
-  page_heap_.page_pool_.Init(kPageHeapBackends);
+cache_aligned size_t global_refill;
+cache_aligned SpinLock refill_lock_(LINKER_INITIALIZED);
+
+void SpanPool::InitModule() {
+  page_heap_.page_pool_.Init(kSpanPoolBackends);
 }
 
-void* PageHeap::AsyncRefill() {
+void* SpanPool::RefillOne() {
   const size_t block_size = RuntimeVars::SystemPageSize() * kPageMultiple;
-  if (refill_ == 0) {
-    refill_ = 1;
-  }
-  uintptr_t ptr = reinterpret_cast<uintptr_t>(
-      SmallArena.Allocate(refill_ * block_size));
+  uintptr_t ptr = reinterpret_cast<uintptr_t>(SmallArena.Allocate(block_size));
   void* result = reinterpret_cast<void*>(ptr);
-  ptr += block_size;
-  for (size_t i = 1; i < refill_; i++) {
-    Put(reinterpret_cast<void*>(ptr));
-    ptr += block_size;
-  }
-  refill_ *= 2;
   return result;
 }
 
-void PageHeap::Refill(const size_t refill) {
+void SpanPool::Refill(const size_t refill) {
   const size_t block_size = RuntimeVars::SystemPageSize() * kPageMultiple;
   uintptr_t ptr = reinterpret_cast<uintptr_t>(
       SmallArena.Allocate(refill * block_size));

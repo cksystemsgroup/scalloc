@@ -4,7 +4,6 @@
 
 #include "thread_cache.h"
 
-#include "allocators/dq_sc_allocator.h"
 #include "runtime_vars.h"
 
 namespace {

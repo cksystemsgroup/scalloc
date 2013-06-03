@@ -9,11 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "allocators/global_sbrk_allocator.h"
-#include "arena.h"
 #include "common.h"
 #include "log.h"
 #include "runtime_vars.h"
+#include "scalloc_arenas.h"
 #include "spinlock-inl.h"
 #include "stack-inl.h"
 
@@ -57,7 +56,7 @@ class PageHeapAllocator {
 
   void* Refill() {
     uintptr_t ptr = reinterpret_cast<uintptr_t>(
-        SmallArena.Allocate(alloc_increment_));
+        InternalArena.Allocate(alloc_increment_));
     void* result = reinterpret_cast<void*>(ptr);
     ptr += tsize_;
     for (size_t i = 1; i < alloc_increment_/tsize_; i++) {

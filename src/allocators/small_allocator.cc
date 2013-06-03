@@ -2,19 +2,18 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#include "slab_sc_allocator.h"
+#include "small_allocator.h"
 
-#include "allocators/page_heap.h"
+#include "allocators/span_pool.h"
 #include "log.h"
 #include "runtime_vars.h"
 
 namespace scalloc {
 
-void SlabScAllocator::InitModule() {
-  PageHeap::InitModule();
+void SmallAllocator::InitModule() {
 }
 
-void SlabScAllocator::Init(const uint64_t id) {
+void SmallAllocator::Init(const uint64_t id) {
   id_ = id;
   ActiveOwner dummy;
   dummy.Reset(true, id_);
@@ -23,7 +22,7 @@ void SlabScAllocator::Init(const uint64_t id) {
   me_inactive_ = dummy.raw;
 }
 
-void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
+void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
   // Size class 0 represents an object of size 0, which results in malloc()
   // returning NULL.
   if (sc == 0) {
@@ -36,7 +35,7 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
 #endif  // PROFILER_ON
     // Only try to steal we had a slab at least once.
     SlabHeader* hdr;
-    void* p = DQScAllocator::Instance().Allocate(sc, id_, id_, &hdr);
+    void* p = BlockPool::Instance().Allocate(sc, id_, id_, &hdr);
     if (p != NULL) {
 #ifdef PROFILER_ON
       Profiler::GetProfiler().LogBlockStealing();
@@ -46,14 +45,11 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
 #ifdef PROFILER_ON
         Profiler::GetProfiler().LogSpanReuse(true);
 #endif  // PROFILER_ON
-
       } else {
-#ifdef GLOBAL_CLEANUP
         if (reinterpret_cast<SlabHeader*>(
-                BlockHeader::GetFromObject(p))->aowner.owner != id_) {
+                SpanHeader::GetFromObject(p))->aowner.owner != id_) {
           Refill(sc);
         }
-#endif  // GLOBAL_CLEANUP
       }
       return p;
     }
@@ -63,14 +59,14 @@ void* SlabScAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
   return Allocate(size);
 }
 
-void SlabScAllocator::Refill(const size_t sc) {
+void SmallAllocator::Refill(const size_t sc) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogSizeclassRefill();
 #endif  // PROFILER_ON
   LOG(kTrace, "[SlabAllocator]: refilling size class: %lu", sc);
-  uintptr_t block = reinterpret_cast<uintptr_t>(PageHeap::GetHeap()->Get());
+  uintptr_t block = reinterpret_cast<uintptr_t>(SpanPool::Instance().Get());
   if (block == 0) {
-    ErrorOut("PageHeap out of memory");
+    ErrorOut("SpanPool out of memory");
   }
   SlabHeader* hdr = InitSlab(block,
                              kPageMultiple * RuntimeVars::SystemPageSize(),
@@ -78,7 +74,7 @@ void SlabScAllocator::Refill(const size_t sc) {
   SetActiveSlab(sc, hdr);
 }
 
-SlabHeader* SlabScAllocator::InitSlab(uintptr_t block,
+SlabHeader* SmallAllocator::InitSlab(uintptr_t block,
                                       size_t len,
                                       const size_t sc) {
   const size_t obj_size = SizeMap::Instance().ClassToSize(sc);
@@ -117,7 +113,7 @@ SlabHeader* SlabScAllocator::InitSlab(uintptr_t block,
   return main_hdr;
 }
 
-void SlabScAllocator::Destroy() {
+void SmallAllocator::Destroy() {
   // Destroying basically means giving up all active spans.  We can only give up
   // our current spans, since we do not have references to the others.  Assuming
   // the mutator had no memory leak (i.e. all non-shared objects have been

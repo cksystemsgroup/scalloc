@@ -7,16 +7,15 @@
 #include <errno.h>
 #include <string.h>
 
-#include "allocators/global_sbrk_allocator.h"
-#include "allocators/large_object_allocator.h"
-#include "allocators/dq_sc_allocator.h"
-#include "allocators/medium_size_allocator.h"
-#include "allocators/page_heap.h"
-#include "allocators/slab_sc_allocator.h"
-#include "arena.h"
+#include "allocators/block_pool.h"
+#include "allocators/large_allocator.h"
+#include "allocators/medium_allocator.h"
+#include "allocators/small_allocator.h"
+#include "allocators/span_pool.h"
 #include "common.h"
 #include "distributed_queue.h"
 #include "runtime_vars.h"
+#include "scalloc_arenas.h"
 #include "scalloc_guard.h"
 #include "size_map.h"
 #include "thread_cache.h"
@@ -26,7 +25,7 @@
 scalloc::Profiler global_profiler;
 #endif  // PROFILER_ON
 
-GlobalSbrkAllocator SmallArea;
+Arena SmallArea;
 
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
@@ -34,14 +33,16 @@ ScallocGuard::ScallocGuard() {
     RuntimeVars::InitModule();
     scalloc::SizeMap::InitModule();
 
-    InitArenas();
+    scalloc::InitArenas();
 
     DistributedQueue::InitModule();
-    scalloc::DQScAllocator::InitModule();
-    scalloc::SlabScAllocator::InitModule();
-    MediumSizeAllocator::InitModule();
 
-    scalloc::PageHeap::GetHeap()->Refill(80);
+    scalloc::SpanPool::InitModule();
+    scalloc::BlockPool::InitModule();
+
+    scalloc::SmallAllocator::InitModule();
+    scalloc::MediumAllocator::InitModule();
+
     free(malloc(1));
 #ifdef PROFILER_ON
     scalloc::Profiler::Enable();
@@ -62,10 +63,10 @@ always_inline void* malloc(const size_t size) {
   void* p;
   if (LIKELY(size <= kMaxSmallSize)) {
     p = ThreadCache::GetCache().Allocate(size);
-  } else if (size < kMaxMediumSize && MediumSizeAllocator::Enabled()) {
-    p = MediumSizeAllocator::Allocate(size);
+  } else if (size < kMaxMediumSize && MediumAllocator::Enabled()) {
+    p = MediumAllocator::Allocate(size);
   } else {
-    p = LargeObjectAllocator::Alloc(size);
+    p = LargeAllocator::Alloc(size);
   }
   if (UNLIKELY(p == NULL)) {
     errno = ENOMEM;
@@ -77,13 +78,13 @@ always_inline void free(void* p) {
   if (UNLIKELY(p == NULL)) {
     return;
   }
-  if (SmallArena.InArena(p)) {
-    ThreadCache::GetCache().Free(p, reinterpret_cast<SlabHeader*>(
-        BlockHeader::GetFromObject(p)));
-  } else if (MediumSizeAllocator::InRange(p)) {
-    MediumSizeAllocator::Free(p);
+  if (SmallArena.Contains(p)) {
+    ThreadCache::GetCache().Free(p, reinterpret_cast<SpanHeader*>(
+        SpanHeader::GetFromObject(p)));
+  } else if (MediumArena.Contains(p)) {
+    MediumAllocator::Free(p);
   } else {
-    LargeObjectAllocator::Free(reinterpret_cast<LargeObjectHeader*>(
+    LargeAllocator::Free(reinterpret_cast<LargeObjectHeader*>(
         BlockHeader::GetFromObject(p)));
   }
   return;
@@ -122,12 +123,11 @@ extern "C" void* scalloc_realloc(void* ptr, size_t size) __THROW {
   }
   void* new_ptr;
   size_t old_size;
-  if (SmallArena.InArena(ptr)) {
+  if (scalloc::SmallArena.Contains(ptr)) {
     old_size = scalloc::SizeMap::Instance().ClassToSize(
-        reinterpret_cast<SlabHeader*>(BlockHeader::GetFromObject(ptr))->size_class);
-
-  } else if (MediumSizeAllocator::InRange(ptr)) {
-    old_size = MediumSizeAllocator::SizeOf(ptr); 
+        reinterpret_cast<SpanHeader*>(SpanHeader::GetFromObject(ptr))->size_class);
+  } else if (scalloc::MediumArena.Contains(ptr)) {
+    old_size = scalloc::MediumAllocator::SizeOf(ptr); 
   } else {
     old_size = reinterpret_cast<LargeObjectHeader*>(BlockHeader::GetFromObject(ptr))->size -
                sizeof(LargeObjectHeader);

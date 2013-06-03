@@ -2,7 +2,7 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#include "allocators/dq_sc_allocator.h"
+#include "allocators/block_pool.h"
 
 #include "block_header.h"
 #include "distributed_queue.h"
@@ -10,17 +10,17 @@
 
 namespace scalloc {
 
-void DQScAllocator::InitModule() {
+void BlockPool::InitModule() {
   Instance().Init();
 }
 
-void DQScAllocator::Init() {
+void BlockPool::Init() {
   for (size_t i = 0; i < kNumClasses; i++) {
     dqs_[i].Init(RuntimeVars::Cpus());
   }
 }
 
-void* DQScAllocator::Allocate(const size_t sc,
+void* BlockPool::Allocate(const size_t sc,
                               const size_t dq_id,
                               const size_t tid,
                               SlabHeader** block) {

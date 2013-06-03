@@ -2,17 +2,19 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#ifndef SCALLOC_MEDIUM_SIZE_ALLOCATOR_H_
-#define SCALLOC_MEDIUM_SIZE_ALLOCATOR_H_
+#ifndef SCALLOC_MEDIUM_ALLOCATOR_H_
+#define SCALLOC_MEDIUM_ALLOCATOR_H_
 
 #include "allocators/half_fit.h"
 #include "dlist.h"
+#include "scalloc_arenas.h"
 #include "spinlock-inl.h"
 
-class MediumSizeAllocator {
+namespace scalloc {
+
+class MediumAllocator {
  public:
   static void InitModule();
-  static bool InRange(void* p);
   static void* Allocate(size_t size);
   static void Free(void* p);
   static size_t SizeOf(void* p);
@@ -20,28 +22,22 @@ class MediumSizeAllocator {
 
  private:
   static bool enabled_;
-  static GlobalSbrkAllocator arena_;
   static SpinLock lock_;
   static DList<HalfFit*> list_;
 
   static HalfFit* NewHalfFitSpan();
 };
 
-inline void MediumSizeAllocator::InitModule() {
-  arena_.Init(kSmallSpace);
+inline void MediumAllocator::InitModule() {
   list_.Init();
   enabled_ = true;
 }
 
-inline bool MediumSizeAllocator::Enabled() {
+inline bool MediumAllocator::Enabled() {
   return enabled_;
 }
 
-inline bool MediumSizeAllocator::InRange(void* p) {
-  return arena_.InArena(p);
-}
-
-inline void* MediumSizeAllocator::Allocate(size_t size) {
+inline void* MediumAllocator::Allocate(size_t size) {
   SpinLockHolder holder(&lock_);
   if (list_.Empty()) {
  FULL:
@@ -67,7 +63,7 @@ inline void* MediumSizeAllocator::Allocate(size_t size) {
   return p;
 }
 
-inline void MediumSizeAllocator::Free(void* p) {
+inline void MediumAllocator::Free(void* p) {
   uintptr_t ptr = reinterpret_cast<uintptr_t>(p) & ~(kMediumSpanSize - 1);
   HalfFit* hf = reinterpret_cast<HalfFit*>(ptr);
   hf->Free(p);
@@ -76,19 +72,21 @@ inline void MediumSizeAllocator::Free(void* p) {
   SpinLockHolder holder(&lock_);
   if (hf->Empty() && list_.Len() > 1) {
     list_.Remove(hf);
-    arena_.Free(reinterpret_cast<void*>(hf), kMediumSpanSize);
+    MediumArena.Free(reinterpret_cast<void*>(hf), kMediumSpanSize);
   }
 }
 
-inline HalfFit* MediumSizeAllocator::NewHalfFitSpan() {
-  void* p = arena_.Allocate(kMediumSpanSize);
+inline HalfFit* MediumAllocator::NewHalfFitSpan() {
+  void* p = MediumArena.Allocate(kMediumSpanSize);
   HalfFit* hf = reinterpret_cast<HalfFit*>(p);
   hf->Init(kMediumSpanSize);
   return hf;
 }
 
-inline size_t MediumSizeAllocator::SizeOf(void* p) {
+inline size_t MediumAllocator::SizeOf(void* p) {
   return HalfFit::SizeOf(p);
 }
 
-#endif  // SCALLOC_MEDIUM_SIZE_ALLOCATOR_H_
+}  // namespace scalloc
+
+#endif  // SCALLOC_MEDIUM_ALLOCATOR_H_
