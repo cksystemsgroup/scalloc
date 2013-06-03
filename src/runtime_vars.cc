@@ -10,8 +10,7 @@
 
 #include "log.h"
 
-size_t RuntimeVars::system_page_size_;
-size_t RuntimeVars::number_cpus_;
+RuntimeVars RuntimeVars::vars_;
 
 void RuntimeVars::InitModule() {
   long ret;  // NOLINT
@@ -22,7 +21,7 @@ void RuntimeVars::InitModule() {
       ErrorOut("sysconf() failed");
     }
   }
-  system_page_size_ = static_cast<size_t>(ret);
+  vars_.system_page_size_ = static_cast<size_t>(ret);
 
   if ((ret = sysconf(_SC_NPROCESSORS_CONF)) == -1) {
     if (errno == 0) {
@@ -31,5 +30,5 @@ void RuntimeVars::InitModule() {
       ErrorOut("sysconf() failed");
     }
   }
-  number_cpus_ = static_cast<size_t>(ret);
+  vars_.number_cpus_ = static_cast<size_t>(ret);
 }

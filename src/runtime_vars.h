@@ -7,6 +7,8 @@
 
 #include <stddef.h>  // size_t
 
+#include "common.h"
+
 class RuntimeVars {
  public:
   static void InitModule();
@@ -15,17 +17,18 @@ class RuntimeVars {
   static size_t Cpus();
 
  private:
-  static size_t system_page_size_;
-  static size_t number_cpus_;
-};
+  static RuntimeVars vars_;
 
+  size_t system_page_size_;
+  size_t number_cpus_;
+} cache_aligned;
 
 inline size_t RuntimeVars::SystemPageSize() {
-  return system_page_size_;
+  return vars_.system_page_size_;
 }
 
 inline size_t RuntimeVars::Cpus() {
-  return number_cpus_;
+  return vars_.number_cpus_;
 }
 
 #endif  // SCALLOC_RUNTIME_VARS_H_
