@@ -60,6 +60,11 @@ struct ActiveOwner {
 
 class SpanHeader : public Header {
  public:
+  static SpanHeader* GetFromObject(void* p) {
+    const size_t span_size = RuntimeVars::SystemPageSize() * kPageMultiple;
+    return reinterpret_cast<SpanHeader*>(reinterpret_cast<uintptr_t>(p) & ~(span_size - 1));
+  }
+
   // read-only properties
 
   struct {
