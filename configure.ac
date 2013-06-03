@@ -68,23 +68,16 @@ AC_ARG_ENABLE([profiler],
     []
 )
 
-AC_ARG_ENABLE([global-cleanup],
-    AS_HELP_STRING([--enable-global-cleanup], [Enable global cleanup in remote
-                    freelist]), 
-    [AC_DEFINE([GLOBAL_CLEANUP], [], [global cleanup])],
-    []
-)
-
 AC_ARG_ENABLE([span-reuse-threshold],
     AS_HELP_STRING([--enable-span-reuse-threshold=PERCENT], []),
     [AC_DEFINE_UNQUOTED([SPAN_REUSE_THRESHOLD], [$enableval], [reuse threshold])],
-    [AC_DEFINE([SPAN_REUSE_THRESHOLD], [20], [threshold for potentially reusing spans])]
+    [AC_DEFINE([SPAN_REUSE_THRESHOLD], [80], [threshold for potentially reusing spans])]
 )
 
 AC_ARG_ENABLE([local-reuse-threshold],
     AS_HELP_STRING([--enable-local-reuse-threshold=PERCENT], []),
     [AC_DEFINE_UNQUOTED([LOCAL_REUSE_THRESHOLD], [$enableval], [reuse threshold])],
-    [AC_DEFINE([LOCAL_REUSE_THRESHOLD], [80], [threshold for swapping local
+    [AC_DEFINE([LOCAL_REUSE_THRESHOLD], [95], [threshold for swapping local
      active span with a potentially reusable span])]
 )
 
