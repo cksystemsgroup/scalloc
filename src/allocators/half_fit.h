@@ -56,8 +56,8 @@ class HalfFit {
   static const size_t kClasses = 12;
   static const size_t kLargestSize = 1UL << (kMinShift + kClasses - 1);
 
-  static size_t SizeToSizeClass(size_t size);
-  static size_t SizeClassToSize(size_t sc);
+  static size_t SizeToClass(size_t size);
+  static size_t ClassToSize(size_t sc);
   static ObjectHeader* GetObjectHeader(ListHeader* lh);
   static ObjectHeader* GetLeftHeader(ObjectHeader* oh);
   static ObjectHeader* GetRightHeader(ObjectHeader* oh);
@@ -78,15 +78,15 @@ class HalfFit {
 
 inline size_t HalfFit::SizeOf(void* p) {
   ObjectHeader* oh = GetObjectHeader(reinterpret_cast<ListHeader*>(p));
-  return SizeClassToSize(oh->sc);
+  return ClassToSize(oh->sc);
 }
 
-inline size_t HalfFit::SizeToSizeClass(size_t size) {
+inline size_t HalfFit::SizeToClass(size_t size) {
   size += 2 * sizeof(ObjectHeader);
   return Log2(size - 1) + 1 - kMinShift;
 }
 
-inline size_t HalfFit::SizeClassToSize(size_t sc) {
+inline size_t HalfFit::ClassToSize(size_t sc) {
   return 1UL << (sc + kMinShift);
 }
 
@@ -101,7 +101,7 @@ inline HalfFit::ObjectHeader* HalfFit::GetLeftHeader(ObjectHeader* oh) {
   if (oh->used == false) {
     return reinterpret_cast<ObjectHeader*>(
         reinterpret_cast<uintptr_t>(oh)
-        - SizeClassToSize(oh->sc)
+        - ClassToSize(oh->sc)
         + sizeof(ObjectHeader));
   }
   return NULL;
@@ -109,7 +109,7 @@ inline HalfFit::ObjectHeader* HalfFit::GetLeftHeader(ObjectHeader* oh) {
 
 inline HalfFit::ObjectHeader* HalfFit::GetRightHeader(ObjectHeader* oh) {
   oh = reinterpret_cast<ObjectHeader*>(
-      reinterpret_cast<uintptr_t>(oh) + SizeClassToSize(oh->sc));
+      reinterpret_cast<uintptr_t>(oh) + ClassToSize(oh->sc));
   if (oh->used == false) {
     return oh;
   }
@@ -119,7 +119,7 @@ inline HalfFit::ObjectHeader* HalfFit::GetRightHeader(ObjectHeader* oh) {
 inline HalfFit::ObjectHeader* HalfFit::GetFooter(ObjectHeader* oh) {
   return reinterpret_cast<ObjectHeader*>(
       reinterpret_cast<uintptr_t>(oh)
-      + SizeClassToSize(oh->sc)
+      + ClassToSize(oh->sc)
       - sizeof(ObjectHeader));
 }
 

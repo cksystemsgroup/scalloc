@@ -12,7 +12,7 @@
 
 void HalfFit::ListRemove(ListHeader* elem, const size_t sc) {
   if (flist_[sc] == elem) {
-    flist_[sc] = elem->next;
+    flist_[sc] = flist_[sc]->next;
   }
   if (elem->prev != NULL) {
     elem->prev->next = elem->next;
@@ -34,7 +34,7 @@ void HalfFit::ListAdd(ListHeader* elem, const size_t sc) {
 HalfFit::ListHeader* HalfFit::ListGet(const size_t sc) {
   ListHeader* elem = flist_[sc];
   if (elem != NULL) {
-    flist_[sc] = flist_[sc]->next;
+    ListRemove(elem, sc);
   }
   return elem;
 }
@@ -90,7 +90,7 @@ void* HalfFit::Allocate(const size_t size) {
   CompilerBarrier();
 
   used_++;
-  size_t sc = SizeToSizeClass(size);
+  size_t sc = SizeToClass(size);
   ListHeader* elem = NULL;
   for (size_t i = sc; i < kClasses; i++) {
     elem = ListGet(i);
@@ -113,11 +113,12 @@ HalfFit::ObjectHeader* HalfFit::Split(ObjectHeader* oh, size_t level) {
     return oh;
   }
   ScallocAssert(oh->sc != 0, "size class 0 cannot be split");
-  SetHeaderThenFooter(oh, false, oh->sc - 1);
+  const size_t new_sc = oh->sc - 1;
+  SetHeaderThenFooter(oh, false, new_sc);
   ObjectHeader* right = reinterpret_cast<ObjectHeader*>(
-      reinterpret_cast<uintptr_t>(oh) + SizeClassToSize(oh->sc));
-  SetHeaderThenFooter(right, false, oh->sc);
-  ListAdd(GetListHeader(right), right->sc);
+      reinterpret_cast<uintptr_t>(oh) + ClassToSize(new_sc));
+  SetHeaderThenFooter(right, false, new_sc);
+  ListAdd(GetListHeader(right), new_sc);
   return Split(oh, level - 1);
 }
 
@@ -138,26 +139,26 @@ void HalfFit::Free(void* p) {
 // corectly aligned.  Otherwise one cannot guarantee to reach the starting state
 // again.
 void HalfFit::TryMerge(ObjectHeader* oh) {
+  const size_t new_sc = oh->sc + 1;
   ObjectHeader* lh = GetLeftHeader(oh);
   if (lh &&
       oh->sc < (kClasses - 1) &&
       lh->sc == oh->sc &&
-      (((1UL << ((lh->sc + 1) + kMinShift)) - 1) &
+      (((1UL << (new_sc + kMinShift)) - 1) &
           reinterpret_cast<uintptr_t>(lh)) == 0) {
     ListRemove(GetListHeader(lh), lh->sc);
-    oh = lh;
-    SetHeaderThenFooter(oh, false, oh->sc +1 );
-    TryMerge(oh);
+    SetHeaderThenFooter(lh, false, new_sc);
+    TryMerge(lh);
     return;
   }
   ObjectHeader* rh = GetRightHeader(oh);
   if (rh &&
-      oh->sc < (kClasses - 1) &&
-      rh->sc == oh->sc &&
-      (((1UL << ((oh->sc + 1) + kMinShift)) - 1) &
-          reinterpret_cast<uintptr_t>(oh)) == 0) {
+      (oh->sc < (kClasses - 1)) &&
+      (rh->sc == oh->sc) &&
+      ((((1UL << (new_sc + kMinShift)) - 1) &
+          reinterpret_cast<uintptr_t>(oh)) == 0)) {
     ListRemove(GetListHeader(rh), rh->sc);
-    SetHeaderThenFooter(oh, false, oh->sc + 1);
+    SetHeaderThenFooter(oh, false, new_sc);
     TryMerge(oh);
     return;
   }
@@ -167,6 +168,7 @@ void HalfFit::TryMerge(ObjectHeader* oh) {
 
 bool HalfFit::Empty() {
   SpinLockHolder holder(&lock_);
+  CompilerBarrier();
 
   return used_ == 0;
 }
