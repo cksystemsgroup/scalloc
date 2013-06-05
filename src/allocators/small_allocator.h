@@ -23,6 +23,7 @@ namespace scalloc {
 class SmallAllocator {
  public:
   static void InitModule();
+  static bool Enabled();
 
   void Init(const uint64_t id);
   void* Allocate(const size_t size);
@@ -31,6 +32,8 @@ class SmallAllocator {
   void Destroy();
 
  private:
+  static bool enabled_;
+
   uint64_t id_;
   SlabHeader* my_headers_[kNumClasses];
 
@@ -41,6 +44,10 @@ class SmallAllocator {
   uint64_t me_active_;
   uint64_t me_inactive_;
 } cache_aligned;
+
+inline bool SmallAllocator::Enabled() {
+  return enabled_;
+}
 
 always_inline void SmallAllocator::SetActiveSlab(const size_t sc,
                                                   const SlabHeader* hdr) {
@@ -96,7 +103,7 @@ always_inline void SmallAllocator::Free(void* p, SlabHeader* hdr) {
       }
 
       if (hdr->in_use == 0) {
-        SpanPool::Instance().Put(hdr);
+        SpanPool::Instance().Put(hdr, hdr->size_class);
         return;
       }
 

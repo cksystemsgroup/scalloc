@@ -13,6 +13,14 @@ void Arena::Init(size_t size) {
   if (reinterpret_cast<void*>(p) == MAP_FAILED) {
     ErrorOut("[Arena] mmap failed. errno: %lu", errno);
   }
+  /*
+  LOG(kWarning, "Before sbrk, sizeof(int): %lu", sizeof(int));
+  uintptr_t p = reinterpret_cast<uintptr_t>(sbrk(size));
+  LOG(kWarning, "after sbrk, sizeof(int): %lu", sizeof(int));
+  if (p == 0) {
+    ErrorOut("[Arena] sbrk failed.");
+  }
+  */
   p += size_ - (p % size_);
   current_ = p;
   start_ = current_;

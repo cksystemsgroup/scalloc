@@ -18,11 +18,13 @@ class SizeMap {
 
   void Init();
   size_t ClassToSize(const size_t sclass);
+  size_t ClassToSpanSize(const size_t sclass);
   size_t MaxObjectsPerClass(const size_t sclass);
 
  private:
   size_t class_to_size_[kNumClasses];
   size_t class_to_objs_[kNumClasses];
+  size_t class_to_span_size_[kNumClasses];
 };
 
 always_inline SizeMap& SizeMap::Instance() {
@@ -31,7 +33,14 @@ always_inline SizeMap& SizeMap::Instance() {
 }
 
 always_inline size_t SizeMap::SizeToClass(const size_t size) {
-  return (size + kMinAlignment - 1) / kMinAlignment;
+  if (size <= kMaxSmallSize) {
+    return (size + kMinAlignment - 1) / kMinAlignment;
+  }
+  if (size <= kMaxMediumSize) {
+    return Log2(size - 1) - kMaxSmallShift + kFineClasses; // TODO: super dynamic
+  }
+  // TODO
+  return 0;
 }
 
 always_inline size_t SizeMap::ClassToSize(const size_t sclass) {
@@ -40,6 +49,10 @@ always_inline size_t SizeMap::ClassToSize(const size_t sclass) {
 
 always_inline size_t SizeMap::MaxObjectsPerClass(const size_t sclass) {
   return class_to_objs_[sclass];
+}
+
+always_inline size_t SizeMap::ClassToSpanSize(const size_t sclass) {
+  return class_to_span_size_[sclass];
 }
 
 }  // namespace scalloc

@@ -10,7 +10,10 @@
 
 namespace scalloc {
 
+bool SmallAllocator::enabled_;
+
 void SmallAllocator::InitModule() {
+  enabled_ = true;
 }
 
 void SmallAllocator::Init(const uint64_t id) {
@@ -64,7 +67,7 @@ void SmallAllocator::Refill(const size_t sc) {
   Profiler::GetProfiler().LogSizeclassRefill();
 #endif  // PROFILER_ON
   LOG(kTrace, "[SlabAllocator]: refilling size class: %lu", sc);
-  uintptr_t block = reinterpret_cast<uintptr_t>(SpanPool::Instance().Get());
+  uintptr_t block = reinterpret_cast<uintptr_t>(SpanPool::Instance().Get(sc));
   if (block == 0) {
     ErrorOut("SpanPool out of memory");
   }
@@ -77,6 +80,20 @@ void SmallAllocator::Refill(const size_t sc) {
 SlabHeader* SmallAllocator::InitSlab(uintptr_t block,
                                       size_t len,
                                       const size_t sc) {
+  len = 1UL << 28;  // virtual span size
+
+  SpanHeader* hdr = reinterpret_cast<SpanHeader*>(block);
+  hdr->Reset(sc, id_);
+  hdr->aowner.owner = id_;
+  hdr->aowner.active = true;
+
+  block += sizeof(SpanHeader);
+  size_t obj_size = SizeMap::Instance().ClassToSize(sc);
+  size_t objs = SizeMap::Instance().MaxObjectsPerClass(sc);
+  hdr->flist.FromBlock(reinterpret_cast<void*>(block), obj_size, objs);
+  return hdr;
+
+  /*
   const size_t obj_size = SizeMap::Instance().ClassToSize(sc);
   size_t sys_page_size = RuntimeVars::SystemPageSize();
   SlabHeader* main_hdr = reinterpret_cast<SlabHeader*>(block);
@@ -111,6 +128,7 @@ SlabHeader* SmallAllocator::InitSlab(uintptr_t block,
   }
 
   return main_hdr;
+  */
 }
 
 void SmallAllocator::Destroy() {

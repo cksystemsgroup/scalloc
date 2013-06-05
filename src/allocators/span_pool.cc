@@ -23,13 +23,16 @@ void SpanPool::InitModule() {
 }
 
 void* SpanPool::RefillOne() {
-  const size_t block_size = RuntimeVars::SystemPageSize() * kPageMultiple;
+  //const size_t block_size = RuntimeVars::SystemPageSize() * kPageMultiple;
+  const size_t block_size = 1UL << 28;
   uintptr_t ptr = reinterpret_cast<uintptr_t>(SmallArena.Allocate(block_size));
   void* result = reinterpret_cast<void*>(ptr);
   return result;
 }
 
 void SpanPool::Refill(const size_t refill) {
+  return;
+  /*
   const size_t block_size = RuntimeVars::SystemPageSize() * kPageMultiple;
   uintptr_t ptr = reinterpret_cast<uintptr_t>(
       SmallArena.Allocate(refill * block_size));
@@ -37,6 +40,7 @@ void SpanPool::Refill(const size_t refill) {
     Put(reinterpret_cast<void*>(ptr));
     ptr += block_size;
   }
+  */
 }
 
 }  // namespace scalloc

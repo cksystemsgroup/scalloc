@@ -61,10 +61,12 @@ namespace scalloc {
 
 always_inline void* malloc(const size_t size) {
   void* p;
-  if (LIKELY(size <= kMaxSmallSize)) {
+  if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
     p = ThreadCache::GetCache().Allocate(size);
+  /*
   } else if (size < kMaxMediumSize && MediumAllocator::Enabled()) {
     p = MediumAllocator::Allocate(size);
+  */
   } else {
     p = LargeAllocator::Alloc(size);
   }
@@ -81,8 +83,10 @@ always_inline void free(void* p) {
   if (SmallArena.Contains(p)) {
     ThreadCache::GetCache().Free(p, reinterpret_cast<SpanHeader*>(
         SpanHeader::GetFromObject(p)));
+  /*
   } else if (MediumArena.Contains(p)) {
     MediumAllocator::Free(p);
+  */
   } else {
     LargeAllocator::Free(reinterpret_cast<LargeObjectHeader*>(
         BlockHeader::GetFromObject(p)));
@@ -126,8 +130,10 @@ extern "C" void* scalloc_realloc(void* ptr, size_t size) __THROW {
   if (scalloc::SmallArena.Contains(ptr)) {
     old_size = scalloc::SizeMap::Instance().ClassToSize(
         reinterpret_cast<SpanHeader*>(SpanHeader::GetFromObject(ptr))->size_class);
+  /*
   } else if (scalloc::MediumArena.Contains(ptr)) {
     old_size = scalloc::MediumAllocator::SizeOf(ptr); 
+  */
   } else {
     old_size = reinterpret_cast<LargeObjectHeader*>(BlockHeader::GetFromObject(ptr))->size -
                sizeof(LargeObjectHeader);

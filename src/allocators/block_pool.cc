@@ -29,8 +29,8 @@ void* BlockPool::Allocate(const size_t sc,
 
   if (p != NULL) {
     // We found an object, let's try to steal the whole block.
-    SlabHeader* hdr = reinterpret_cast<SlabHeader*>(
-        BlockHeader::GetFromObject(p));
+    SpanHeader* hdr = reinterpret_cast<SpanHeader*>(
+        SpanHeader::GetFromObject(p));
     ActiveOwner would_steal(false, hdr->aowner.owner);
     ActiveOwner my(true, tid);
     if (!hdr->aowner.active &&

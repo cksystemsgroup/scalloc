@@ -32,12 +32,17 @@ const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
 
 const size_t kMediumSpanSize = 1UL << 28;  // 256 MiB
 
-const size_t kNumClasses = kMaxSmallSize / kMinAlignment + 1;
+const size_t kFineClasses = kMaxSmallSize / kMinAlignment + 1;
+//const size_t kNumClasses = kMaxSmallSize / kMinAlignment + 1;
+const size_t kCoarseClasses = kMaxMediumShift - kMaxSmallShift;
+const size_t kNumClasses = kFineClasses + kCoarseClasses;
+
 
 #ifdef SMALL_SPACE_SIZE
 const size_t kSmallSpace = SMALL_SPACE_SIZE;
 #elif defined  __x86_64__
-const size_t kSmallSpace = 1UL << 35;  // 32GiB
+//const size_t kSmallSpace = 1UL << 35;  // 32GiB
+const size_t kSmallSpace = 1UL << 44;  // 16TiB
 #elif defined __i386__
 const size_t kSmallSpace = 1UL << 31;  // 2GiB
 #else
