@@ -13,6 +13,7 @@
 #include "common.h"
 #include "log.h"
 #include "random.h"
+#include "size_map.h"
 
 #define SCALLOC_PROFILER_METHOD_GUARD \
     if (UNLIKELY(!enabled_)) return; \
@@ -42,21 +43,18 @@ class Profiler {
     return 1;
   }
 
-  void LogAllocation(size_t size) {
+  inline void LogAllocation(size_t size) {
     SCALLOC_PROFILER_METHOD_GUARD
 
+    size_t block_size = SizeMap::SizeToBlockSize(size);
+    size_t size_class = SizeMap::SizeToClass(size);
+    
     allocation_count_++;
     allocated_bytes_count_ += size;
-    sizeclass_histogram_[Log2(size)]++;
+    sizeclass_histogram_[size_class]++;
 
-    if (size > kMaxSmallSize && size <= kMaxMediumSize) {
-      if (UNLIKELY(medium_object_allocation_count_ == 0)) {
-        last_medium_object_timestamp_ = rdtsc();
-      }
-      uint64_t now = rdtsc();
-      sum_of_interarrival_times_ += now - last_medium_object_timestamp_;
-      last_medium_object_timestamp_ = now;
-      medium_object_allocation_count_++;
+    if (size_class > 0 && size_class <= kNumClasses) {
+      DecreaseRealSpanFragmentation(size_class, block_size);
     }
 
     if (UNLIKELY(allocated_bytes_count_ >= kTimeQuantum_)) {
@@ -65,7 +63,7 @@ class Profiler {
     }
   }
 
-  void LogDeallocation(size_t blocksize = 0,
+  inline void LogDeallocation(size_t size_class,
                        bool hot = true,
                        bool remote = false) {
     SCALLOC_PROFILER_METHOD_GUARD
@@ -76,21 +74,32 @@ class Profiler {
       fast_free_count_++;
       hot ? hot_free_count_++ : warm_free_count_++;
     }
+
+    if (size_class > 0 && size_class <= kNumClasses) {
+      IncreaseRealSpanFragmentation(size_class, SizeMap::SizeToBlockSize(SizeMap::Instance().ClassToSize(size_class)));
+    }
   }
 
-  void LogBlockStealing() {
+  inline void LogBlockStealing() {
     SCALLOC_PROFILER_METHOD_GUARD
     block_stealing_count_++;
   }
 
-  void LogSizeclassRefill() {
+  inline void LogSizeclassRefill() {
     SCALLOC_PROFILER_METHOD_GUARD
     sizeclass_refill_count_++;
   }
 
-  void LogSpanReuse(bool remote = false) {
+  inline void LogSpanReuse(bool remote = false) {
     SCALLOC_PROFILER_METHOD_GUARD
     remote ? remote_span_reuse_count_++ : local_span_reuse_count_++;
+  }
+
+  inline void IncreaseRealSpanFragmentation(size_t size_class, size_t size) {
+    real_span_fragmentation_histogram_[size_class]+=size;
+  }
+  inline void DecreaseRealSpanFragmentation(size_t size_class, size_t size) {
+    real_span_fragmentation_histogram_[size_class]-=size;
   }
 
  private:
@@ -101,7 +110,8 @@ class Profiler {
   FILE *fp_;
   pthread_t tid_;
   bool self_allocating_;  // to avoid loops while Init() calls a malloc
-  uint32_t sizeclass_histogram_[33];  // 33 for everythong larger than 1<<32
+  uint64_t sizeclass_histogram_[kNumClasses+1];
+  long real_span_fragmentation_histogram_[kNumClasses+1];
   uint64_t block_stealing_count_;
   uint64_t sizeclass_refill_count_;
   uint64_t allocation_count_;
@@ -146,7 +156,7 @@ class Profiler {
             "LSR/R %3.2f; "
             "RSR/R %3.2f; "
             "Medium/A %3.3f%%; "
-            "tMedium(kC) %3.1f; /n",
+            "tMedium(kC) %3.1f; \n",
             tid_, allocation_count_, sizeclass_refill_count_,
             block_stealing_count_, free_count, hot_free_count_,
             warm_free_count_, slow_free_count_,
@@ -168,14 +178,22 @@ class Profiler {
                 static_cast<double>(allocation_count_),
             (static_cast<double>(sum_of_interarrival_times_) /
                 static_cast<double>(medium_object_allocation_count_)) / 1000);
-    fprintf(fp_, "cont. SC-HISTO: ");
-    for (unsigned i = 0; i < 33; ++i) {
+    fprintf(fp_, "SC-HISTO (and Frag): ");
+    for (unsigned i = 1; i < kNumClasses + 1; ++i) {
       if (sizeclass_histogram_[i] > 1000)
-        fprintf(fp_, "%d=%uk;", i, sizeclass_histogram_[i]/1000);
+        fprintf(fp_, "%d=%luk (", i, sizeclass_histogram_[i]/1000);
       else
-        fprintf(fp_, "%d=%u;", i, sizeclass_histogram_[i]);
+        fprintf(fp_, "%d=%lu (", i, sizeclass_histogram_[i]);
+      
+      if (real_span_fragmentation_histogram_[i] >= (long)(1UL << 20))
+        fprintf(fp_, "%ldMB);", real_span_fragmentation_histogram_[i]/(1UL << 20));
+      else if (real_span_fragmentation_histogram_[i] >= (long)(1UL << 10))
+        fprintf(fp_, "%ldKB);", real_span_fragmentation_histogram_[i]/(1UL << 10));
+      else  
+        fprintf(fp_, "%ldB);", real_span_fragmentation_histogram_[i]);
     }
-    fprintf(fp_, "\n");
+
+    fprintf(fp_, "\n\n");
   }
 } cache_aligned;
 

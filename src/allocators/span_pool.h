@@ -11,6 +11,10 @@
 #include "distributed_queue.h"
 #include "size_map.h"
 
+#ifdef PROFILER_ON
+#include "profiler.h"
+#endif  // PROFILER_ON
+
 namespace scalloc {
 
 class SpanPool {
@@ -44,10 +48,16 @@ always_inline void SpanPool::Put(void* p, size_t sc) {
   }
   */
   page_pool_.EnqueueAt(p, sc);
+#ifdef PROFILER_ON
+  Profiler::GetProfiler().DecreaseRealSpanFragmentation(sc, SizeMap::Instance().MaxObjectsPerClass(sc) * SizeMap::SizeToBlockSize(sc));
+#endif  // PROFILER_ON
 }
 
 always_inline void* SpanPool::Get(size_t sc) {
   LOG(kTrace, "[SpanPool]: get request");
+#ifdef PROFILER_ON
+  Profiler::GetProfiler().IncreaseRealSpanFragmentation(sc, SizeMap::Instance().MaxObjectsPerClass(sc) * SizeMap::SizeToBlockSize(sc));
+#endif  // PROFILER_ON
   int index;
   size_t i;
   void* result;
