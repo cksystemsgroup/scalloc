@@ -15,6 +15,7 @@ class SizeMap {
 
   static SizeMap& Instance();
   static size_t SizeToClass(const size_t size);
+  static size_t SizeToBlockSize(const size_t size);
 
   void Init();
   size_t ClassToSize(const size_t sclass);
@@ -38,6 +39,16 @@ always_inline size_t SizeMap::SizeToClass(const size_t size) {
   }
   if (size <= kMaxMediumSize) {
     return Log2(size - 1) - kMaxSmallShift + kFineClasses; // TODO: super dynamic
+  }
+  // TODO
+  return 0;
+}
+
+always_inline size_t SizeMap::SizeToBlockSize(const size_t size) {
+  if (size <= kMaxSmallSize) {
+    return (size + kMinAlignment - 1) & ~(kMinAlignment-1);
+  } else if (size <= kMaxMediumSize) {
+    return 1UL << (Log2(size - 1) + 1);
   }
   // TODO
   return 0;
