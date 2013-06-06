@@ -47,7 +47,6 @@ class Profiler {
 
     allocation_count_++;
     allocated_bytes_count_ += size;
-    if (Log2(size) > 31) ErrorOut("FUCK");
     sizeclass_histogram_[Log2(size)]++;
 
     if (size > kMaxSmallSize && size <= kMaxMediumSize) {
@@ -94,15 +93,6 @@ class Profiler {
     remote ? remote_span_reuse_count_++ : local_span_reuse_count_++;
   }
 
-  void LogMMapDuration(uint64_t duration) {
-    mmap_duration_sum_+=duration;
-    mmap_duration_sample_count_++;
-  }
-  void LogMUnmapDuration(uint64_t duration) {
-    munmap_duration_sum_+=duration;
-    munmap_duration_sample_count_++;
-  }
-
  private:
   static const size_t kTimeQuantum_ = 1UL << 20;
   static const size_t kLargeObject = (1UL << 9) + 1;
@@ -127,10 +117,6 @@ class Profiler {
   uint64_t sum_of_interarrival_times_;
   uint64_t medium_object_allocation_count_;
 
-  uint64_t mmap_duration_sum_;
-  uint64_t mmap_duration_sample_count_;
-  uint64_t munmap_duration_sum_;
-  uint64_t munmap_duration_sample_count_;
 
   void Init() {
     if (!enabled_) return;
@@ -160,11 +146,7 @@ class Profiler {
             "LSR/R %3.2f; "
             "RSR/R %3.2f; "
             "Medium/A %3.3f%%; "
-            "tMedium(kC) %3.1f; "
-            "MMaps %lu; "
-            "tMMap(C) %3.1f; "
-            "MUnmaps %lu; "
-            "tMUnmap(C) %3.1f\n;",
+            "tMedium(kC) %3.1f; /n",
             tid_, allocation_count_, sizeclass_refill_count_,
             block_stealing_count_, free_count, hot_free_count_,
             warm_free_count_, slow_free_count_,
@@ -185,13 +167,7 @@ class Profiler {
             100.0 * static_cast<double>(medium_object_allocation_count_) /
                 static_cast<double>(allocation_count_),
             (static_cast<double>(sum_of_interarrival_times_) /
-                static_cast<double>(medium_object_allocation_count_)) / 1000,
-            mmap_duration_sample_count_,
-            static_cast<double>(mmap_duration_sum_) /
-                static_cast<double>(mmap_duration_sample_count_),
-            munmap_duration_sample_count_,
-            static_cast<double>(munmap_duration_sum_) /
-                static_cast<double>(munmap_duration_sample_count_));
+                static_cast<double>(medium_object_allocation_count_)) / 1000);
     fprintf(fp_, "cont. SC-HISTO: ");
     for (unsigned i = 0; i < 33; ++i) {
       if (sizeclass_histogram_[i] > 1000)
