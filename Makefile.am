@@ -230,6 +230,14 @@ small_allocator_unittest_SOURCES = \
 	src/system-alloc.cc \
 	src/test/small_allocator_unittest.cc
 
+TESTS += size_map_unittest
+size_map_unittest_CPPFLAGS = \
+	$(TEST_CPPFLAGS)
+size_map_unittest_LDADD = \
+	$(GTEST_LIBS)
+size_map_unittest_SOURCES = \
+	src/test/size_map_unittest.cc
+
 TESTS += stack_unittest
 stack_unittest_CPPFLAGS = \
 	$(TEST_CPPFLAGS)
