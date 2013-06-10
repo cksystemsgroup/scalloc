@@ -21,16 +21,19 @@
 #define TLS_MODE __attribute__((tls_model ("initial-exec")))
 
 // Number of system pages forming a block
-const size_t kPageMultiple = SPAN_SIZE;
+const size_t kPageMultiple = SPAN_SIZE; // TODO: get rid of that
 
 const size_t kMinAlignment = 16;
 
-const size_t kMaxSmallShift = 9;
+const size_t kMaxSmallShift = 8; // up to 256kiB
 const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
-const size_t kMaxMediumShift = 21;
+const size_t kMaxMediumShift = 21; // up to 2MiB
 const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
 
-const size_t kMediumSpanSize = 1UL << 28;  // 256 MiB
+const size_t kMediumSpanSize = 1UL << 28;  // 256 MiB TODO: remove
+
+const size_t kVirtualSpanShift = 22; // 4MiB
+const size_t kVirtualSpanSize = 1UL << kVirtualSpanShift;
 
 const size_t kFineClasses = kMaxSmallSize / kMinAlignment + 1;
 //const size_t kNumClasses = kMaxSmallSize / kMinAlignment + 1;

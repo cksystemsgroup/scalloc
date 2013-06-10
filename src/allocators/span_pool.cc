@@ -24,7 +24,7 @@ void SpanPool::InitModule() {
 
 void* SpanPool::RefillOne() {
   //const size_t block_size = RuntimeVars::SystemPageSize() * kPageMultiple;
-  const size_t block_size = 1UL << 28;
+  const size_t block_size = kVirtualSpanSize;
   uintptr_t ptr = reinterpret_cast<uintptr_t>(SmallArena.Allocate(block_size));
   void* result = reinterpret_cast<void*>(ptr);
   return result;

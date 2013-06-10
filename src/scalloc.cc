@@ -22,7 +22,6 @@
 
 #ifdef PROFILER_ON
 #include "profiler.h"
-scalloc::Profiler global_profiler;
 #endif  // PROFILER_ON
 
 Arena SmallArea;
@@ -45,6 +44,7 @@ ScallocGuard::ScallocGuard() {
 
     free(malloc(1));
 #ifdef PROFILER_ON
+    scalloc::GlobalProfiler::Instance().Init();
     scalloc::Profiler::Enable();
 #endif  // PROFILER_ON
   }

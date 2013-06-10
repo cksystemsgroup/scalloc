@@ -42,21 +42,23 @@ always_inline SpanPool& SpanPool::Instance() {
 
 always_inline void SpanPool::Put(void* p, size_t sc) {
   LOG(kTrace, "[SpanPool]: put: %p", p);
-  /*
-  if (sc > kMaxSmallShift) {
-    madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + 4096), (1UL << 28) - 4096, MADV_DONTNEED);
-  }
-  */
+  
+  //if (sc > 5) {
+  //  madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + 4096), (1UL << 28) - 4096, MADV_DONTNEED);
+  //}
+  
   page_pool_.EnqueueAt(p, sc);
 #ifdef PROFILER_ON
-  Profiler::GetProfiler().DecreaseRealSpanFragmentation(sc, SizeMap::Instance().MaxObjectsPerClass(sc) * SizeMap::SizeToBlockSize(sc));
+  Profiler::GetProfiler().DecreaseRealSpanFragmentation(sc, SizeMap::Instance().ClassToSpanSize(sc));
+  GlobalProfiler::Instance().LogSpanPoolPut(sc);
 #endif  // PROFILER_ON
 }
 
 always_inline void* SpanPool::Get(size_t sc) {
   LOG(kTrace, "[SpanPool]: get request");
 #ifdef PROFILER_ON
-  Profiler::GetProfiler().IncreaseRealSpanFragmentation(sc, SizeMap::Instance().MaxObjectsPerClass(sc) * SizeMap::SizeToBlockSize(sc));
+  Profiler::GetProfiler().IncreaseRealSpanFragmentation(sc, SizeMap::Instance().ClassToSpanSize(sc));
+  GlobalProfiler::Instance().LogSpanPoolGet(sc);
 #endif  // PROFILER_ON
   int index;
   size_t i;
@@ -71,11 +73,24 @@ always_inline void* SpanPool::Get(size_t sc) {
       break;
     }
   }
+  /*
   if (result != NULL && (i > sc)) {
     madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(result) + SizeMap::Instance().ClassToSpanSize(sc)),
                                     (1UL << 28) - SizeMap::Instance().ClassToSpanSize(sc), 
                                     MADV_DONTNEED);
   }
+  */
+  //if (result != NULL && ( index > static_cast<int>(sc) ) ) {
+  if (result != NULL && (i > sc)) {
+#ifdef PROFILER_ON
+    GlobalProfiler::Instance().LogSpanShrink(sc);
+#endif  // PROFILER_ON
+
+    madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(result) + SizeMap::Instance().ClassToSpanSize(sc)),
+                                    (kVirtualSpanSize) - SizeMap::Instance().ClassToSpanSize(sc), 
+                                    MADV_DONTNEED);
+  }
+
   if (UNLIKELY(result == NULL)) {
     return RefillOne();
   }

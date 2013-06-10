@@ -62,7 +62,7 @@ class SpanHeader : public Header {
  public:
   static SpanHeader* GetFromObject(void* p) {
     //const size_t span_size = RuntimeVars::SystemPageSize() * kPageMultiple;
-    const size_t span_size = 1UL << 28;
+    const size_t span_size = 1UL << kVirtualSpanShift;
     return reinterpret_cast<SpanHeader*>(reinterpret_cast<uintptr_t>(p) & ~(span_size - 1));
   }
 

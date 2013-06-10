@@ -80,7 +80,8 @@ void SmallAllocator::Refill(const size_t sc) {
 SlabHeader* SmallAllocator::InitSlab(uintptr_t block,
                                       size_t len,
                                       const size_t sc) {
-  len = 1UL << 28;  // virtual span size
+  len = 1UL << 24;  // virtual span size
+  //len = 1UL << 28;  // virtual span size
 
   SpanHeader* hdr = reinterpret_cast<SpanHeader*>(block);
   hdr->Reset(sc, id_);
