@@ -42,11 +42,6 @@ always_inline SpanPool& SpanPool::Instance() {
 
 always_inline void SpanPool::Put(void* p, size_t sc) {
   LOG(kTrace, "[SpanPool]: put: %p", p);
-  
-  //if (sc > 5) {
-  //  madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + 4096), (1UL << 28) - 4096, MADV_DONTNEED);
-  //}
-  
   page_pool_.EnqueueAt(p, sc);
 #ifdef PROFILER_ON
   Profiler::GetProfiler().DecreaseRealSpanFragmentation(sc, SizeMap::Instance().ClassToSpanSize(sc));
@@ -73,21 +68,14 @@ always_inline void* SpanPool::Get(size_t sc) {
       break;
     }
   }
-  /*
-  if (result != NULL && (i > sc)) {
-    madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(result) + SizeMap::Instance().ClassToSpanSize(sc)),
-                                    (1UL << 28) - SizeMap::Instance().ClassToSpanSize(sc), 
-                                    MADV_DONTNEED);
-  }
-  */
-  //if (result != NULL && ( index > static_cast<int>(sc) ) ) {
+  
   if (result != NULL && (i > sc)) {
 #ifdef PROFILER_ON
     GlobalProfiler::Instance().LogSpanShrink(sc);
 #endif  // PROFILER_ON
 
     madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(result) + SizeMap::Instance().ClassToSpanSize(sc)),
-                                    (kVirtualSpanSize) - SizeMap::Instance().ClassToSpanSize(sc), 
+                                    kVirtualSpanSize - SizeMap::Instance().ClassToSpanSize(sc), 
                                     MADV_DONTNEED);
   }
 
@@ -95,13 +83,7 @@ always_inline void* SpanPool::Get(size_t sc) {
     return RefillOne();
   }
 
-  /*
-  void* result = page_pool_.Dequeue();
-  if (UNLIKELY(result == NULL)) {
-    return RefillOne();
-  }
   LOG(kTrace, "[SpanPool]: get: %p", result);
-  */
   return result;
 }
 
