@@ -24,8 +24,6 @@
 #include "profiler.h"
 #endif  // PROFILER_ON
 
-Arena SmallArea;
-
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
