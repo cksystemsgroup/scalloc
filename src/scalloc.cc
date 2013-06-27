@@ -87,7 +87,7 @@ always_inline void free(void* p) {
   */
   } else {
     LargeAllocator::Free(reinterpret_cast<LargeObjectHeader*>(
-        BlockHeader::GetFromObject(p)));
+        LargeObjectHeader::GetFromObject(p)));
   }
   return;
 }
@@ -133,7 +133,7 @@ extern "C" void* scalloc_realloc(void* ptr, size_t size) __THROW {
     old_size = scalloc::MediumAllocator::SizeOf(ptr); 
   */
   } else {
-    old_size = reinterpret_cast<LargeObjectHeader*>(BlockHeader::GetFromObject(ptr))->size -
+    old_size = reinterpret_cast<LargeObjectHeader*>(LargeObjectHeader::GetFromObject(ptr))->size -
                sizeof(LargeObjectHeader);
   }
   if (size <= old_size) {

@@ -59,6 +59,8 @@ class SpanHeader : public Header {
 
   struct {
   size_t size_class;
+  size_t max_num_blocks;
+  size_t block_size;
   size_t remote_flist;
   } cache_aligned;
 
@@ -70,7 +72,6 @@ class SpanHeader : public Header {
 
   struct {
   uint64_t in_use;
-  uint64_t bump_pointer;
   Freelist flist;
   } cache_aligned;
 

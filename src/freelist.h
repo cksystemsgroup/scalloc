@@ -29,7 +29,7 @@ class Freelist {
   /// @param start Pointer to new chunk of contiguous memory
   /// @param size Size of the objects in this free list
   /// @param len Number of objects added to this free list
-  //  void AddRange(const void* start, const size_t size, size_t len);
+  void AddRange(const void* start, const size_t size, size_t len);
 
   /// Adds a free object to the head of this free list.
   ///
@@ -75,7 +75,7 @@ inline void Freelist::FromBlock(const void* start,
     start_ptr += size;
   }
 }
-/*
+
 inline void Freelist::AddRange(const void* start,
                                const size_t size,
                                size_t len) {
@@ -93,7 +93,7 @@ inline void Freelist::AddRange(const void* start,
     start_ptr += size;
   }
 }
-*/
+
 
 always_inline bool Freelist::Empty() {
   return list_ == NULL;

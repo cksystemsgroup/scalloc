@@ -68,7 +68,7 @@ void SmallAllocator::Refill(const size_t sc) {
 #endif  // PROFILER_ON
   LOG(kTrace, "[SlabAllocator]: refilling size class: %lu", sc);
   uintptr_t block = reinterpret_cast<uintptr_t>(SpanPool::Instance().Get(sc));
-  if (block == 0) {
+  if (UNLIKELY(block == 0)) {
     ErrorOut("SpanPool out of memory");
   }
   SpanHeader* hdr = InitSlab(block,
@@ -80,8 +80,7 @@ void SmallAllocator::Refill(const size_t sc) {
 SpanHeader* SmallAllocator::InitSlab(uintptr_t block,
                                       size_t len,
                                       const size_t sc) {
-  len = 1UL << 24;  // virtual span size
-  //len = 1UL << 28;  // virtual span size
+  len = kVirtualSpanSize;
 
   SpanHeader* hdr = reinterpret_cast<SpanHeader*>(block);
   hdr->Reset(sc, id_);
@@ -89,47 +88,12 @@ SpanHeader* SmallAllocator::InitSlab(uintptr_t block,
   hdr->aowner.active = true;
 
   block += sizeof(SpanHeader);
-  size_t obj_size = SizeMap::Instance().ClassToSize(sc);
-  size_t objs = SizeMap::Instance().MaxObjectsPerClass(sc);
-  hdr->flist.FromBlock(reinterpret_cast<void*>(block), obj_size, objs);
+  hdr->max_num_blocks = SizeMap::Instance().MaxObjectsPerClass(sc);
+  hdr->block_size = SizeMap::Instance().ClassToSize(sc);
+
+  hdr->flist.FromBlock(reinterpret_cast<void*>(block), hdr->block_size, hdr->max_num_blocks);
+
   return hdr;
-
-  /*
-  const size_t obj_size = SizeMap::Instance().ClassToSize(sc);
-  size_t sys_page_size = RuntimeVars::SystemPageSize();
-  SpanHeader* main_hdr = reinterpret_cast<SpanHeader*>(block);
-  main_hdr->Reset(sc, id_);
-  main_hdr->aowner.owner = id_;
-  main_hdr->aowner.active = true;
-
-  // We need to initialize the flist and place ForwardHeaders every system page
-  // size bytes, since this is where we search for headers (for small AND large
-  // objects)
-
-  size_t nr_objects;
-
-  // First block is special, since it contains the full slab header, while
-  // others only contain the forward header to the first block.
-  nr_objects = (sys_page_size - sizeof(*main_hdr)) / obj_size;
-  main_hdr->flist.FromBlock(reinterpret_cast<void*>(block + sizeof(*main_hdr)),
-                            obj_size,
-                            nr_objects);
-  len -= sys_page_size;
-  block += sys_page_size;
-
-  // Fill with forward headers and flist objects.
-  for (; len >= sys_page_size; len -= sys_page_size) {
-    ForwardHeader* fwd_hdr = reinterpret_cast<ForwardHeader*>(block);
-    fwd_hdr->Reset(main_hdr);
-    nr_objects = (sys_page_size - sizeof(*fwd_hdr)) / obj_size;
-    main_hdr->flist.AddRange(reinterpret_cast<void*>(block + sizeof(*fwd_hdr)),
-                             obj_size,
-                             nr_objects);
-    block += sys_page_size;
-  }
-
-  return main_hdr;
-  */
 }
 
 void SmallAllocator::Destroy() {

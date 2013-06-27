@@ -58,13 +58,18 @@ always_inline void* SmallAllocator::Allocate(const size_t size) {
   const size_t sc = SizeMap::SizeToClass(size);
   SpanHeader* hdr = my_headers_[sc];
   void* result;
-  if (hdr && (result = hdr->flist.Pop())) {
+  if (UNLIKELY(hdr==NULL)) {
+    return AllocateNoSlab(sc, size);
+  }
+  
+  if ((result = hdr->flist.Pop())) {
 #ifdef PROFILER_ON
     Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
     hdr->in_use++;
     return result;
   }
+  
   return AllocateNoSlab(sc, size);
 }
 
