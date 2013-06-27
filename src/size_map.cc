@@ -25,7 +25,7 @@ void SizeMap::Init() {
     class_to_objs_[i] = (class_to_span_size_[i] - sizeof(SpanHeader)) / class_to_size_[i];
   }
   //we start with 1KB objects
-  class_to_objs_[kFineClasses+0] =    1UL << 5; // 512 B blocks
+  class_to_objs_[kFineClasses+0] =    1UL << 4; // 512 B blocks
   class_to_objs_[kFineClasses+1] =    1UL << 4; // 1KB blocks
   class_to_objs_[kFineClasses+2] =  1UL << 4; // 2KB blocks
   class_to_objs_[kFineClasses+3] =  1UL << 3; // 4KB blocks
