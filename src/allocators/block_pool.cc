@@ -23,7 +23,7 @@ void BlockPool::Init() {
 void* BlockPool::Allocate(const size_t sc,
                               const size_t dq_id,
                               const size_t tid,
-                              SlabHeader** block) {
+                              SpanHeader** block) {
   void* p = dqs_[sc].DequeueAt(dq_id % RuntimeVars::Cpus());
   *block = NULL;
 

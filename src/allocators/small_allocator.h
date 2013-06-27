@@ -27,18 +27,18 @@ class SmallAllocator {
 
   void Init(const uint64_t id);
   void* Allocate(const size_t size);
-  void Free(void* p, SlabHeader* hdr);
-  void SetActiveSlab(const size_t sc, const SlabHeader* hdr);
+  void Free(void* p, SpanHeader* hdr);
+  void SetActiveSlab(const size_t sc, const SpanHeader* hdr);
   void Destroy();
 
  private:
   static bool enabled_;
 
   uint64_t id_;
-  SlabHeader* my_headers_[kNumClasses];
+  SpanHeader* my_headers_[kNumClasses];
 
   void Refill(const size_t sc);
-  SlabHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
+  SpanHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
   void* AllocateNoSlab(const size_t sc, const size_t size);
 
   uint64_t me_active_;
@@ -50,13 +50,13 @@ inline bool SmallAllocator::Enabled() {
 }
 
 always_inline void SmallAllocator::SetActiveSlab(const size_t sc,
-                                                  const SlabHeader* hdr) {
-  my_headers_[sc] = const_cast<SlabHeader*>(hdr);
+                                                  const SpanHeader* hdr) {
+  my_headers_[sc] = const_cast<SpanHeader*>(hdr);
 }
 
 always_inline void* SmallAllocator::Allocate(const size_t size) {
   const size_t sc = SizeMap::SizeToClass(size);
-  SlabHeader* hdr = my_headers_[sc];
+  SpanHeader* hdr = my_headers_[sc];
   void* result;
   if (hdr && (result = hdr->flist.Pop())) {
 #ifdef PROFILER_ON
@@ -68,7 +68,7 @@ always_inline void* SmallAllocator::Allocate(const size_t size) {
   return AllocateNoSlab(sc, size);
 }
 
-always_inline void SmallAllocator::Free(void* p, SlabHeader* hdr) {
+always_inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used slab block.
 #ifdef PROFILER_ON
@@ -93,7 +93,7 @@ always_inline void SmallAllocator::Free(void* p, SlabHeader* hdr) {
       hdr->in_use--;
       hdr->flist.Push(p);
 
-      SlabHeader* cur_sc_hdr = my_headers_[hdr->size_class];
+      SpanHeader* cur_sc_hdr = my_headers_[hdr->size_class];
       if (cur_sc_hdr->Utilization() > kLocalReuseThreshold) {
         SetActiveSlab(hdr->size_class, hdr);
 #ifdef PROFILER_ON 

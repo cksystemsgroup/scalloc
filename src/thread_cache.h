@@ -68,7 +68,7 @@ always_inline void* ThreadCache::Allocate(const size_t size) {
 }
 
 always_inline void ThreadCache::Free(void* p, Header* hdr) {
-  allocator_.Free(p, reinterpret_cast<SlabHeader*>(hdr));
+  allocator_.Free(p, reinterpret_cast<SpanHeader*>(hdr));
 }
 
 }  // namespace scalloc

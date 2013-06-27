@@ -37,7 +37,7 @@ void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
     Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
     // Only try to steal we had a slab at least once.
-    SlabHeader* hdr;
+    SpanHeader* hdr;
     void* p = BlockPool::Instance().Allocate(sc, id_, id_, &hdr);
     if (p != NULL) {
 #ifdef PROFILER_ON
@@ -49,7 +49,7 @@ void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
         Profiler::GetProfiler().LogSpanReuse(true);
 #endif  // PROFILER_ON
       } else {
-        if (reinterpret_cast<SlabHeader*>(
+        if (reinterpret_cast<SpanHeader*>(
                 SpanHeader::GetFromObject(p))->aowner.owner != id_) {
           Refill(sc);
         }
@@ -71,13 +71,13 @@ void SmallAllocator::Refill(const size_t sc) {
   if (block == 0) {
     ErrorOut("SpanPool out of memory");
   }
-  SlabHeader* hdr = InitSlab(block,
+  SpanHeader* hdr = InitSlab(block,
                              kPageMultiple * RuntimeVars::SystemPageSize(),
                              sc);
   SetActiveSlab(sc, hdr);
 }
 
-SlabHeader* SmallAllocator::InitSlab(uintptr_t block,
+SpanHeader* SmallAllocator::InitSlab(uintptr_t block,
                                       size_t len,
                                       const size_t sc) {
   len = 1UL << 24;  // virtual span size
@@ -97,7 +97,7 @@ SlabHeader* SmallAllocator::InitSlab(uintptr_t block,
   /*
   const size_t obj_size = SizeMap::Instance().ClassToSize(sc);
   size_t sys_page_size = RuntimeVars::SystemPageSize();
-  SlabHeader* main_hdr = reinterpret_cast<SlabHeader*>(block);
+  SpanHeader* main_hdr = reinterpret_cast<SpanHeader*>(block);
   main_hdr->Reset(sc, id_);
   main_hdr->aowner.owner = id_;
   main_hdr->aowner.active = true;

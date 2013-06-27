@@ -97,7 +97,7 @@ class SpanHeader : public Header {
         scalloc::SizeMap::Instance().MaxObjectsPerClass(this->size_class));
   }
 } cache_aligned;
-typedef SpanHeader SlabHeader;
+//typedef SpanHeader SlabHeader;
 
 class LargeObjectHeader : public Header {
  public:

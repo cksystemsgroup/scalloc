@@ -27,7 +27,7 @@ class BlockPool {
   void* Allocate(const size_t sc,
                  const size_t dq_id,
                  const size_t tid,
-                 SlabHeader** block);
+                 SpanHeader** block);
 
  private:
   DistributedQueue dqs_[kNumClasses] cache_aligned;
