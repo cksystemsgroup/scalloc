@@ -6,6 +6,7 @@
 #define SCALLOC_COMMON_H_
 
 #include <stddef.h>  // size_t
+#include <stdint.h>  // size_t
 
 #include "config.h"
 #include "log.h"
@@ -34,6 +35,7 @@ const size_t kMediumSpanSize = 1UL << 28;  // 256 MiB TODO: remove
 
 const size_t kVirtualSpanShift = 22; // 4MiB
 const size_t kVirtualSpanSize = 1UL << kVirtualSpanShift;
+const uintptr_t kVirtualSpanMask = ~(kVirtualSpanSize - 1);
 
 const size_t kFineClasses = kMaxSmallSize / kMinAlignment + 1;
 //const size_t kNumClasses = kMaxSmallSize / kMinAlignment + 1;

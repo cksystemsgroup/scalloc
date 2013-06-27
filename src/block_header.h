@@ -14,28 +14,9 @@
 enum BlockType {
   UNDEF,
   kSlab,
-  kLargeObject,
-  kForward
+  kLargeObject
+  //kForward
 };
-
-class Header {
- public:
-  static Header* GetFromObject(void* p);
-
-  BlockType type;
-};
-typedef Header BlockHeader;
-
-class PageHeader : public Header {
- public:
-  Header* forward;
-
-  inline void Reset(Header* forward) {
-    this->type = kForward;
-    this->forward = forward;
-  }
-};
-typedef PageHeader ForwardHeader;
 
 struct ActiveOwner {
   union {
@@ -58,12 +39,20 @@ struct ActiveOwner {
   }
 };
 
+class Header {
+ public:
+  static Header* GetFromObject(void* p);
+
+  BlockType type;
+};
+
+
+
 class SpanHeader : public Header {
  public:
-  static SpanHeader* GetFromObject(void* p) {
-    //const size_t span_size = RuntimeVars::SystemPageSize() * kPageMultiple;
-    const size_t span_size = 1UL << kVirtualSpanShift;
-    return reinterpret_cast<SpanHeader*>(reinterpret_cast<uintptr_t>(p) & ~(span_size - 1));
+  static always_inline SpanHeader* GetFromObject(void* p) {
+    //const size_t span_size = 1UL << kVirtualSpanShift;
+    return reinterpret_cast<SpanHeader*>(reinterpret_cast<uintptr_t>(p) & kVirtualSpanMask);
   }
 
   // read-only properties
@@ -81,6 +70,7 @@ class SpanHeader : public Header {
 
   struct {
   uint64_t in_use;
+  uint64_t bump_pointer;
   Freelist flist;
   } cache_aligned;
 
@@ -100,7 +90,18 @@ class SpanHeader : public Header {
 //typedef SpanHeader SlabHeader;
 
 class LargeObjectHeader : public Header {
- public:
+ public:  
+  static always_inline LargeObjectHeader* GetFromObject(void* p) {
+    uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
+    uintptr_t page_ptr = ptr & ~(RuntimeVars::SystemPageSize() - 1);
+    Header* bh = reinterpret_cast<Header*>(page_ptr);
+    if (UNLIKELY(bh->type != kLargeObject)) {
+      ErrorOut("Calling LargeObjectHeader::GetFromObject on kSlab type. "
+               "type: %d, ptr: %p, page_ptr: %p",
+               bh->type, p, reinterpret_cast<void*>(page_ptr));
+    }
+    return reinterpret_cast<LargeObjectHeader*>(bh);
+  }
   size_t size;
 
   inline void Reset(size_t size) {
@@ -110,26 +111,8 @@ class LargeObjectHeader : public Header {
 } cache_aligned;
 
 always_inline Header* Header::GetFromObject(void* p) {
-  const size_t sys_page_size = RuntimeVars::SystemPageSize();
-  uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
-  if (UNLIKELY(ptr % sys_page_size == 0)) {
-    Header* bh = reinterpret_cast<Header*>(ptr - sys_page_size);
-    if (bh->type == kForward) {
-      bh = reinterpret_cast<ForwardHeader*>(bh)->forward;
-    }
-  }
-  uintptr_t page_ptr = ptr & ~(sys_page_size - 1);
-  Header* bh = reinterpret_cast<Header*>(page_ptr);
-  switch (bh->type) {
-  case kForward:
-    return reinterpret_cast<ForwardHeader*>(bh)->forward;
-  case kSlab:
-  case kLargeObject:
-    return bh;
-  default:
-    ErrorOut("unknown block header. type: %d, ptr: %p, page_ptr: %p",
-             bh->type, p, reinterpret_cast<void*>(page_ptr));
-  }
+
+  ErrorOut("Calling Header::GetObject.");
   // unreachable...
   return NULL;
 }
