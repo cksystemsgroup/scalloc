@@ -74,6 +74,7 @@ always_inline void* SmallAllocator::Allocate(const size_t size) {
 }
 
 always_inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
+  SpanHeader* cur_sc_hdr = my_headers_[hdr->size_class];
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used slab block.
 #ifdef PROFILER_ON
@@ -82,7 +83,7 @@ always_inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       LOG(kTrace, "[SlabAllcoator]: free in active local block at %p", p);
       hdr->in_use--;
       hdr->flist.Push(p);
-      if (hdr != my_headers_[hdr->size_class] &&
+      if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
         hdr->aowner.active = false;
       }
@@ -98,7 +99,6 @@ always_inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       hdr->in_use--;
       hdr->flist.Push(p);
 
-      SpanHeader* cur_sc_hdr = my_headers_[hdr->size_class];
       if (cur_sc_hdr->Utilization() > kLocalReuseThreshold) {
         SetActiveSlab(hdr->size_class, hdr);
 #ifdef PROFILER_ON 

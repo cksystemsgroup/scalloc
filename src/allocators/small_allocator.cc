@@ -67,16 +67,31 @@ void SmallAllocator::Refill(const size_t sc) {
   Profiler::GetProfiler().LogSizeclassRefill();
 #endif  // PROFILER_ON
   LOG(kTrace, "[SlabAllocator]: refilling size class: %lu", sc);
-  uintptr_t block = reinterpret_cast<uintptr_t>(SpanPool::Instance().Get(sc));
+  bool reusable;
+  uintptr_t block = reinterpret_cast<uintptr_t>(SpanPool::Instance().Get(sc, &reusable));
   if (UNLIKELY(block == 0)) {
     ErrorOut("SpanPool out of memory");
   }
-  SpanHeader* hdr = InitSlab(block,
-                             kPageMultiple * RuntimeVars::SystemPageSize(),
-                             sc);
+  SpanHeader* hdr;
+  hdr = reinterpret_cast<SpanHeader*>(block);
+  hdr->Reset(sc, id_);
+  hdr->aowner.owner = id_;
+  hdr->aowner.active = true;
+  hdr->max_num_blocks = SizeMap::Instance().MaxObjectsPerClass(sc);
+
+  if (!reusable) {
+    block += sizeof(SpanHeader);
+    size_t block_size = SizeMap::Instance().ClassToSize(sc);
+    hdr->flist.FromBlock(reinterpret_cast<void*>(block), block_size, hdr->max_num_blocks);
+  } /*else {
+
+    hdr = InitSlab(block,
+                   kPageMultiple * RuntimeVars::SystemPageSize(),
+                   sc);
+  }*/
   SetActiveSlab(sc, hdr);
 }
-
+/*
 SpanHeader* SmallAllocator::InitSlab(uintptr_t block,
                                       size_t len,
                                       const size_t sc) {
@@ -89,12 +104,12 @@ SpanHeader* SmallAllocator::InitSlab(uintptr_t block,
 
   block += sizeof(SpanHeader);
   hdr->max_num_blocks = SizeMap::Instance().MaxObjectsPerClass(sc);
-  hdr->block_size = SizeMap::Instance().ClassToSize(sc);
+  size_t block_size = SizeMap::Instance().ClassToSize(sc);
 
-  hdr->flist.FromBlock(reinterpret_cast<void*>(block), hdr->block_size, hdr->max_num_blocks);
+  hdr->flist.FromBlock(reinterpret_cast<void*>(block), block_size, hdr->max_num_blocks);
 
   return hdr;
-}
+}*/
 
 void SmallAllocator::Destroy() {
   // Destroying basically means giving up all active spans.  We can only give up
