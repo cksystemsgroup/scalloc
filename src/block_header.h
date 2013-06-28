@@ -60,7 +60,7 @@ class SpanHeader : public Header {
   struct {
   size_t size_class;
   size_t max_num_blocks;
-  size_t block_size;
+  //size_t block_size;
   size_t remote_flist;
   } cache_aligned;
 
@@ -84,8 +84,7 @@ class SpanHeader : public Header {
 
   // The utilization of the span in percent.
   inline size_t Utilization() {
-    return 100 - ((this->flist.Size() * 100) /
-        scalloc::SizeMap::Instance().MaxObjectsPerClass(this->size_class));
+    return 100 - ((this->flist.Size() * 100) / this->max_num_blocks);
   }
 } cache_aligned;
 //typedef SpanHeader SlabHeader;

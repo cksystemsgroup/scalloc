@@ -26,7 +26,7 @@ const size_t kPageMultiple = SPAN_SIZE; // TODO: get rid of that
 
 const size_t kMinAlignment = 16;
 
-const size_t kMaxSmallShift = 8; // up to 256kiB
+const size_t kMaxSmallShift = 8; // up to 256B
 const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
 const size_t kMaxMediumShift = 21; // up to 2MiB
 const size_t kMaxMediumSize = 1UL << kMaxMediumShift;

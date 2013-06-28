@@ -23,7 +23,7 @@ class SpanPool {
   static SpanPool& Instance();
 
   void Refill(const size_t refill);
-  void* Get(size_t sc);
+  void* Get(size_t sc, bool* reusable);
   void Put(void* p, size_t sc);
 
  private:
@@ -42,22 +42,27 @@ always_inline SpanPool& SpanPool::Instance() {
 
 always_inline void SpanPool::Put(void* p, size_t sc) {
   LOG(kTrace, "[SpanPool]: put: %p", p);
-  page_pool_.EnqueueAt(p, sc);
+  page_pool_.EnqueueAt(p, sc-1); //real size classes start at 1
 #ifdef PROFILER_ON
   Profiler::GetProfiler().DecreaseRealSpanFragmentation(sc, SizeMap::Instance().ClassToSpanSize(sc));
   GlobalProfiler::Instance().LogSpanPoolPut(sc);
 #endif  // PROFILER_ON
 }
 
-always_inline void* SpanPool::Get(size_t sc) {
+always_inline void* SpanPool::Get(size_t sc, bool *reusable) {
   LOG(kTrace, "[SpanPool]: get request");
 #ifdef PROFILER_ON
   Profiler::GetProfiler().IncreaseRealSpanFragmentation(sc, SizeMap::Instance().ClassToSpanSize(sc));
   GlobalProfiler::Instance().LogSpanPoolGet(sc);
 #endif  // PROFILER_ON
+
+  sc--; //real size classe start at 1. DQ index starts at 0
+
   int index;
   size_t i;
   void* result;
+  *reusable = false;
+
   for (i = 0; i < kNumClasses; i++) {
     index = sc - i;
     if (index < 0) {
@@ -69,7 +74,14 @@ always_inline void* SpanPool::Get(size_t sc) {
     }
   }
   
-  if (result != NULL && (i > sc)) {
+  if (UNLIKELY(result == NULL)) {
+    //LOG(kError, "need refill");
+    return RefillOne();
+  }
+    //LOG(kError, "reused span from %d to %d", i, sc);
+
+  if (i > sc) {
+    //LOG(kError, "can be shrunk %d to %d", i, sc);
 #ifdef PROFILER_ON
     GlobalProfiler::Instance().LogSpanShrink(sc);
 #endif  // PROFILER_ON
@@ -79,9 +91,11 @@ always_inline void* SpanPool::Get(size_t sc) {
                                     MADV_DONTNEED);
   }
 
-  if (UNLIKELY(result == NULL)) {
-    return RefillOne();
+  if (i == sc) {
+    //LOG(kError, "can be reused");
+    *reusable = true;
   }
+
 
   LOG(kTrace, "[SpanPool]: get: %p", result);
   return result;
