@@ -23,15 +23,16 @@ class SpanPool {
   static SpanPool& Instance();
 
   void Refill(const size_t refill);
-  void* Get(size_t sc, bool* reusable);
-  void Put(void* p, size_t sc);
+  void* Get(size_t sc, uint32_t tid, bool* reusable);
+  void Put(void* p, size_t sc, uint32_t tid);
 
  private:
   static SpanPool page_heap_ cache_aligned;
   static const size_t kSpanPoolBackends = kNumClasses;
   static size_t __thread refill_ cache_aligned;
 
-  DistributedQueue page_pool_ cache_aligned;
+  //DistributedQueue page_pool_ cache_aligned;
+  DistributedQueue size_class_pool_[kNumClasses];
 
   void* RefillOne();
 };
@@ -40,16 +41,17 @@ always_inline SpanPool& SpanPool::Instance() {
   return page_heap_;
 }
 
-always_inline void SpanPool::Put(void* p, size_t sc) {
+always_inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool]: put: %p", p);
-  page_pool_.EnqueueAt(p, sc-1); //real size classes start at 1
+  //page_pool_.EnqueueAt(p, sc-1); //real size classes start at 1
+  size_class_pool_[sc-1].EnqueueAt(p, tid % RuntimeVars::Cpus());
 #ifdef PROFILER_ON
   Profiler::GetProfiler().DecreaseRealSpanFragmentation(sc, SizeMap::Instance().ClassToSpanSize(sc));
   GlobalProfiler::Instance().LogSpanPoolPut(sc);
 #endif  // PROFILER_ON
 }
 
-always_inline void* SpanPool::Get(size_t sc, bool *reusable) {
+always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   LOG(kTrace, "[SpanPool]: get request");
 #ifdef PROFILER_ON
   Profiler::GetProfiler().IncreaseRealSpanFragmentation(sc, SizeMap::Instance().ClassToSpanSize(sc));
@@ -62,13 +64,15 @@ always_inline void* SpanPool::Get(size_t sc, bool *reusable) {
   size_t i;
   void* result;
   *reusable = false;
+  int qindex = tid % RuntimeVars::Cpus();
 
   for (i = 0; i < kNumClasses; i++) {
     index = sc - i;
     if (index < 0) {
       index += kNumClasses;
     }
-    result = page_pool_.DequeueOnlyAt(index);
+    //result = page_pool_.DequeueOnlyAt(index);
+    result = size_class_pool_[index].DequeueAt(qindex);
     if (result != NULL) {
       break;
     }

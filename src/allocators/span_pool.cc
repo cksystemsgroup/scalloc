@@ -19,7 +19,11 @@ cache_aligned size_t global_refill;
 cache_aligned SpinLock refill_lock_(LINKER_INITIALIZED);
 
 void SpanPool::InitModule() {
-  page_heap_.page_pool_.Init(kSpanPoolBackends);
+  //page_heap_.page_pool_.Init(kSpanPoolBackends);
+  unsigned num_cores = RuntimeVars::Cpus();
+  for (unsigned i = 0; i < kNumClasses; ++i) {
+    page_heap_.size_class_pool_[i].Init(num_cores);
+  }
 }
 
 void* SpanPool::RefillOne() {

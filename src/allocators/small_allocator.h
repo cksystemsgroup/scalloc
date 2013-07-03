@@ -108,7 +108,7 @@ always_inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       }
 
       if (hdr->in_use == 0) {
-        SpanPool::Instance().Put(hdr, hdr->size_class);
+        SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
         return;
       }
 

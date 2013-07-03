@@ -68,7 +68,7 @@ void SmallAllocator::Refill(const size_t sc) {
 #endif  // PROFILER_ON
   LOG(kTrace, "[SlabAllocator]: refilling size class: %lu", sc);
   bool reusable;
-  uintptr_t block = reinterpret_cast<uintptr_t>(SpanPool::Instance().Get(sc, &reusable));
+  uintptr_t block = reinterpret_cast<uintptr_t>(SpanPool::Instance().Get(sc, id_, &reusable));
   if (UNLIKELY(block == 0)) {
     ErrorOut("SpanPool out of memory");
   }
