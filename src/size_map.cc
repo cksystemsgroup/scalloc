@@ -18,15 +18,15 @@ void SizeMap::Init() {
   class_to_size_[0] = 0;
   class_to_objs_[0] = 0;
   class_to_span_size_[0] = 0;
-  size_t smallest_real_span_size = 1UL << 14; // 16K
+  size_t smallest_real_span_size = 1UL << 15; // 32K
   for (size_t i = 1; i < kFineClasses; i++) {
     class_to_size_[i] = class_to_size_[i-1] + kMinAlignment;
     class_to_span_size_[i] = smallest_real_span_size;
     class_to_objs_[i] = (class_to_span_size_[i] - sizeof(SpanHeader)) / class_to_size_[i];
   }
   //we start with 1KB objects
-  class_to_objs_[kFineClasses+0] =    1UL << 4; // 512 B blocks
-  class_to_objs_[kFineClasses+1] =    1UL << 4; // 1KB blocks
+  class_to_objs_[kFineClasses+0] =    1UL << 6; // 512 B blocks
+  class_to_objs_[kFineClasses+1] =    1UL << 5; // 1KB blocks
   class_to_objs_[kFineClasses+2] =  1UL << 4; // 2KB blocks
   class_to_objs_[kFineClasses+3] =  1UL << 3; // 4KB blocks
   class_to_objs_[kFineClasses+4] =  1UL << 3; // 8KB blocks
