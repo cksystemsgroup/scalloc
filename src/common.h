@@ -29,11 +29,13 @@ const size_t kMinAlignment = 16;
 const size_t kMaxSmallShift = 8; // up to 256B
 const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
 const size_t kMaxMediumShift = 21; // up to 2MiB
+//const size_t kMaxMediumShift = 26; // up to 64MiB
 const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
 
 const size_t kMediumSpanSize = 1UL << 28;  // 256 MiB TODO: remove
 
 const size_t kVirtualSpanShift = 22; // 4MiB
+//const size_t kVirtualSpanShift = 27; // 128MiB
 const size_t kVirtualSpanSize = 1UL << kVirtualSpanShift;
 const uintptr_t kVirtualSpanMask = ~(kVirtualSpanSize - 1);
 
@@ -47,9 +49,11 @@ const size_t kNumClasses = kFineClasses + kCoarseClasses;
 const size_t kSmallSpace = SMALL_SPACE_SIZE;
 #elif defined  __x86_64__
 //const size_t kSmallSpace = 1UL << 35;  // 32GiB
-const size_t kSmallSpace = 1UL << 44;  // 16TiB
+const size_t kSmallSpace = 1UL << 45;  // 16TiB
+const size_t kInternalSpace = 1UL << 31;  // 2GiB
 #elif defined __i386__
 const size_t kSmallSpace = 1UL << 31;  // 2GiB
+const size_t kInternalSpace = 1UL << 31;  // 2GiB
 #else
 #error "platform not supported"
 #endif

@@ -85,7 +85,11 @@ always_inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       hdr->flist.Push(p);
       if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
-        hdr->aowner.active = false;
+        if (UNLIKELY(hdr->in_use == 0)) {
+          SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
+        } else {
+          hdr->aowner.active = false;
+        }
       }
       return;
   } else if (hdr->aowner.raw == me_inactive_) {
