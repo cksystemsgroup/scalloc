@@ -13,9 +13,9 @@ cache_aligned Arena SmallArena;
 cache_aligned Arena MediumArena;
 
 void InitArenas() {
-  InternalArena.Init(kSmallSpace);
+  InternalArena.Init(kInternalSpace);
   SmallArena.Init(kSmallSpace);
-  MediumArena.Init(kSmallSpace);
+ // MediumArena.Init(kSmallSpace);
 }
 
 }  // namespace scalloc
