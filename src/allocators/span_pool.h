@@ -43,6 +43,17 @@ always_inline SpanPool& SpanPool::Instance() {
 
 always_inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool]: put: %p", p);
+
+ /* 
+  if (sc > kFineClasses + 3) {
+    madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + 
+                                    RuntimeVars::SystemPageSize()),
+                                    kVirtualSpanSize - RuntimeVars::SystemPageSize(), 
+                                    MADV_DONTNEED);
+  }
+*/
+
+
   //page_pool_.EnqueueAt(p, sc-1); //real size classes start at 1
   size_class_pool_[sc-1].EnqueueAt(p, tid % RuntimeVars::Cpus());
 #ifdef PROFILER_ON
@@ -85,6 +96,7 @@ always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
     //LOG(kError, "reused span from %d to %d", i, sc);
 
   if (i > sc) {
+  //if ((i > sc) && (i <= kFineClasses + 3)) {
     //LOG(kError, "can be shrunk %d to %d", i, sc);
 #ifdef PROFILER_ON
     GlobalProfiler::Instance().LogSpanShrink(sc);
@@ -96,6 +108,7 @@ always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   }
 
   if (i == sc) {
+  //if ((i == sc) && (i <= kFineClasses + 3)) {
     //LOG(kError, "can be reused");
     *reusable = true;
   }
