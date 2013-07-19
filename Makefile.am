@@ -155,17 +155,6 @@ half_fit_unittest_SOURCES = \
 	src/log.cc \
 	src/test/half_fit_unittest.cc
 
-TESTS += large_allocator_unittest
-large_allocator_unittest_CPPFLAGS = \
-	$(TEST_CPPFLAGS)
-large_allocator_unittest_LDADD = \
-	$(GTEST_LIBS)
-large_allocator_unittest_SOURCES = \
-	src/log.cc \
-	src/runtime_vars.cc \
-	src/system-alloc.cc \
-	src/test/large_allocator_unittest.cc
-
 TESTS += log2_unittest
 log2_unittest_CPPFLAGS = \
 	$(TEST_CPPFLAGS)
@@ -187,21 +176,6 @@ page_heap_allocator_unittest_SOURCES = \
 	src/runtime_vars.cc \
 	src/system-alloc.cc
 
-TESTS += page_heap_unittest
-page_heap_unittest_CPPFLAGS = \
-	$(TEST_CPPFLAGS)
-page_heap_unittest_LDADD = \
-	$(GTEST_LIBS)
-page_heap_unittest_SOURCES = \
-	src/allocators/arena.cc \
-	src/allocators/span_pool.cc \
-	src/scalloc_arenas.cc \
-	src/distributed_queue.cc \
-	src/log.cc \
-	src/test/page_heap_unittest.cc \
-	src/runtime_vars.cc \
-	src/system-alloc.cc
-
 TESTS += runtime_vars_unittest
 runtime_vars_unittest_CPPFLAGS = \
 	$(TEST_CPPFLAGS)
@@ -211,24 +185,6 @@ runtime_vars_unittest_SOURCES = \
 	src/log.cc \
 	src/runtime_vars.cc \
 	src/test/runtime_vars_unittest.cc
-
-TESTS += small_allocator_unittest
-small_allocator_unittest_CPPFLAGS = \
-	$(TEST_CPPFLAGS)
-small_allocator_unittest_LDADD = \
-	$(GTEST_LIBS)
-small_allocator_unittest_SOURCES = \
-	src/allocators/block_pool.cc \
-	src/allocators/arena.cc \
-	src/allocators/span_pool.cc \
-	src/allocators/small_allocator.cc \
-	src/scalloc_arenas.cc \
-	src/distributed_queue.cc \
-	src/log.cc \
-	src/size_map.cc \
-	src/runtime_vars.cc \
-	src/system-alloc.cc \
-	src/test/small_allocator_unittest.cc
 
 TESTS += size_map_unittest
 size_map_unittest_CPPFLAGS = \

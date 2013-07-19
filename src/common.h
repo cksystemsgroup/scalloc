@@ -47,6 +47,7 @@ const size_t kNumClasses = kFineClasses + kCoarseClasses;
 
 #ifdef SMALL_SPACE_SIZE
 const size_t kSmallSpace = SMALL_SPACE_SIZE;
+const size_t kInternalSpace = 1UL << 31;  // 2GiB
 #elif defined  __x86_64__
 //const size_t kSmallSpace = 1UL << 35;  // 32GiB
 const size_t kSmallSpace = 1UL << 45;  // 16TiB
