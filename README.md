@@ -25,7 +25,7 @@ Checkout the latest release version
     cd scalloc
     git checkout release
 
-Then buildig is as easy as
+Then building is as easy as
 
     ./autogen.sh
     ./configure
