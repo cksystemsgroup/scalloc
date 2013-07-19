@@ -1,6 +1,8 @@
 # scalloc
 
-Fast and scalable memory allocation
+A Fast, Multicore-Scalable, Low-Memory-Overhead Allocator
+
+Scalloc is a new concurrent memory allocator that actively utilizes recently developed efficient and scalable concurrent data structures. Global concurrent data structures have long been considered performance and scalability bottlenecks. Hence, many existing allocators aim at minimizing the use of such. Scalloc, in contrast, freely uses global data structures for reusing memory and benefits of the existence of new efficient and scalable ones. In terms of performance and scalability, scalloc is comparable to the best existing allocators. In terms of memory consumption, it outperforms the best scalable allocators. The improvement in memory consumption is enabled by the efficiency of the global data structures, which let scalloc do more work in less time. Scalloc also borrows commonly used concepts in memory management like size-class partitioned memory and private heaps. In addition, scalloc introduces a new idea of virtual spans for uniform treatment of small and big objects without increased memory fragmentation.
 
 ## Dependencies
 
