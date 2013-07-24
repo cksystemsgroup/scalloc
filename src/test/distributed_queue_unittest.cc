@@ -35,29 +35,28 @@ DistributedQueue* InitDQ() {
 
 }  // namespace
 
-TEST(DistributedQueue, Init) {
+TEST(DistributedQueue, Features) {
+  // we cannot init the arean multiple times
+  // so we put all tests together in one
   DistributedQueue* dq = InitDQ();
+  
+  // Init
   EXPECT_TRUE(dq != NULL);
-}
-
-TEST(DistributedQueue, InitEmpty) {
-  DistributedQueue* dq = InitDQ();
-  EXPECT_TRUE(dq->Dequeue() == NULL);
-}
-
-TEST(DistributedQueue, EnqueueDequeue) {
-  DistributedQueue* dq = InitDQ();
+  // InitEmpty
+  EXPECT_TRUE(dq->Dequeue() == NULL);  
+  
+  // EnqueueDequeue
   void* mem = GetObject();
   dq->Enqueue(mem);
   EXPECT_EQ(dq->Dequeue(), mem);
   EXPECT_TRUE(dq->Dequeue() == NULL);
-}
 
-TEST(DistributedQueue, DequeueOnlyAt) {
-  DistributedQueue* dq = InitDQ();
-  void* mem = GetObject();
+  // DequeueOnlyAt
+  mem = GetObject();
   dq->EnqueueAt(mem, 0);
   EXPECT_TRUE(dq->DequeueOnlyAt(1) == NULL);
   EXPECT_EQ(dq->DequeueOnlyAt(0), mem);
   EXPECT_TRUE(dq->DequeueOnlyAt(0) == NULL);
+
 }
+
