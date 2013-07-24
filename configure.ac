@@ -47,6 +47,12 @@ AC_ARG_ENABLE([debug],
                     disable optimizations]))
 AM_CONDITIONAL([DEBUG], [test x$enable_debug = xyes])
 
+AC_ARG_ENABLE([eager-madvise],
+    AS_HELP_STRING([--enable-eager-madvise], [Enable eager madvise. Default: lazy]), 
+    [AC_DEFINE([EAGER_MADVISE_ON], [], [enable eager madvise])],
+    []
+)
+
 AC_ARG_ENABLE([loglevel],
     AS_HELP_STRING([--enable-loglevel=LOGLEVEL], [Enable logging in scalloc.
                     Levels: kTrace, kInfo, kWarning, kError, kFatal. Default:

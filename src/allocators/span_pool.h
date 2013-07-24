@@ -44,14 +44,15 @@ always_inline SpanPool& SpanPool::Instance() {
 always_inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool]: put: %p", p);
 
- /* 
+  
+#ifdef EAGER_MADVISE_ON
   if (sc > kFineClasses + 3) {
     madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + 
                                     RuntimeVars::SystemPageSize()),
                                     kVirtualSpanSize - RuntimeVars::SystemPageSize(), 
                                     MADV_DONTNEED);
   }
-*/
+#endif  // EAGER_MADVISE_ON
 
 
   //page_pool_.EnqueueAt(p, sc-1); //real size classes start at 1
@@ -90,14 +91,15 @@ always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   }
   
   if (UNLIKELY(result == NULL)) {
-    //LOG(kError, "need refill");
     return RefillOne();
   }
-    //LOG(kError, "reused span from %d to %d", i, sc);
 
+#ifdef EAGER_MADVISE_ON
+  if ((i > sc) && (i <= kFineClasses + 3)) {
+#else
   if (i > sc) {
-  //if ((i > sc) && (i <= kFineClasses + 3)) {
-    //LOG(kError, "can be shrunk %d to %d", i, sc);
+#endif  // EAGER_MADVISE_ON
+
 #ifdef PROFILER_ON
     GlobalProfiler::Instance().LogSpanShrink(sc);
 #endif  // PROFILER_ON
@@ -107,9 +109,11 @@ always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
                                     MADV_DONTNEED);
   }
 
+#ifdef EAGER_MADVISE_ON
+  if ((i == sc) && (i <= kFineClasses + 3)) {
+#else
   if (i == sc) {
-  //if ((i == sc) && (i <= kFineClasses + 3)) {
-    //LOG(kError, "can be reused");
+#endif  // EAGER_MADVISE_ON
     *reusable = true;
   }
 
