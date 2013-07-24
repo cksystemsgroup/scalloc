@@ -24,11 +24,10 @@
 
 namespace scalloc {
 
-class Profiler; //forward declaration
+class Profiler;  // forward declaration
 
 class GlobalProfiler {
  public:
-
   static GlobalProfiler &Instance() {
     static GlobalProfiler instance;
     return instance;
@@ -43,9 +42,9 @@ class GlobalProfiler {
   }
 
   void UpdateGlobalState(uint64_t *sizeclass_histogram,
-                         long *real_span_fragmentation_histogram,
+                         int64_t *real_span_fragmentation_histogram,
                          uint64_t block_stealing_count,
-                         uint64_t sizeclass_refill_count, 
+                         uint64_t sizeclass_refill_count,
                          uint64_t allocation_count,
                          uint64_t allocated_bytes_count,
                          uint64_t hot_free_count,
@@ -58,7 +57,8 @@ class GlobalProfiler {
 
     for (unsigned i = 0; i < kNumClasses+1; ++i) {
       sizeclass_histogram_[i] += sizeclass_histogram[i];
-      real_span_fragmentation_histogram_[i] += real_span_fragmentation_histogram[i];
+      real_span_fragmentation_histogram_[i] +=
+          real_span_fragmentation_histogram[i];
     }
     block_stealing_count_ += block_stealing_count;
     sizeclass_refill_count_ += sizeclass_refill_count;
@@ -77,7 +77,6 @@ class GlobalProfiler {
       update_count_ = 0;
       PrintStatistics();
     }
-
   }
 
   void LogSpanPoolPut(size_t sc) {
@@ -116,10 +115,9 @@ class GlobalProfiler {
   FILE *fp_;
   SpinLock lock_;
   uint32_t update_count_;
-  
-  //global view of thread-local profiler data
+  // global view of thread-local profiler data
   uint64_t sizeclass_histogram_[kNumClasses+1];
-  long real_span_fragmentation_histogram_[kNumClasses+1];
+  int64_t real_span_fragmentation_histogram_[kNumClasses+1];
   uint64_t block_stealing_count_;
   uint64_t sizeclass_refill_count_;
   uint64_t allocation_count_;
@@ -131,16 +129,16 @@ class GlobalProfiler {
   uint64_t local_span_reuse_count_;
   uint64_t remote_span_reuse_count_;
 
-  //global-only state
+  // global-only state
   uint64_t spanpool_put_histogram_[kNumClasses+1];
   uint64_t spanpool_get_histogram_[kNumClasses+1];
   uint64_t spanpool_shrink_histogram_[kNumClasses+1];
 
 
-  GlobalProfiler() {};
-  GlobalProfiler(GlobalProfiler const&);
+  GlobalProfiler() {}
+  explicit GlobalProfiler(GlobalProfiler const&);
   void operator=(GlobalProfiler const&);
-  
+
   void PrintStatistics() {
     uint64_t free_count = fast_free_count_ + slow_free_count_;
     fprintf(fp_, "A %lu; R %lu; "
@@ -170,10 +168,10 @@ class GlobalProfiler {
             static_cast<double>(local_span_reuse_count_) /
                 static_cast<double>(sizeclass_refill_count_),
             static_cast<double>(remote_span_reuse_count_) /
-                static_cast<double>(sizeclass_refill_count_)
-                );
+                static_cast<double>(sizeclass_refill_count_));
+
     fprintf(fp_, "SC-HISTO (and Fragmentation):\n");
-    char s1[3]; char s2[3]; char s3[3]; char s4[3]; char s5[3]; 
+    char s1[3]; char s2[3]; char s3[3]; char s4[3]; char s5[3];
     char s6[3]; char s7[3];
     for (unsigned i = 1; i < kNumClasses + 1; ++i) {
       uint64_t blocksize = SizeMap::Instance().ClassToSize(i);
@@ -192,14 +190,11 @@ class GlobalProfiler {
                 PrettySize(real_span_fragmentation_histogram_[i], s4), s4,
                 PrettySize(spanpool_put_histogram_[i], s5), s5,
                 PrettySize(spanpool_get_histogram_[i], s6), s6,
-                PrettySize(spanpool_shrink_histogram_[i], s7), s7
-                );
+                PrettySize(spanpool_shrink_histogram_[i], s7), s7);
     }
 
     fprintf(fp_, "\n\n");
   }
-
-
 } cache_aligned;  // class GlobalProfiler
 
 class Profiler {
@@ -226,15 +221,15 @@ class Profiler {
   inline void LogAllocation(size_t size) {
     SCALLOC_PROFILER_METHOD_GUARD
 
-    //size_t block_size = SizeMap::SizeToBlockSize(size);
     size_t size_class = SizeMap::SizeToClass(size);
-    
+
     allocation_count_++;
     allocated_bytes_count_ += size;
     sizeclass_histogram_[size_class]++;
 
     if (size_class > 0 && size_class <= kNumClasses) {
-      DecreaseRealSpanFragmentation(size_class, SizeMap::Instance().ClassToSize(size_class));
+      DecreaseRealSpanFragmentation(
+          size_class, SizeMap::Instance().ClassToSize(size_class));
     }
 
     if (UNLIKELY(allocated_bytes_count_ >= kTimeQuantum_)) {
@@ -256,7 +251,8 @@ class Profiler {
     }
 
     if (size_class > 0 && size_class <= kNumClasses) {
-      IncreaseRealSpanFragmentation(size_class, SizeMap::Instance().ClassToSize(size_class));
+      IncreaseRealSpanFragmentation(
+          size_class, SizeMap::Instance().ClassToSize(size_class));
     }
   }
 
@@ -280,7 +276,6 @@ class Profiler {
   }
   inline void DecreaseRealSpanFragmentation(size_t size_class, size_t size) {
     real_span_fragmentation_histogram_[size_class]-=size;
-    //ScallocAssert(real_span_fragmentation_histogram_[size_class] >= 0, "negative frag");
   }
 
  private:
@@ -292,7 +287,7 @@ class Profiler {
   pthread_t tid_;
   bool self_allocating_;  // to avoid loops while Init() calls a malloc
   uint64_t sizeclass_histogram_[kNumClasses+1];
-  long real_span_fragmentation_histogram_[kNumClasses+1];
+  int64_t real_span_fragmentation_histogram_[kNumClasses+1];
   uint64_t block_stealing_count_;
   uint64_t sizeclass_refill_count_;
   uint64_t allocation_count_;
@@ -302,11 +297,11 @@ class Profiler {
   uint64_t fast_free_count_;
   uint64_t slow_free_count_;
   uint64_t local_span_reuse_count_;
-  uint64_t remote_span_reuse_count_;  
-  
-  //and the cummulatiye values...
+  uint64_t remote_span_reuse_count_;
+
+  // and the cummulative values...
   uint64_t sizeclass_histogram_sum_[kNumClasses+1];
-  long real_span_fragmentation_histogram_sum_[kNumClasses+1];
+  int64_t real_span_fragmentation_histogram_sum_[kNumClasses+1];
   uint64_t block_stealing_count_sum_;
   uint64_t sizeclass_refill_count_sum_;
   uint64_t allocation_count_sum_;
@@ -351,9 +346,10 @@ class Profiler {
     for (unsigned i = 0; i < kNumClasses+1; ++i) {
       sizeclass_histogram_sum_[i] += sizeclass_histogram_[i];
       sizeclass_histogram_[i] = 0;
-      real_span_fragmentation_histogram_sum_[i] += real_span_fragmentation_histogram_[i];
+      real_span_fragmentation_histogram_sum_[i]
+          += real_span_fragmentation_histogram_[i];
       real_span_fragmentation_histogram_[i] = 0;
-    }    
+    }
     block_stealing_count_sum_ += block_stealing_count_;
     sizeclass_refill_count_sum_ += sizeclass_refill_count_;
     allocation_count_sum_ += allocation_count_;
@@ -363,8 +359,8 @@ class Profiler {
     fast_free_count_sum_ += fast_free_count_;
     slow_free_count_sum_ += slow_free_count_;
     local_span_reuse_count_sum_ += local_span_reuse_count_;
-    remote_span_reuse_count_sum_ += remote_span_reuse_count_;  
-    
+    remote_span_reuse_count_sum_ += remote_span_reuse_count_;
+
     block_stealing_count_ = 0;
     sizeclass_refill_count_ = 0;
     allocation_count_ = 0;
@@ -374,7 +370,7 @@ class Profiler {
     fast_free_count_ = 0;
     slow_free_count_ = 0;
     local_span_reuse_count_ = 0;
-    remote_span_reuse_count_ = 0;  
+    remote_span_reuse_count_ = 0;
 
 
     uint64_t free_count = fast_free_count_sum_ + slow_free_count_sum_;
@@ -405,30 +401,19 @@ class Profiler {
             static_cast<double>(local_span_reuse_count_sum_) /
                 static_cast<double>(sizeclass_refill_count_sum_),
             static_cast<double>(remote_span_reuse_count_sum_) /
-                static_cast<double>(sizeclass_refill_count_sum_)
-                );
+                static_cast<double>(sizeclass_refill_count_sum_));
+
     fprintf(fp_, "SC-HISTO (and Frag): ");
     for (unsigned i = 1; i < kNumClasses + 1; ++i) {
-      if (sizeclass_histogram_sum_[i] > 1000)
+      if (sizeclass_histogram_sum_[i] > 1000) {
         fprintf(fp_, "%d=%luk; ", i, sizeclass_histogram_sum_[i]/1000);
-      else
+      } else {
         fprintf(fp_, "%d=%lu; ", i, sizeclass_histogram_sum_[i]);
-      
-      /*if (real_span_fragmentation_histogram_[i] >= (long)(1UL << 20))
-        fprintf(fp_, "%ldMB);", real_span_fragmentation_histogram_[i]/(1UL << 20));
-      else if (real_span_fragmentation_histogram_[i] >= (long)(1UL << 10))
-        fprintf(fp_, "%ldKB);", real_span_fragmentation_histogram_[i]/(1UL << 10));
-      else  
-        fprintf(fp_, "%ldB);", real_span_fragmentation_histogram_[i]);
-        */
+      }
     }
-
     fprintf(fp_, "\n\n");
   }
 } cache_aligned;  // class Profiler
-
-
-
 
 }  // namespace scalloc
 

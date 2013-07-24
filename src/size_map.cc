@@ -18,48 +18,48 @@ void SizeMap::Init() {
   class_to_size_[0] = 0;
   class_to_objs_[0] = 0;
   class_to_span_size_[0] = 0;
-  size_t smallest_real_span_size = 1UL << 13; // 8K
+  size_t smallest_real_span_size = 1UL << 13;  // 8K
   for (size_t i = 1; i < kFineClasses/2; i++) {
     class_to_size_[i] = class_to_size_[i-1] + kMinAlignment;
     class_to_span_size_[i] = smallest_real_span_size;
-    class_to_objs_[i] = (class_to_span_size_[i] - sizeof(SpanHeader)) / class_to_size_[i];
-  }  
-  smallest_real_span_size = 1UL << 14; // 16K
+    class_to_objs_[i] =
+        (class_to_span_size_[i] - sizeof(SpanHeader)) / class_to_size_[i];
+  }
+  smallest_real_span_size = 1UL << 14;  // 16K
   for (size_t i = kFineClasses/2; i < kFineClasses; i++) {
     class_to_size_[i] = class_to_size_[i-1] + kMinAlignment;
     class_to_span_size_[i] = smallest_real_span_size;
-    class_to_objs_[i] = (class_to_span_size_[i] - sizeof(SpanHeader)) / class_to_size_[i];
+    class_to_objs_[i] =
+        (class_to_span_size_[i] - sizeof(SpanHeader)) / class_to_size_[i];
   }
-  //we start with 1KB objects
-  class_to_objs_[kFineClasses+0] =    1UL << 6; // 512 B blocks
-  class_to_objs_[kFineClasses+1] =    1UL << 5; // 1KB blocks
-  class_to_objs_[kFineClasses+2] =  1UL << 4; // 2KB blocks
-  class_to_objs_[kFineClasses+3] =  1UL << 3; // 4KB blocks
-  class_to_objs_[kFineClasses+4] =  1UL << 3; // 8KB blocks
-  class_to_objs_[kFineClasses+5] =  1UL << 3; // 16KB blocks
-  class_to_objs_[kFineClasses+6] =  1UL << 3; // 32KB blocks
-  class_to_objs_[kFineClasses+7] =  1UL << 2; // 64KB blocks
-  class_to_objs_[kFineClasses+8] =  1UL << 2; // 128KB blocks
-  class_to_objs_[kFineClasses+9] =  1UL << 2; // 256KB blocks
-  class_to_objs_[kFineClasses+10] =  1UL << 2; // 512KB blocks
-  class_to_objs_[kFineClasses+11] = 1UL << 1; // 1MB blocks
-  class_to_objs_[kFineClasses+12] = 1UL << 0; // 2MB blocks
-  //class_to_objs_[kFineClasses+13] = 1UL << 1; // 4MB blocks
-  //class_to_objs_[kFineClasses+14] = 1UL << 1; // 8MB blocks
-  //class_to_objs_[kFineClasses+15] = 1UL << 1; // 16MB blocks
-  //class_to_objs_[kFineClasses+16] = 1UL << 1; // 32MB blocks
-  //class_to_objs_[kFineClasses+17] = 1UL << 1; // 64MB blocks
 
+  // we start with 1KB objects
+  class_to_objs_[kFineClasses+0] =    1UL << 6;  // 512 B blocks
+  class_to_objs_[kFineClasses+1] =    1UL << 5;  // 1KB blocks
+  class_to_objs_[kFineClasses+2] =  1UL << 4;  // 2KB blocks
+  class_to_objs_[kFineClasses+3] =  1UL << 3;  // 4KB blocks
+  class_to_objs_[kFineClasses+4] =  1UL << 3;  // 8KB blocks
+  class_to_objs_[kFineClasses+5] =  1UL << 3;  // 16KB blocks
+  class_to_objs_[kFineClasses+6] =  1UL << 3;  // 32KB blocks
+  class_to_objs_[kFineClasses+7] =  1UL << 2;  // 64KB blocks
+  class_to_objs_[kFineClasses+8] =  1UL << 2;  // 128KB blocks
+  class_to_objs_[kFineClasses+9] =  1UL << 2;  // 256KB blocks
+  class_to_objs_[kFineClasses+10] =  1UL << 2;  // 512KB blocks
+  class_to_objs_[kFineClasses+11] = 1UL << 1;  // 1MB blocks
+  class_to_objs_[kFineClasses+12] = 1UL << 0;  // 2MB blocks
+  // class_to_objs_[kFineClasses+13] = 1UL << 1;  // 4MB blocks
+  // class_to_objs_[kFineClasses+14] = 1UL << 1;  // 8MB blocks
+  // class_to_objs_[kFineClasses+15] = 1UL << 1;  // 16MB blocks
+  // class_to_objs_[kFineClasses+16] = 1UL << 1;  // 32MB blocks
+  // class_to_objs_[kFineClasses+17] = 1UL << 1;  // 64MB blocks
 
-  //size_t large_objects_per_sc = 1UL<<15; // start with 8k objects in sc 1KB and half them in each round
+  // set block size for >512B size classes
   for (size_t i = kFineClasses; i < kNumClasses; i++) {
-    class_to_size_[i] = class_to_size_[i-1] * 2; 
-    //class_to_objs_[i] = large_objects_per_sc;
-    class_to_span_size_[i] = ((class_to_objs_[i] * class_to_size_[i] + sizeof(SpanHeader))  / RuntimeVars::SystemPageSize() + 1) * RuntimeVars::SystemPageSize();
-
-    //if (large_objects_per_sc > (1UL<<6)) {
-    //  large_objects_per_sc = large_objects_per_sc / 2;
-    //}
+    class_to_size_[i] = class_to_size_[i-1] * 2;
+    class_to_span_size_[i] =
+        ((class_to_objs_[i] * class_to_size_[i] + sizeof(SpanHeader))
+         / RuntimeVars::SystemPageSize() + 1)
+        * RuntimeVars::SystemPageSize();
   }
 }
 

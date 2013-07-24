@@ -31,8 +31,7 @@ class SpanPool {
   static const size_t kSpanPoolBackends = kNumClasses;
   static size_t __thread refill_ cache_aligned;
 
-  //DistributedQueue page_pool_ cache_aligned;
-  DistributedQueue size_class_pool_[kNumClasses];
+  DistributedQueue size_class_pool_[kNumClasses] cache_aligned;
 
   void* RefillOne();
 };
@@ -44,21 +43,20 @@ always_inline SpanPool& SpanPool::Instance() {
 always_inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool]: put: %p", p);
 
-  
 #ifdef EAGER_MADVISE_ON
   if (sc > kFineClasses + 3) {
-    madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + 
+    madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) +
                                     RuntimeVars::SystemPageSize()),
-                                    kVirtualSpanSize - RuntimeVars::SystemPageSize(), 
+                                    kVirtualSpanSize -
+                                    RuntimeVars::SystemPageSize(),
                                     MADV_DONTNEED);
   }
 #endif  // EAGER_MADVISE_ON
 
-
-  //page_pool_.EnqueueAt(p, sc-1); //real size classes start at 1
   size_class_pool_[sc-1].EnqueueAt(p, tid % RuntimeVars::Cpus());
 #ifdef PROFILER_ON
-  Profiler::GetProfiler().DecreaseRealSpanFragmentation(sc, SizeMap::Instance().ClassToSpanSize(sc));
+  Profiler::GetProfiler().DecreaseRealSpanFragmentation(
+      sc, SizeMap::Instance().ClassToSpanSize(sc));
   GlobalProfiler::Instance().LogSpanPoolPut(sc);
 #endif  // PROFILER_ON
 }
@@ -66,11 +64,12 @@ always_inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
 always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   LOG(kTrace, "[SpanPool]: get request");
 #ifdef PROFILER_ON
-  Profiler::GetProfiler().IncreaseRealSpanFragmentation(sc, SizeMap::Instance().ClassToSpanSize(sc));
+  Profiler::GetProfiler().IncreaseRealSpanFragmentation(
+      sc, SizeMap::Instance().ClassToSpanSize(sc));
   GlobalProfiler::Instance().LogSpanPoolGet(sc);
 #endif  // PROFILER_ON
 
-  sc--; //real size classe start at 1. DQ index starts at 0
+  sc--;  // real size classe start at 1. DQ index starts at 0
 
   int index;
   size_t i;
@@ -83,13 +82,12 @@ always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
     if (index < 0) {
       index += kNumClasses;
     }
-    //result = page_pool_.DequeueOnlyAt(index);
     result = size_class_pool_[index].DequeueAt(qindex);
     if (result != NULL) {
       break;
     }
   }
-  
+
   if (UNLIKELY(result == NULL)) {
     return RefillOne();
   }
@@ -104,9 +102,11 @@ always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
     GlobalProfiler::Instance().LogSpanShrink(sc);
 #endif  // PROFILER_ON
 
-    madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(result) + SizeMap::Instance().ClassToSpanSize(sc)),
-                                    kVirtualSpanSize - SizeMap::Instance().ClassToSpanSize(sc), 
-                                    MADV_DONTNEED);
+    madvise(reinterpret_cast<void*>(
+            reinterpret_cast<uintptr_t>(result) +
+            SizeMap::Instance().ClassToSpanSize(sc)),
+        kVirtualSpanSize - SizeMap::Instance().ClassToSpanSize(sc),
+        MADV_DONTNEED);
   }
 
 #ifdef EAGER_MADVISE_ON

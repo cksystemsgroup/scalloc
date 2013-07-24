@@ -125,14 +125,17 @@ extern "C" void* scalloc_realloc(void* ptr, size_t size) __THROW {
   size_t old_size;
   if (scalloc::SmallArena.Contains(ptr)) {
     old_size = scalloc::SizeMap::Instance().ClassToSize(
-        reinterpret_cast<SpanHeader*>(SpanHeader::GetFromObject(ptr))->size_class);
+        reinterpret_cast<SpanHeader*>
+        (SpanHeader::GetFromObject(ptr))->size_class);
   /*
   } else if (scalloc::MediumArena.Contains(ptr)) {
     old_size = scalloc::MediumAllocator::SizeOf(ptr); 
   */
   } else {
-    old_size = reinterpret_cast<LargeObjectHeader*>(LargeObjectHeader::GetFromObject(ptr))->size -
-               sizeof(LargeObjectHeader);
+    old_size =
+        reinterpret_cast<LargeObjectHeader*>
+        (LargeObjectHeader::GetFromObject(ptr))->size
+        - sizeof(LargeObjectHeader);
   }
   if (size <= old_size) {
     return ptr;

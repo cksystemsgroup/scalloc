@@ -38,9 +38,8 @@ always_inline size_t SizeMap::SizeToClass(const size_t size) {
     return (size + kMinAlignment - 1) / kMinAlignment;
   }
   if (size <= kMaxMediumSize) {
-    return Log2(size - 1) - kMaxSmallShift + kFineClasses; // TODO: super dynamic
+    return Log2(size - 1) - kMaxSmallShift + kFineClasses;
   }
-  // TODO
   return 0;
 }
 
@@ -50,7 +49,7 @@ always_inline size_t SizeMap::SizeToBlockSize(const size_t size) {
   } else if (size <= kMaxMediumSize) {
     return 1UL << (Log2(size - 1) + 1);
   }
-  // TODO
+  // TODO(maigner): never called on large objects. handle anyways
   return 0;
 }
 

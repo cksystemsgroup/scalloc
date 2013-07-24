@@ -15,7 +15,6 @@ enum BlockType {
   UNDEF,
   kSlab,
   kLargeObject
-  //kForward
 };
 
 struct ActiveOwner {
@@ -51,8 +50,8 @@ class Header {
 class SpanHeader : public Header {
  public:
   static always_inline SpanHeader* GetFromObject(void* p) {
-    //const size_t span_size = 1UL << kVirtualSpanShift;
-    return reinterpret_cast<SpanHeader*>(reinterpret_cast<uintptr_t>(p) & kVirtualSpanMask);
+    return reinterpret_cast<SpanHeader*>
+        (reinterpret_cast<uintptr_t>(p) & kVirtualSpanMask);
   }
 
   // read-only properties
@@ -60,7 +59,6 @@ class SpanHeader : public Header {
   struct {
   size_t size_class;
   size_t max_num_blocks;
-  //size_t block_size;
   size_t remote_flist;
   } cache_aligned;
 
@@ -87,10 +85,9 @@ class SpanHeader : public Header {
     return 100 - ((this->flist.Size() * 100) / this->max_num_blocks);
   }
 } cache_aligned;
-//typedef SpanHeader SlabHeader;
 
 class LargeObjectHeader : public Header {
- public:  
+ public:
   static always_inline LargeObjectHeader* GetFromObject(void* p) {
     uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
     uintptr_t page_ptr = ptr & ~(RuntimeVars::SystemPageSize() - 1);
@@ -111,7 +108,6 @@ class LargeObjectHeader : public Header {
 } cache_aligned;
 
 always_inline Header* Header::GetFromObject(void* p) {
-
   ErrorOut("Calling Header::GetObject.");
   // unreachable...
   return NULL;

@@ -58,10 +58,10 @@ always_inline void* SmallAllocator::Allocate(const size_t size) {
   const size_t sc = SizeMap::SizeToClass(size);
   SpanHeader* hdr = my_headers_[sc];
   void* result;
-  if (UNLIKELY(hdr==NULL)) {
+  if (UNLIKELY(hdr == NULL)) {
     return AllocateNoSlab(sc, size);
   }
-  
+
   if ((result = hdr->flist.Pop())) {
 #ifdef PROFILER_ON
     Profiler::GetProfiler().LogAllocation(size);
@@ -69,7 +69,7 @@ always_inline void* SmallAllocator::Allocate(const size_t size) {
     hdr->in_use++;
     return result;
   }
-  
+
   return AllocateNoSlab(sc, size);
 }
 
@@ -105,7 +105,7 @@ always_inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
 
       if (cur_sc_hdr->Utilization() > kLocalReuseThreshold) {
         SetActiveSlab(hdr->size_class, hdr);
-#ifdef PROFILER_ON 
+#ifdef PROFILER_ON
         Profiler::GetProfiler().LogSpanReuse();
 #endif  // PROFILER_ON
         return;
@@ -126,7 +126,6 @@ always_inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
 #endif  // PROFILER_ON
   LOG(kTrace, "[SlabAllocator]: remote free for %p, owner: %lu, me: %lu",
       p, hdr->aowner.owner, id_);
-  //BlockPool::Instance().Free(p, hdr->size_class, hdr->remote_flist);
   BlockPool::Instance().Free(p, hdr->size_class, hdr->aowner.owner);
 }
 
