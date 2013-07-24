@@ -8,18 +8,29 @@
 #include "runtime_vars.h"
 #include "scalloc_arenas.h"
 
-TEST(PageHeapAllocator, Init) {
+namespace {
+
+bool isInit = false;
+
+void Init() {
+  if (isInit) {
+    return;
+  }
+  isInit = true;
   RuntimeVars::InitModule();
   scalloc::InitArenas();
+}
 
+}
+
+TEST(PageHeapAllocator, Init) {
+  Init();
   scalloc::PageHeapAllocator<uint64_t> allocator;
   allocator.Init(4096);
 }
 
 TEST(PageHeapAllocator, NewDelete) {
-  RuntimeVars::InitModule();
-  scalloc::InitArenas();
-
+  Init();
   scalloc::PageHeapAllocator<uint64_t> allocator;
   allocator.Init(4096);
   uint64_t* v1 = allocator.New();
