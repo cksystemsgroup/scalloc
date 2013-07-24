@@ -27,13 +27,9 @@ lib_LTLIBRARIES = libscalloc.la
 libscalloc_la_SOURCES = \
 	src/allocators/block_pool.cc \
 	src/allocators/block_pool.h \
-	src/allocators/half_fit.cc \
-	src/allocators/half_fit.h \
 	src/allocators/arena.cc \
 	src/allocators/arena.h \
 	src/allocators/large_allocator.h \
-	src/allocators/medium_allocator.cc \
-	src/allocators/medium_allocator.h \
 	src/allocators/span_pool.cc \
 	src/allocators/span_pool.h \
 	src/allocators/small_allocator.cc \
@@ -144,16 +140,6 @@ freelist_unittest_LDADD = \
 freelist_unittest_SOURCES = \
 	src/log.cc \
 	src/test/freelist_unittest.cc
-
-TESTS += half_fit_unittest
-half_fit_unittest_CPPFLAGS = \
-	$(TEST_CPPFLAGS)
-half_fit_unittest_LDADD = \
-	$(GTEST_LIBS)
-half_fit_unittest_SOURCES = \
-	src/allocators/half_fit.cc \
-	src/log.cc \
-	src/test/half_fit_unittest.cc
 
 TESTS += log2_unittest
 log2_unittest_CPPFLAGS = \

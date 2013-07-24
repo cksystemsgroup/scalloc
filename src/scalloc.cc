@@ -9,7 +9,6 @@
 
 #include "allocators/block_pool.h"
 #include "allocators/large_allocator.h"
-#include "allocators/medium_allocator.h"
 #include "allocators/small_allocator.h"
 #include "allocators/span_pool.h"
 #include "common.h"
@@ -38,7 +37,6 @@ ScallocGuard::ScallocGuard() {
     scalloc::BlockPool::InitModule();
 
     scalloc::SmallAllocator::InitModule();
-    scalloc::MediumAllocator::InitModule();
 
     free(malloc(1));
 #ifdef PROFILER_ON
