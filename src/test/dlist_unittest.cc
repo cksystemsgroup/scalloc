@@ -11,7 +11,13 @@
 
 namespace {
 
+bool isInit = false;
+
 void Init() {
+  if (isInit) {
+    return;
+  }
+  isInit = true;
   RuntimeVars::InitModule();
   scalloc::InitArenas();
 }
