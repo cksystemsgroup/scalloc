@@ -7,3 +7,4 @@ out/
 
 scalloc.Makefile
 scalloc.target.mk
+scalloc.xcodeproj/
