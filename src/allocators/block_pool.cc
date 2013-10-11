@@ -6,7 +6,6 @@
 
 #include "block_header.h"
 #include "distributed_queue.h"
-#include "runtime_vars.h"
 
 namespace scalloc {
 
@@ -16,7 +15,7 @@ void BlockPool::InitModule() {
 
 void BlockPool::Init() {
   for (size_t i = 0; i < kNumClasses; i++) {
-    dqs_[i].Init(RuntimeVars::Cpus());
+    dqs_[i].Init(utils::Cpus());
   }
 }
 
@@ -24,7 +23,7 @@ void* BlockPool::Allocate(const size_t sc,
                               const size_t dq_id,
                               const size_t tid,
                               SpanHeader** block) {
-  void* p = dqs_[sc].DequeueAt(dq_id % RuntimeVars::Cpus());
+  void* p = dqs_[sc].DequeueAt(dq_id % utils::Cpus());
   *block = NULL;
 
   if (p != NULL) {

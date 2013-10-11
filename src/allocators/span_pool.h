@@ -10,6 +10,7 @@
 #include "common.h"
 #include "distributed_queue.h"
 #include "size_map.h"
+#include "utils.h"
 
 #ifdef PROFILER_ON
 #include "profiler.h"
@@ -29,7 +30,6 @@ class SpanPool {
  private:
   static SpanPool page_heap_ cache_aligned;
   static const size_t kSpanPoolBackends = kNumClasses;
-  static size_t __thread refill_ cache_aligned;
 
   DistributedQueue size_class_pool_[kNumClasses] cache_aligned;
 
@@ -46,14 +46,14 @@ always_inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
 #ifdef EAGER_MADVISE_ON
   if (sc > kFineClasses + 3) {
     madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) +
-                                    RuntimeVars::SystemPageSize()),
+                                    kPageSize),
                                     kVirtualSpanSize -
-                                    RuntimeVars::SystemPageSize(),
+                                    kPageSize,
                                     MADV_DONTNEED);
   }
 #endif  // EAGER_MADVISE_ON
 
-  size_class_pool_[sc-1].EnqueueAt(p, tid % RuntimeVars::Cpus());
+  size_class_pool_[sc-1].EnqueueAt(p, tid % utils::Cpus());
 #ifdef PROFILER_ON
   Profiler::GetProfiler().DecreaseRealSpanFragmentation(
       sc, SizeMap::Instance().ClassToSpanSize(sc));
@@ -75,7 +75,7 @@ always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   size_t i;
   void* result;
   *reusable = false;
-  int qindex = tid % RuntimeVars::Cpus();
+  int qindex = tid % utils::Cpus();
 
   for (i = 0; i < kNumClasses; i++) {
     index = sc - i;

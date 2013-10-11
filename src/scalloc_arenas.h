@@ -10,10 +10,7 @@
 namespace scalloc {
 
 extern Arena SmallArena;
-extern Arena MediumArena;
 extern Arena InternalArena;
-
-void InitArenas();
 
 }  // namespace scalloc
 

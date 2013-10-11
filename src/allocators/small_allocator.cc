@@ -6,7 +6,6 @@
 
 #include "allocators/span_pool.h"
 #include "log.h"
-#include "runtime_vars.h"
 
 namespace scalloc {
 

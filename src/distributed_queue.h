@@ -6,6 +6,7 @@
 #define SCALLOC_DISTRIBUTED_QUEUE_H_
 
 #include <cstdlib>
+#include <pthread.h>
 
 #include "common.h"
 #include "random.h"
@@ -45,9 +46,13 @@ class DistributedQueue {
   // Allocator used to get a State instance.
   static scalloc::PageHeapAllocator<State, 64> state_allocator_;
 
+#ifdef HAVE_TLS
   // State object used to record backend states by each thread in the emptiness
   // check of a dequeue operation.
   static __thread TLS_MODE State* state_;
+#else
+  static pthread_key_t state_key_;
+#endif  // HAVE_TLS
 
   // Number of backends.
   size_t p_;
@@ -57,6 +62,7 @@ class DistributedQueue {
 
   // Create a new threadlocal state.
   State* NewState();
+  State* GetState();
 };
 
 
@@ -80,8 +86,9 @@ always_inline void* DistributedQueue::DequeueOnlyAt(size_t backend_id) {
 
 always_inline void* DistributedQueue::DequeueAt(size_t start) {
   void* result;
-  if (state_ == NULL) {
-    state_ = NewState();
+  State* state = GetState();
+  if (state == NULL) {
+    state = NewState();
   }
   size_t i;
   while (true) {
@@ -89,13 +96,13 @@ always_inline void* DistributedQueue::DequeueAt(size_t start) {
     for (size_t _cnt = 0; _cnt < p_; _cnt++) {
       i = (_cnt + start) % p_;
       if ((result = backends_[i]->PopRecordState(
-              &(state_->backend_states[i]))) != NULL) {
+              &(state->backend_states[i]))) != NULL) {
         return result;
       }
     }
     for (size_t _cnt = 0; _cnt < p_; _cnt++) {
       i = (_cnt + start) % p_;
-      if (state_->backend_states[i] != backends_[i]->GetState()) {
+      if (state->backend_states[i] != backends_[i]->GetState()) {
         start = i;
         goto GET_RETRY;
       }

@@ -4,8 +4,6 @@
 
 #include "thread_cache.h"
 
-#include "runtime_vars.h"
-
 namespace {
 
 cache_aligned SpinLock g_threadcache_lock(LINKER_INITIALIZED);
@@ -18,16 +16,18 @@ cache_aligned uint64_t g_thread_id;
 namespace scalloc {
 
 bool ThreadCache::module_init_;
-ThreadCache* ThreadCache::thread_caches_;
-pthread_key_t ThreadCache::cache_key_;
+ThreadCache* ThreadCache::thread_caches_ = NULL;
+pthread_key_t ThreadCache::cache_key_ = NULL;
+#ifdef HAVE_TLS
 __thread TLS_MODE ThreadCache* ThreadCache::tl_cache_;
+#endif  // HAVE_TLS
 
 void ThreadCache::InitModule() {
   SpinLockHolder holder(&g_threadcache_lock);
   CompilerBarrier();
+  
   if (!module_init_) {
-    g_threadcache_alloc.Init(RuntimeVars::SystemPageSize());
-    module_init_  = true;
+    g_threadcache_alloc.Init(kPageSize);
     // http://pubs.opengroup.org/onlinepubs/009696799/functions/pthread_key_create.html
     //
     // At thread exit, if a key value has a non-NULL destructor pointer, and the
@@ -37,21 +37,53 @@ void ThreadCache::InitModule() {
     // calls is unspecified if more than one destructor exists for a thread when
     // it exits.
     pthread_key_create(&cache_key_, DestroyThreadCache);
+    module_init_  = true;
   }
 }
 
-ThreadCache* ThreadCache::NewCache() {
+ThreadCache* ThreadCache::New(pthread_t owner) {
   ThreadCache* cache = g_threadcache_alloc.New();
   cache->allocator_.Init(__sync_fetch_and_add(&g_thread_id, 1));
+  cache->owner_ = owner;
+  cache->next_ = thread_caches_;
+  thread_caches_ = cache;
+  return cache;
+}
+  
 
-  // pthread_setspecific() may call malloc() itself, thus we MUST set
-  // tl_cache_ beforehand to allow a recursive malloc() call to find the cache
-  // through the __thread mechanism.
-  tl_cache_ = cache;
+ThreadCache* ThreadCache::NewIfNecessary() {
+  printf("in new if necessary\n");
+  // This early call may crash on old platforms. We don't care.
+  const pthread_t me = pthread_self();
+  ThreadCache* cache = NULL;
+  printf("before checking existing\n");
+  {
+    SpinLockHolder holder(&g_threadcache_lock);
+    CompilerBarrier();
+    
+    // pthread_setspecific may call into malloc.
+    for (ThreadCache* c = thread_caches_; c != NULL; c = c->next_) {
+      if (c->owner_ == me) {
+        cache = c;
+        break;
+      }
+    }
+    
+    if (cache == NULL) {
+      cache = ThreadCache::New(me);
+    }
+  }
+  printf("ifnecessary, cache @ %p\n", cache);
 
-  // We MUST set the cache_key_, since otherwise the destructor() function is
-  // not called.
-  pthread_setspecific(cache_key_, cache);
+  if (!cache->in_setspecific_) {
+    cache->in_setspecific_ = true;
+#ifdef HAVE_TLS
+    tl_cache_ = cache_;
+#endif  // HAVE_TLS
+    pthread_setspecific(cache_key_, static_cast<void*>(cache));
+    cache->in_setspecific_ = false;
+  }
+  
   return cache;
 }
 
@@ -59,7 +91,9 @@ void ThreadCache::DestroyThreadCache(void* p) {
   if (p == NULL) {
     return;
   }
+#ifdef HAVE_TLS
   tl_cache_ = NULL;
+#endif  // HAVE_TLS
 
   ThreadCache* cache = reinterpret_cast<ThreadCache*>(p);
   cache->allocator_.Destroy();

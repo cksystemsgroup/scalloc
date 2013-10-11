@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "log.h"
+#include "platform.h"
 
 #define UNLIKELY(x)   __builtin_expect((x), 0)
 #define LIKELY(x)     __builtin_expect((x), 1)
@@ -21,8 +22,14 @@
 
 #define TLS_MODE __attribute__((tls_model ("initial-exec")))
 
+#define HAVE_TLS 1
+
+#if defined(__APPLE__)
+#undef HAVE_TLS
+#endif // __APPLE__
+
 const size_t kMinAlignment = 16;
-const size_t kMaxSmallShift = 8;  // up to 256B
+const size_t kMaxSmallShift = 8;  // up to 2MiB
 const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
 const size_t kMaxMediumShift = 21;  // up to 2MiB
 const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
@@ -84,9 +91,27 @@ always_inline size_t PadSize(size_t size, size_t multiple) {
   return (size + multiple - 1) / multiple * multiple;
 }
 
-#define ScallocAssert(c, msg)  \
-  if (!(c)) {                 \
-    ErrorOut(msg);            \
+#define SAFEMODE 1
+
+#ifdef SAFEMODE
+
+#define ScallocAssert(c, msg)                                                  \
+  if (!(c)) {                                                                  \
+    ErrorOut(msg);                                                             \
   }
+#else
+
+#define ScallocAssert(c, msg) {}
+
+#endif  // SAFEMODE
+
+#define UNREACHABLE()                                                          \
+  ErrorOut("reached unreachable code segment ;(");
+
+#if defined(__APPLE__)
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+#endif
 
 #endif  // SCALLOC_COMMON_H_

@@ -8,7 +8,6 @@
 #include "common.h"
 #include "freelist.h"
 #include "log.h"
-#include "runtime_vars.h"
 #include "size_map.h"
 
 enum BlockType {
@@ -90,7 +89,7 @@ class LargeObjectHeader : public Header {
  public:
   static always_inline LargeObjectHeader* GetFromObject(void* p) {
     uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
-    uintptr_t page_ptr = ptr & ~(RuntimeVars::SystemPageSize() - 1);
+    uintptr_t page_ptr = ptr & ~(kPageSize - 1);
     Header* bh = reinterpret_cast<Header*>(page_ptr);
     if (UNLIKELY(bh->type != kLargeObject)) {
       ErrorOut("Calling LargeObjectHeader::GetFromObject on kSlab type. "

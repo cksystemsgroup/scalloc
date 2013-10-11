@@ -11,7 +11,6 @@
 
 #include "common.h"
 #include "log.h"
-#include "runtime_vars.h"
 
 class Arena {
  public:

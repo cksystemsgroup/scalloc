@@ -7,19 +7,18 @@
 #include "scalloc_arenas.h"
 #include "common.h"
 #include "log.h"
-#include "runtime_vars.h"
 #include "system-alloc.h"
+#include "utils.h"
 
 namespace scalloc {
 
 SpanPool SpanPool::page_heap_ cache_aligned;
-__thread TLS_MODE size_t SpanPool::refill_ cache_aligned;
-
 cache_aligned size_t global_refill;
 cache_aligned SpinLock refill_lock_(LINKER_INITIALIZED);
 
 void SpanPool::InitModule() {
-  unsigned num_cores = RuntimeVars::Cpus();
+  unsigned num_cores = utils::Cpus();
+  printf("cores: %u\n", num_cores);
   for (unsigned i = 0; i < kNumClasses; ++i) {
     page_heap_.size_class_pool_[i].Init(num_cores);
   }

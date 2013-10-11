@@ -13,7 +13,7 @@
 #include "allocators/span_pool.h"
 #include "common.h"
 #include "distributed_queue.h"
-#include "runtime_vars.h"
+#include "override.h"
 #include "scalloc_arenas.h"
 #include "scalloc_guard.h"
 #include "size_map.h"
@@ -23,13 +23,27 @@
 #include "profiler.h"
 #endif  // PROFILER_ON
 
+#ifndef __THROW
+#define __THROW
+#endif
+
+namespace scalloc {
+cache_aligned Arena InternalArena;
+cache_aligned Arena SmallArena;
+}
+
+
+
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
+  printf("in guard\n");
   if (scallocguard_refcount++ == 0) {
-    RuntimeVars::InitModule();
+    ReplaceSystemAlloc();
+    
     scalloc::SizeMap::InitModule();
 
-    scalloc::InitArenas();
+    scalloc::InternalArena.Init(kInternalSpace);
+    scalloc::SmallArena.Init(kSmallSpace);
 
     DistributedQueue::InitModule();
 
@@ -37,8 +51,11 @@ ScallocGuard::ScallocGuard() {
     scalloc::BlockPool::InitModule();
 
     scalloc::SmallAllocator::InitModule();
-
+    scalloc::ThreadCache::InitModule();
+    printf("init done\n");
+    
     free(malloc(1));
+    
 #ifdef PROFILER_ON
     scalloc::GlobalProfiler::Instance().Init();
     scalloc::Profiler::Enable();
@@ -54,15 +71,12 @@ ScallocGuard::~ScallocGuard() {
 static ScallocGuard StartupExitHook;
 
 namespace scalloc {
-
-always_inline void* malloc(const size_t size) {
+  
+void* malloc(const size_t size) {
+  printf("In scalloc::malloc()\n");
   void* p;
   if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
     p = ThreadCache::GetCache().Allocate(size);
-  /*
-  } else if (size < kMaxMediumSize && MediumAllocator::Enabled()) {
-    p = MediumAllocator::Allocate(size);
-  */
   } else {
     p = LargeAllocator::Alloc(size);
   }
@@ -72,104 +86,87 @@ always_inline void* malloc(const size_t size) {
   return p;
 }
 
-always_inline void free(void* p) {
+void free(void* p) {
+  printf("In scalloc::free()\n");
   if (UNLIKELY(p == NULL)) {
     return;
   }
   if (SmallArena.Contains(p)) {
     ThreadCache::GetCache().Free(p, reinterpret_cast<SpanHeader*>(
         SpanHeader::GetFromObject(p)));
-  /*
-  } else if (MediumArena.Contains(p)) {
-    MediumAllocator::Free(p);
-  */
   } else {
     LargeAllocator::Free(reinterpret_cast<LargeObjectHeader*>(
         LargeObjectHeader::GetFromObject(p)));
   }
   return;
 }
-
-}  // namespace scalloc
-
-
-//
-// Forward C calls to scalloc_fn to their corresponding scalloc::fn
-//
-
-extern "C" void* scalloc_malloc(size_t size) __THROW {
-  return scalloc::malloc(size);
-}
-
-extern "C" void scalloc_free(void* p) __THROW {
-  scalloc::free(p);
-}
-
-extern "C" void* scalloc_calloc(size_t nmemb, size_t size) __THROW {
+  
+void* calloc(size_t nmemb, size_t size) {
   const size_t malloc_size = nmemb * size;
   if (size != 0 && (malloc_size / size) != nmemb) {
     return NULL;
   }
-  void* result = scalloc::malloc(malloc_size);  // also sets errno
+  void* result = malloc(malloc_size);  // also sets errno
   if (result != NULL) {
     memset(result, 0, malloc_size);
   }
   return result;
 }
 
-extern "C" void* scalloc_realloc(void* ptr, size_t size) __THROW {
+void* realloc(void* ptr, size_t size) {
   if (ptr == NULL) {
-    return scalloc::malloc(size);
+    return malloc(size);
   }
   void* new_ptr;
   size_t old_size;
   if (scalloc::SmallArena.Contains(ptr)) {
-    old_size = scalloc::SizeMap::Instance().ClassToSize(
-        reinterpret_cast<SpanHeader*>
-        (SpanHeader::GetFromObject(ptr))->size_class);
-  /*
-  } else if (scalloc::MediumArena.Contains(ptr)) {
-    old_size = scalloc::MediumAllocator::SizeOf(ptr); 
-  */
+    old_size = SizeMap::Instance().ClassToSize(
+        reinterpret_cast<SpanHeader*>(
+            SpanHeader::GetFromObject(ptr))->size_class);
   } else {
     old_size =
-        reinterpret_cast<LargeObjectHeader*>
-        (LargeObjectHeader::GetFromObject(ptr))->size
+        reinterpret_cast<LargeObjectHeader*>(
+            LargeObjectHeader::GetFromObject(ptr))->size
         - sizeof(LargeObjectHeader);
   }
   if (size <= old_size) {
     return ptr;
   } else {
-    new_ptr = scalloc::malloc(size);
+    new_ptr = malloc(size);
     if (LIKELY(new_ptr != NULL)) {
       memcpy(new_ptr, ptr, old_size);
-      scalloc::free(ptr);
+      free(ptr);
     }
   }
   return new_ptr;
 }
 
-extern "C" void* scalloc_memalign(size_t __alignment, size_t __size) __THROW {
+void* memalign(size_t __alignment, size_t __size) {
   ErrorOut("memalign() not yet implemented.");
 }
 
-extern "C" int scalloc_posix_memalign(
-    void** ptr, size_t align, size_t size) __THROW {
+int posix_memalign(void** ptr, size_t align, size_t size) {
   ErrorOut("posix_memalign() not yet implemented.");
 }
 
-extern "C" void* scalloc_valloc(size_t __size) __THROW {
+void* valloc(size_t __size) {
   ErrorOut("valloc() not yet implemented.");
 }
 
-extern "C" void* scalloc_pvalloc(size_t __size) __THROW {
+void* pvalloc(size_t __size) {
   ErrorOut("pvalloc() not yet implemented.");
 }
 
-extern "C" void scalloc_malloc_stats(void) __THROW {
+void malloc_stats(void) {
   ErrorOut("malloc_stats() not yet implemented.");
 }
 
-extern "C" int scalloc_mallopt(int cmd, int value) __THROW {
+int scalloc_mallopt(int cmd, int value) {
   ErrorOut("mallopt() not yet implemented.");
 }
+  
+bool Ours(const void* p) {
+  return SmallArena.Contains((void*)p) || LargeAllocator::Owns(p);
+}
+
+}  // namespace scalloc

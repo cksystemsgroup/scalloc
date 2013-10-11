@@ -141,9 +141,9 @@ class GlobalProfiler {
 
   void PrintStatistics() {
     uint64_t free_count = fast_free_count_ + slow_free_count_;
-    fprintf(fp_, "A %lu; R %lu; "
-            "BS %lu; F %lu; H %lu; "
-            "W %lu; S %lu; "
+    fprintf(fp_, "A %llu; R %llu; "
+            "BS %llu; F %llu; H %llu; "
+            "W %llu; S %llu; "
             "R/A %3.1f%%; "
             "BS/A %3.1f%%; "
             "H/FF %3.1f%%; "
@@ -152,9 +152,13 @@ class GlobalProfiler {
             "LSR/R %3.2f; "
             "RSR/R %3.2f; "
             "\n",
-            allocation_count_, sizeclass_refill_count_,
-            block_stealing_count_, free_count, hot_free_count_,
-            warm_free_count_, slow_free_count_,
+            allocation_count_,
+            sizeclass_refill_count_,
+            block_stealing_count_,
+            free_count,
+            hot_free_count_,
+            warm_free_count_,
+            slow_free_count_,
             100.0*static_cast<double>(sizeclass_refill_count_) /
                 static_cast<double>(allocation_count_),
             100.0*static_cast<double>(block_stealing_count_) /
@@ -176,13 +180,13 @@ class GlobalProfiler {
     for (unsigned i = 1; i < kNumClasses + 1; ++i) {
       uint64_t blocksize = SizeMap::Instance().ClassToSize(i);
       uint64_t nr_objects = sizeclass_histogram_[i];
-      fprintf(fp_, "Class\t%5lu%2sB\t"
-                "objects\t%5lu%2s\t"
-                "used\t%5lu%2sB\t"
-                "frag\t%5lu%2sB\t"
-                "put\t%5lu%2s\t"
-                "get\t%5lu%2s\t"
-                "shrink\t%5lu%2s\t"
+      fprintf(fp_, "Class\t%5llu%2sB\t"
+                "objects\t%5llu%2s\t"
+                "used\t%5llu%2sB\t"
+                "frag\t%5llu%2sB\t"
+                "put\t%5llu%2s\t"
+                "get\t%5llu%2s\t"
+                "shrink\t%5llu%2s\t"
                 "\n",
                 GlobalProfiler::PrettySize(blocksize, s1), s1,
                 GlobalProfiler::PrettySize(nr_objects, s2), s2,
@@ -318,7 +322,7 @@ class Profiler {
     self_allocating_ = true;
     tid_ = pthread_self();
     char filename[128];
-    snprintf(filename, sizeof(filename), "memtrace-%lu", tid_);
+    snprintf(filename, sizeof(filename), "memtrace-%lu", reinterpret_cast<unsigned long>(tid_));
     fp_ = fopen(filename, "w");
     if (fp_ == NULL) {
       ErrorOut("unable to open file %s", &filename);
@@ -374,9 +378,9 @@ class Profiler {
 
 
     uint64_t free_count = fast_free_count_sum_ + slow_free_count_sum_;
-    fprintf(fp_, "Thread %lu; A %lu; R %lu; "
-            "BS %lu; F %lu; H %lu; "
-            "W %lu; S %lu; "
+    fprintf(fp_, "Thread %lu; A %llu; R %llu; "
+            "BS %llu; F %llu; H %llu; "
+            "W %llu; S %llu; "
             "R/A %3.1f%%; "
             "BS/A %3.1f%%; "
             "H/FF %3.1f%%; "

@@ -9,7 +9,7 @@
 #include "config.h"
 #endif  // HAVE_CONFIG_H_
 
-#include <cstdint>
+//#include <cstdint>
 
 #include "common.h"
 #include "log.h"

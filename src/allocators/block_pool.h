@@ -14,6 +14,7 @@
 #include "freelist.h"
 #include "span_pool.h"
 #include "size_map.h"
+#include "utils.h"
 
 namespace scalloc {
 
@@ -41,7 +42,7 @@ always_inline BlockPool& BlockPool::Instance() {
 always_inline void BlockPool::Free(void* p,
                                        const size_t sc,
                                        const size_t dq_id) {
-  dqs_[sc].EnqueueAt(p, dq_id % RuntimeVars::Cpus());
+  dqs_[sc].EnqueueAt(p, dq_id % utils::Cpus());
 }
 
 }  // namespace scalloc

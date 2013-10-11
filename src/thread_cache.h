@@ -19,7 +19,8 @@ namespace scalloc {
 
 // A threadlocal cache that may hold any allocator.  We use __thread as fast
 // path, but still implement a pthread_{get|set}specific version, since we need
-// a finalizer for threads that terminate.
+// a finalizer for threads that terminate and support platforms which do not
+// have __thread, or implement it with malloc().
 class ThreadCache {
  public:
   static void InitModule();
@@ -28,39 +29,55 @@ class ThreadCache {
 
   void* Allocate(const size_t size);
   void Free(void* ptr, Header* hdr);
-
 #ifdef PROFILER_ON
-  Profiler& GetProfiler() {return profiler_;}
+  Profiler& GetProfiler() { return profiler_; }
 #endif  // PROFILER_ON
 
  private:
+#ifdef HAVE_TLS
   // Fast path thread-local access point.
   static __thread ThreadCache* tl_cache_ TLS_MODE;
-
+#endif  // HAVE_TLS
   static bool module_init_;
   static ThreadCache* thread_caches_;
   static pthread_key_t cache_key_;
-
-  static ThreadCache* NewCache();
+  
+  static ThreadCache* RawGetCache();
+  static ThreadCache* NewIfNecessary();
+  static ThreadCache* New(pthread_t owner);
   static void DestroyThreadCache(void* p);
 
   SmallAllocator allocator_;
+  bool in_setspecific_;
+  pthread_t owner_;
+  ThreadCache* next_;
 #ifdef PROFILER_ON
   Profiler profiler_;
 #endif  // PROFILER_ON
 } cache_aligned;
 
-always_inline ThreadCache& ThreadCache::GetCache() {
-  if (LIKELY(tl_cache_ != NULL)) {
-    return *tl_cache_;
+inline ThreadCache* ThreadCache::RawGetCache() {
+  printf("in GetRawCache\n");
+#ifdef HAVE_TLS
+  return tl_cache_;
+#endif  // HAVE_TLS
+  return static_cast<ThreadCache*>(pthread_getspecific(cache_key_));
+}
+
+inline ThreadCache& ThreadCache::GetCache() {
+  printf("in GetCache\n");
+  ThreadCache* cache = RawGetCache();
+  printf("after get raw cache, cache: %p\n", cache);
+  if (LIKELY(cache != NULL)) {
+    return *cache;
   }
-  // We cannot trust that we are initialized, so do this first.
   if (!module_init_) {
     InitModule();
   }
-  // We don't have a cache yet, so let's create one.
-  tl_cache_ = NewCache();
-  return *tl_cache_;
+  cache = NewIfNecessary();
+  ScallocAssert(cache != NULL, "cache == NULL");
+  printf("cache @ %p\n", cache);
+  return *cache;
 }
 
 always_inline void* ThreadCache::Allocate(const size_t size) {

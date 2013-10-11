@@ -11,7 +11,6 @@
 
 #include "common.h"
 #include "log.h"
-#include "runtime_vars.h"
 #include "scalloc_arenas.h"
 #include "spinlock-inl.h"
 #include "stack-inl.h"
@@ -39,7 +38,7 @@ class PageHeapAllocator {
       if (tsize_ + ALIGNMENT <= tsize_) {
         ErrorOut("PageHeapAllocator: overflow");
       }
-      if (RuntimeVars::SystemPageSize() % ALIGNMENT != 0) {
+      if (kPageSize % ALIGNMENT != 0) {
         ErrorOut("PageHeapAllocator: ALIGNMENT must be a divisor of system "
                  "page size");
       }

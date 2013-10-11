@@ -6,7 +6,6 @@
 
 #include "block_header.h"
 #include "common.h"
-#include "runtime_vars.h"
 
 namespace scalloc {
 
@@ -58,8 +57,8 @@ void SizeMap::Init() {
     class_to_size_[i] = class_to_size_[i-1] * 2;
     class_to_span_size_[i] =
         ((class_to_objs_[i] * class_to_size_[i] + sizeof(SpanHeader))
-         / RuntimeVars::SystemPageSize() + 1)
-        * RuntimeVars::SystemPageSize();
+         / kPageSize + 1)
+        * kPageSize;
   }
 }
 

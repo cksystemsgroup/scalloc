@@ -9,13 +9,12 @@
 
 #include "common.h"
 #include "log.h"
-#include "runtime_vars.h"
 
 namespace scalloc {
 
 void* SystemAlloc_Mmap(size_t size, size_t* actual_size) {
   // pad size to some multiple of the system page size
-  size = PadSize(size, RuntimeVars::SystemPageSize());
+  size = PadSize(size, kPageSize);
 
   if (actual_size) {
     *actual_size = size;
@@ -26,7 +25,7 @@ void* SystemAlloc_Mmap(size_t size, size_t* actual_size) {
                  PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS,
                  -1,
                  0);
-  if ((reinterpret_cast<uintptr_t>(p) % RuntimeVars::SystemPageSize()) != 0) {
+  if ((reinterpret_cast<uintptr_t>(p) % kPageSize) != 0) {
     ErrorOut("mmap() did not returned system page size aligned memory");
   }
   return p;
