@@ -16,13 +16,13 @@ namespace scalloc {
   int posix_memalign(void** ptr, size_t align, size_t size);
   void* valloc(size_t __size);
   void* pvalloc(size_t __size);
-  void malloc_stats(void) ;
+  void malloc_stats(void);
   int mallopt(int cmd, int value);
-  
+
 namespace extension {
 
 }
   bool Ours(const void* p);
-}
+}  // namespace scalloc
 
 #endif  // SCALLOC_SCALLOC_H_

@@ -41,7 +41,7 @@ class ThreadCache {
   static bool module_init_;
   static ThreadCache* thread_caches_;
   static pthread_key_t cache_key_;
-  
+
   static ThreadCache* RawGetCache();
   static ThreadCache* NewIfNecessary();
   static ThreadCache* New(pthread_t owner);

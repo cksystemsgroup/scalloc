@@ -33,19 +33,19 @@ kern_return_t mi_enumerator(task_t task, void *,
                             vm_range_recorder_t recorder) {
   return KERN_FAILURE;
 }
-  
+
 size_t mi_good_size(malloc_zone_t *zone, size_t size) {
   return size;
 }
-  
+
 boolean_t mi_check(malloc_zone_t *zone) {
   return true;
 }
-  
+
 void mi_print(malloc_zone_t *zone, boolean_t verbose) {}
 
 void mi_log(malloc_zone_t *zone, void *address) {}
-  
+
 void mi_force_lock(malloc_zone_t *zone) {}
 
 void mi_force_unlock(malloc_zone_t *zone) {}
@@ -74,7 +74,7 @@ size_t mz_size(malloc_zone_t* zone, const void* ptr) {
   if (!scalloc::Ours(ptr)) {
     return 0;
   }
-  return 1; // TODO
+  return 1;  // TODO(mlippautz): Fix this.
 }
 
 void* mz_realloc(malloc_zone_t* zone, void* ptr, size_t size) {
@@ -89,7 +89,7 @@ void mz_destroy(malloc_zone_t* zone) {
   // A no-op -- we will not be destroyed!
 }
 
-}
+}  // namespace
 
 extern "C" {
   void cfree(void* p) { scalloc::free(p); }
@@ -107,7 +107,7 @@ extern "C" {
 static void ReplaceSystemAlloc() {
   static malloc_introspection_t scalloc_introspection;
   memset(&scalloc_introspection, 0, sizeof(scalloc_introspection));
-  
+
   scalloc_introspection.enumerator = &mi_enumerator;
   scalloc_introspection.good_size = &mi_good_size;
   scalloc_introspection.check = &mi_check;
@@ -116,10 +116,10 @@ static void ReplaceSystemAlloc() {
   scalloc_introspection.force_lock = &mi_force_lock;
   scalloc_introspection.force_unlock = &mi_force_unlock;
   scalloc_introspection.zone_locked = &mi_zone_locked;
-  
+
   static malloc_zone_t scalloc_zone;
   memset(&scalloc_zone, 0, sizeof(scalloc_zone));
-  
+
   scalloc_zone.version = 6;
   scalloc_zone.zone_name = "scalloc";
   scalloc_zone.size = &mz_size;
@@ -131,15 +131,15 @@ static void ReplaceSystemAlloc() {
   scalloc_zone.realloc = &mz_realloc;
   scalloc_zone.destroy = &mz_destroy;
   scalloc_zone.introspect = &scalloc_introspection;
-  
+
   scalloc_zone.batch_malloc = NULL;
   scalloc_zone.batch_free = NULL;
   scalloc_zone.free_definite_size = NULL;
-  
+
   if (malloc_default_purgeable_zone) {
     malloc_default_purgeable_zone();
   }
-  
+
   malloc_zone_register(&scalloc_zone);
   malloc_zone_t* default_zone = malloc_default_zone();
   malloc_zone_unregister(default_zone);

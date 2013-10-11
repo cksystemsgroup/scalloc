@@ -38,7 +38,7 @@ static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
     ReplaceSystemAlloc();
-    
+
     scalloc::SizeMap::InitModule();
     scalloc::InternalArena.Init(kInternalSpace);
     scalloc::SmallArena.Init(kSmallSpace);
@@ -47,9 +47,9 @@ ScallocGuard::ScallocGuard() {
     scalloc::BlockPool::InitModule();
     scalloc::SmallAllocator::InitModule();
     scalloc::ThreadCache::InitModule();
-    
+
     free(malloc(1));
-    
+
 #ifdef PROFILER_ON
     scalloc::GlobalProfiler::Instance().Init();
     scalloc::Profiler::Enable();
@@ -65,7 +65,7 @@ ScallocGuard::~ScallocGuard() {
 static ScallocGuard StartupExitHook;
 
 namespace scalloc {
-  
+
 void* malloc(const size_t size) {
   void* p;
   if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
@@ -92,7 +92,7 @@ void free(void* p) {
   }
   return;
 }
-  
+
 void* calloc(size_t nmemb, size_t size) {
   const size_t malloc_size = nmemb * size;
   if (size != 0 && (malloc_size / size) != nmemb) {
@@ -156,7 +156,7 @@ void malloc_stats(void) {
 int mallopt(int cmd, int value) {
   ErrorOut("mallopt() not yet implemented.");
 }
-  
+
 bool Ours(const void* p) {
   return SmallArena.Contains((void*)p) || LargeAllocator::Owns(p);
 }
@@ -164,7 +164,6 @@ bool Ours(const void* p) {
 }  // namespace scalloc
 
 extern "C" {
-
 void* scalloc_malloc(size_t size) __THROW {
   return scalloc::malloc(size);
 }
@@ -204,5 +203,4 @@ void scalloc_malloc_stats() __THROW {
 int scalloc_mallopt(int cmd, int value) __THROW {
   return scalloc::mallopt(cmd, value);
 }
-
 }

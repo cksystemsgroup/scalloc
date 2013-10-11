@@ -19,3 +19,4 @@ static void ReplaceSystemAlloc();
 #endif
 
 #endif  // SCALLOC_OVERRIDE_H_
+

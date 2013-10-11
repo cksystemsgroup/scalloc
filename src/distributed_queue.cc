@@ -8,11 +8,8 @@
 #include "spinlock-inl.h"
 
 namespace {
-  
   cache_aligned SpinLock g_state_lock(LINKER_INITIALIZED);
-  
 }
-
 
 scalloc::PageHeapAllocator<Stack, 64> DistributedQueue::backend_allocator_;
 scalloc::PageHeapAllocator<DistributedQueue::State, 64>
