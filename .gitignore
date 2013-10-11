@@ -1,4 +1,9 @@
 *.pyc
 *.o
 
+Makefile
+build/
 out/
+
+scalloc.Makefile
+scalloc.target.mk
