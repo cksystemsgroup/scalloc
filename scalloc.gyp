@@ -16,16 +16,15 @@
     'local_reuse_threshold%': 80,
   },
   'target_defaults': {
+    'product_dir': "out/<(CONFIGURATION_NAME)",
     'configurations': {
       'Debug': {
-        'product_dir': "out/<(CONFIGURATION_NAME)",
         'cflags': ['-g', '-O0'],
         'xcode_settings': {
           'OTHER_CFLAGS': ['-g', '-O0']
         },
       },
       'Release': {
-        'product_dir': "out/<(CONFIGURATION_NAME)",
         'cflags': ['-O3'],
         'xcode_settings': {
           'OTHER_CFLAGS': ['-O3']
