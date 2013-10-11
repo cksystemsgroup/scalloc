@@ -35,7 +35,6 @@ libscalloc_la_SOURCES = \
 	src/allocators/small_allocator.cc \
 	src/allocators/small_allocator.h \
 	src/scalloc_arenas.h \
-	src/scalloc_arenas.cc \
 	src/atomic.h \
 	src/block_header.h \
 	src/common.h \
@@ -46,8 +45,6 @@ libscalloc_la_SOURCES = \
 	src/log.cc \
 	src/log.h \
 	src/random.h \
-	src/runtime_vars.cc \
-	src/runtime_vars.h \
 	src/scalloc.cc \
 	src/scalloc.h \
 	src/scalloc_guard.h \
@@ -61,7 +58,9 @@ libscalloc_la_SOURCES = \
 	src/spinlock-inl.h \
 	src/stack-inl.h \
 	src/system-alloc.cc \
-	src/system-alloc.h
+	src/system-alloc.h \
+	src/utils.cc \
+	src/utils.h
 libscalloc_la_LDFLAGS = -version-info 0:0:0
 
 BENCH_CPPFLAGS = \

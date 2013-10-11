@@ -57,7 +57,6 @@ class ThreadCache {
 } cache_aligned;
 
 inline ThreadCache* ThreadCache::RawGetCache() {
-  printf("in GetRawCache\n");
 #ifdef HAVE_TLS
   return tl_cache_;
 #endif  // HAVE_TLS
@@ -65,9 +64,7 @@ inline ThreadCache* ThreadCache::RawGetCache() {
 }
 
 inline ThreadCache& ThreadCache::GetCache() {
-  printf("in GetCache\n");
   ThreadCache* cache = RawGetCache();
-  printf("after get raw cache, cache: %p\n", cache);
   if (LIKELY(cache != NULL)) {
     return *cache;
   }
@@ -76,7 +73,6 @@ inline ThreadCache& ThreadCache::GetCache() {
   }
   cache = NewIfNecessary();
   ScallocAssert(cache != NULL, "cache == NULL");
-  printf("cache @ %p\n", cache);
   return *cache;
 }
 

@@ -26,7 +26,9 @@ pthread_key_t DistributedQueue::state_key_;
 void DistributedQueue::InitModule() {
   backend_allocator_.Init(kPageSize);
   state_allocator_.Init(kPageSize);
+#ifndef HAVE_TLS
   pthread_key_create(&state_key_, NULL);
+#endif
 }
 
 void DistributedQueue::Init(size_t p) {

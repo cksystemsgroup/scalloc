@@ -36,23 +36,17 @@ cache_aligned Arena SmallArena;
 
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
-  printf("in guard\n");
   if (scallocguard_refcount++ == 0) {
     ReplaceSystemAlloc();
     
     scalloc::SizeMap::InitModule();
-
     scalloc::InternalArena.Init(kInternalSpace);
     scalloc::SmallArena.Init(kSmallSpace);
-
     DistributedQueue::InitModule();
-
     scalloc::SpanPool::InitModule();
     scalloc::BlockPool::InitModule();
-
     scalloc::SmallAllocator::InitModule();
     scalloc::ThreadCache::InitModule();
-    printf("init done\n");
     
     free(malloc(1));
     
@@ -73,7 +67,6 @@ static ScallocGuard StartupExitHook;
 namespace scalloc {
   
 void* malloc(const size_t size) {
-  printf("In scalloc::malloc()\n");
   void* p;
   if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
     p = ThreadCache::GetCache().Allocate(size);
@@ -87,7 +80,6 @@ void* malloc(const size_t size) {
 }
 
 void free(void* p) {
-  printf("In scalloc::free()\n");
   if (UNLIKELY(p == NULL)) {
     return;
   }
@@ -161,7 +153,7 @@ void malloc_stats(void) {
   ErrorOut("malloc_stats() not yet implemented.");
 }
 
-int scalloc_mallopt(int cmd, int value) {
+int mallopt(int cmd, int value) {
   ErrorOut("mallopt() not yet implemented.");
 }
   
@@ -170,3 +162,47 @@ bool Ours(const void* p) {
 }
 
 }  // namespace scalloc
+
+extern "C" {
+
+void* scalloc_malloc(size_t size) __THROW {
+  return scalloc::malloc(size);
+}
+
+void scalloc_free(void* p) __THROW {
+  scalloc::free(p);
+}
+
+void* scalloc_calloc(size_t nmemb, size_t size) __THROW {
+  return scalloc::calloc(nmemb, size);
+}
+
+void* scalloc_realloc(void* ptr, size_t size) __THROW {
+  return scalloc::realloc(ptr, size);
+}
+
+void* scalloc_memalign(size_t __alignment, size_t __size) __THROW {
+  return scalloc::memalign(__alignment, __size);
+}
+
+int scalloc_posix_memalign(void** ptr, size_t align, size_t size) __THROW {
+  return scalloc::posix_memalign(ptr, align, size);
+}
+
+void* scalloc_valloc(size_t __size) __THROW {
+  return scalloc::valloc(__size);
+}
+
+void* scalloc_pvalloc(size_t __size) __THROW {
+  return scalloc::pvalloc(__size);
+}
+
+void scalloc_malloc_stats() __THROW {
+  scalloc::malloc_stats();
+}
+
+int scalloc_mallopt(int cmd, int value) __THROW {
+  return scalloc::mallopt(cmd, value);
+}
+
+}

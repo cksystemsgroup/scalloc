@@ -17,7 +17,7 @@ namespace scalloc {
   void* valloc(size_t __size);
   void* pvalloc(size_t __size);
   void malloc_stats(void) ;
-  int scalloc_mallopt(int cmd, int value);
+  int mallopt(int cmd, int value);
   
 namespace extension {
 

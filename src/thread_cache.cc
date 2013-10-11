@@ -17,7 +17,7 @@ namespace scalloc {
 
 bool ThreadCache::module_init_;
 ThreadCache* ThreadCache::thread_caches_ = NULL;
-pthread_key_t ThreadCache::cache_key_ = NULL;
+pthread_key_t ThreadCache::cache_key_;
 #ifdef HAVE_TLS
 __thread TLS_MODE ThreadCache* ThreadCache::tl_cache_;
 #endif  // HAVE_TLS
@@ -52,11 +52,9 @@ ThreadCache* ThreadCache::New(pthread_t owner) {
   
 
 ThreadCache* ThreadCache::NewIfNecessary() {
-  printf("in new if necessary\n");
   // This early call may crash on old platforms. We don't care.
   const pthread_t me = pthread_self();
   ThreadCache* cache = NULL;
-  printf("before checking existing\n");
   {
     SpinLockHolder holder(&g_threadcache_lock);
     CompilerBarrier();
@@ -73,12 +71,11 @@ ThreadCache* ThreadCache::NewIfNecessary() {
       cache = ThreadCache::New(me);
     }
   }
-  printf("ifnecessary, cache @ %p\n", cache);
 
   if (!cache->in_setspecific_) {
     cache->in_setspecific_ = true;
 #ifdef HAVE_TLS
-    tl_cache_ = cache_;
+    tl_cache_ = cache;
 #endif  // HAVE_TLS
     pthread_setspecific(cache_key_, static_cast<void*>(cache));
     cache->in_setspecific_ = false;

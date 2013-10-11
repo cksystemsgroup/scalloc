@@ -5,6 +5,9 @@
 #ifndef SCALLOC_PROFILER_H_
 #define SCALLOC_PROFILER_H_
 
+#define __STDC_FORMAT_MACROS
+
+#include <inttypes.h>
 #include <pthread.h>
 #include <stddef.h>  // size_t
 #include <stdint.h>
@@ -141,9 +144,10 @@ class GlobalProfiler {
 
   void PrintStatistics() {
     uint64_t free_count = fast_free_count_ + slow_free_count_;
-    fprintf(fp_, "A %llu; R %llu; "
-            "BS %llu; F %llu; H %llu; "
-            "W %llu; S %llu; "
+    fprintf(fp_,
+            "A %" PRIu64  "; R %" PRIu64 " "
+            "BS %" PRIu64  " F %" PRIu64 " H %" PRIu64 " "
+            "W %" PRIu64  " S %" PRIu64 " "
             "R/A %3.1f%%; "
             "BS/A %3.1f%%; "
             "H/FF %3.1f%%; "
@@ -152,13 +156,9 @@ class GlobalProfiler {
             "LSR/R %3.2f; "
             "RSR/R %3.2f; "
             "\n",
-            allocation_count_,
-            sizeclass_refill_count_,
-            block_stealing_count_,
-            free_count,
-            hot_free_count_,
-            warm_free_count_,
-            slow_free_count_,
+            allocation_count_, sizeclass_refill_count_,
+            block_stealing_count_, free_count, hot_free_count_,
+            warm_free_count_, slow_free_count_,
             100.0*static_cast<double>(sizeclass_refill_count_) /
                 static_cast<double>(allocation_count_),
             100.0*static_cast<double>(block_stealing_count_) /
@@ -180,21 +180,22 @@ class GlobalProfiler {
     for (unsigned i = 1; i < kNumClasses + 1; ++i) {
       uint64_t blocksize = SizeMap::Instance().ClassToSize(i);
       uint64_t nr_objects = sizeclass_histogram_[i];
-      fprintf(fp_, "Class\t%5llu%2sB\t"
-                "objects\t%5llu%2s\t"
-                "used\t%5llu%2sB\t"
-                "frag\t%5llu%2sB\t"
-                "put\t%5llu%2s\t"
-                "get\t%5llu%2s\t"
-                "shrink\t%5llu%2s\t"
-                "\n",
-                GlobalProfiler::PrettySize(blocksize, s1), s1,
-                GlobalProfiler::PrettySize(nr_objects, s2), s2,
-                GlobalProfiler::PrettySize(nr_objects*blocksize, s3), s3,
-                PrettySize(real_span_fragmentation_histogram_[i], s4), s4,
-                PrettySize(spanpool_put_histogram_[i], s5), s5,
-                PrettySize(spanpool_get_histogram_[i], s6), s6,
-                PrettySize(spanpool_shrink_histogram_[i], s7), s7);
+      fprintf(fp_,
+              "Class\t%5" PRIu64 "%2sB\t"
+              "objects\t%5" PRIu64 "%2s\t"
+              "used\t%5" PRIu64 "%2sB\t"
+              "frag\t%5" PRIu64 "%2sB\t"
+              "put\t%5" PRIu64 "%2s\t"
+              "get\t%5" PRIu64 "%2s\t"
+              "shrink\t%5" PRIu64 "%2s\t"
+              "\n",
+              GlobalProfiler::PrettySize(blocksize, s1), s1,
+              GlobalProfiler::PrettySize(nr_objects, s2), s2,
+              GlobalProfiler::PrettySize(nr_objects*blocksize, s3), s3,
+              PrettySize(real_span_fragmentation_histogram_[i], s4), s4,
+              PrettySize(spanpool_put_histogram_[i], s5), s5,
+              PrettySize(spanpool_get_histogram_[i], s6), s6,
+              PrettySize(spanpool_shrink_histogram_[i], s7), s7);
     }
 
     fprintf(fp_, "\n\n");
@@ -378,9 +379,10 @@ class Profiler {
 
 
     uint64_t free_count = fast_free_count_sum_ + slow_free_count_sum_;
-    fprintf(fp_, "Thread %lu; A %llu; R %llu; "
-            "BS %llu; F %llu; H %llu; "
-            "W %llu; S %llu; "
+    fprintf(fp_,
+            "Thread %lu; A %" PRIu64 "; R %" PRIu64 " "
+            "BS %" PRIu64 " F %" PRIu64 " H %" PRIu64 " "
+            "W %" PRIu64 " S %" PRIu64 " "
             "R/A %3.1f%%; "
             "BS/A %3.1f%%; "
             "H/FF %3.1f%%; "
