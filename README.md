@@ -4,20 +4,12 @@ A Fast, Multicore-Scalable, Low-Memory-Overhead Allocator
 
 Scalloc is a new concurrent memory allocator that actively utilizes recently developed efficient and scalable concurrent data structures. Global concurrent data structures have long been considered performance and scalability bottlenecks. Hence, many existing allocators aim at minimizing the use of such. Scalloc, in contrast, freely uses global data structures for reusing memory and benefits of the existence of new efficient and scalable ones. In terms of performance and scalability, scalloc is comparable to the best existing allocators. In terms of memory consumption, it outperforms the best scalable allocators. The improvement in memory consumption is enabled by the efficiency of the global data structures, which let scalloc do more work in less time. Scalloc also borrows commonly used concepts in memory management like size-class partitioned memory and private heaps. In addition, scalloc introduces a new idea of virtual spans for uniform treatment of small and big objects without increased memory fragmentation.
 
-## Dependencies
-
-You need a recent compiler capable of compiling C++11 (c++0x) code.  Furthermore
-it is assumed that  `__thread` is present (until we move to C++11's
-`thread_local`).
-
-* autotools (automake and friends)
-* pkg-config
-
-**Building with unittests (--enable-tests):**
-* cmake (for googletest)
-* [googletest](https://code.google.com/p/googletest "googletest")
-
 ## Building [![Build Status](https://drone.io/github.com/cksystemsgroup/scalloc/status.png)](https://drone.io/github.com/cksystemsgroup/scalloc/latest)
+
+We support building on OS X (>10.6) and Linux-based systems using [gyp](https://code.google.com/p/gyp/).
+The build setup can also be accessed on [drone.io](https://drone.io/github.com/cksystemsgroup/scalloc/admin).
+
+### Setting up a build environment
 
 Checkout the latest release version
 
@@ -25,21 +17,24 @@ Checkout the latest release version
     cd scalloc
     git checkout release
 
-Then building is as easy as
+If you don't have gyp, you can get it using 
 
-    ./autogen.sh
-    ./configure
-    make
-
-See `./configure --help` for optional features, for instance compiling with
-additional integrity checks.
-
-Various tests can be performed with
-
-    make check
+    tools/make_deps.sh
     
-If you just want a prebuilt binary, check out the [download section at drone.io](https://drone.io/github.com/cksystemsgroup/scalloc/files "scalloc downloads").
- 
+Then, generate a build environment
+
+    build/gyp/gyp --depth=. scalloc.gyp
+
+### Build on Linux
+
+    BUILDTYPE=Release make
+
+### Build on OSX
+
+Open `scalloc.xcodeproj` and build it using Xcode, or
+
+    build/gyp/gyp --depth=. scalloc.gyp --build=Release
+
 ## Usage
 
 In order to make use of scalloc, just preload it using `LD_PRELOAD`.
