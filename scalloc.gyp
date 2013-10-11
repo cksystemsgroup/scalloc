@@ -18,18 +18,18 @@
   'target_defaults': {
     'configurations': {
       'Debug': {
-        'product_dir': "out/Debug",
+        'product_dir': "out/<(CONFIGURATION_NAME)",
         'cflags': ['-g', '-O0'],
         'xcode_settings': {
           'OTHER_CFLAGS': ['-g', '-O0']
-        }
+        },
       },
       'Release': {
-        'product_dir': "out/Release",
+        'product_dir': "out/<(CONFIGURATION_NAME)",
         'cflags': ['-O3'],
         'xcode_settings': {
           'OTHER_CFLAGS': ['-O3']
-        }
+        },
       }
     },
   },
