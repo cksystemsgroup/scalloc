@@ -1,28 +1,4 @@
 *.pyc
 *.o
 
-# http://www.gnu.org/software/automake
-
-/Makefile.in
-
-# http://www.gnu.org/software/autoconf
-
-/autom4te.cache
-/aclocal.m4
-/compile
-/configure
-/config.h.in
-/depcomp
-/install-sh
-/missing
-
-# libtool
-/ltmain.sh
-/config.sub
-/config.guess
-/config.h.in~
-/config.sub
-/src/config.h.in
-
-# others
-/stamp-h1
+out/
