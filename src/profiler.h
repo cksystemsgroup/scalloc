@@ -323,7 +323,7 @@ class Profiler {
     self_allocating_ = true;
     tid_ = pthread_self();
     char filename[128];
-    snprintf(filename, sizeof(filename), "memtrace-%lu", reinterpret_cast<unsigned long>(tid_));
+    snprintf(filename, sizeof(filename), "memtrace-%lu", (long unsigned int)tid_);
     fp_ = fopen(filename, "w");
     if (fp_ == NULL) {
       ErrorOut("unable to open file %s", &filename);
