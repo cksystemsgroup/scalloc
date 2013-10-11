@@ -8,7 +8,6 @@
 #include <stddef.h>  // size_t
 #include <stdint.h>  // size_t
 
-#include "config.h"
 #include "log.h"
 #include "platform.h"
 

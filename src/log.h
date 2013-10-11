@@ -9,8 +9,6 @@
 #include <stdlib.h>  // abort()
 #include <unistd.h>
 
-#include "config.h"
-
 enum Severity {
   kTrace = -1,
   kInfo = -2,

@@ -16,15 +16,16 @@
     'local_reuse_threshold%': 80,
   },
   'target_defaults': {
-    'product_dir': "out",
     'configurations': {
       'Debug': {
+        'product_dir': "out/Debug",
         'cflags': ['-g', '-O0'],
         'xcode_settings': {
           'OTHER_CFLAGS': ['-g', '-O0']
         }
       },
       'Release': {
+        'product_dir': "out/Release",
         'cflags': ['-O3'],
         'xcode_settings': {
           'OTHER_CFLAGS': ['-O3']
@@ -46,7 +47,14 @@
       'defines': [
         'LOG_LEVEL=<@(log_level)',
         'SPAN_REUSE_THRESHOLD=<@(span_reuse_threshold)',
-        'LOCAL_REUSE_THRESHOLD=<@(local_resuse_threshold)',
+        'LOCAL_REUSE_THRESHOLD=<@(local_reuse_threshold)',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'ldflags': [
+            '-pthread'
+          ]
+        }]
       ],
       'sources': [
         'src/allocators/arena.cc',
