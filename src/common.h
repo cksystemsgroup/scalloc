@@ -106,12 +106,6 @@ always_inline size_t PadSize(size_t size, size_t multiple) {
 #endif  // SAFEMODE
 
 #define UNREACHABLE()                                                          \
-  ErrorOut("reached unreachable code segment ;(");
-
-#if defined(__APPLE__)
-#ifndef MAP_ANONYMOUS
-#define MAP_ANONYMOUS MAP_ANON
-#endif
-#endif
+  ErrorOut("reached unreachable code segment");
 
 #endif  // SCALLOC_COMMON_H_

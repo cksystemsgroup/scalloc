@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -25,7 +25,7 @@ __thread TLS_MODE ThreadCache* ThreadCache::tl_cache_;
 void ThreadCache::InitModule() {
   SpinLockHolder holder(&g_threadcache_lock);
   CompilerBarrier();
-  
+
   if (!module_init_) {
     g_threadcache_alloc.Init(kPageSize);
     // http://pubs.opengroup.org/onlinepubs/009696799/functions/pthread_key_create.html
@@ -49,7 +49,6 @@ ThreadCache* ThreadCache::New(pthread_t owner) {
   thread_caches_ = cache;
   return cache;
 }
-  
 
 ThreadCache* ThreadCache::NewIfNecessary() {
   // This early call may crash on old platforms. We don't care.
@@ -58,7 +57,7 @@ ThreadCache* ThreadCache::NewIfNecessary() {
   {
     SpinLockHolder holder(&g_threadcache_lock);
     CompilerBarrier();
-    
+
     // pthread_setspecific may call into malloc.
     for (ThreadCache* c = thread_caches_; c != NULL; c = c->next_) {
       if (c->owner_ == me) {
@@ -66,7 +65,7 @@ ThreadCache* ThreadCache::NewIfNecessary() {
         break;
       }
     }
-    
+
     if (cache == NULL) {
       cache = ThreadCache::New(me);
     }
@@ -80,7 +79,7 @@ ThreadCache* ThreadCache::NewIfNecessary() {
     pthread_setspecific(cache_key_, static_cast<void*>(cache));
     cache->in_setspecific_ = false;
   }
-  
+
   return cache;
 }
 

@@ -55,12 +55,10 @@ boolean_t mi_zone_locked(malloc_zone_t *zone) {
 }
 
 void* mz_malloc(malloc_zone_t* zone, size_t size) {
-  printf("In mz_malloc()\n");
   return scalloc::malloc(size);
 }
 
 void mz_free(malloc_zone_t* zone, void* ptr) {
-  printf("in mz_free\n");
   return scalloc::free(ptr);
 }
 

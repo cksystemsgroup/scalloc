@@ -380,7 +380,7 @@ class Profiler {
 
     uint64_t free_count = fast_free_count_sum_ + slow_free_count_sum_;
     fprintf(fp_,
-            "Thread %lu; A %" PRIu64 "; R %" PRIu64 " "
+            "Thread %" PRIu64 "; A %" PRIu64 "; R %" PRIu64 " "
             "BS %" PRIu64 " F %" PRIu64 " H %" PRIu64 " "
             "W %" PRIu64 " S %" PRIu64 " "
             "R/A %3.1f%%; "
@@ -391,7 +391,7 @@ class Profiler {
             "LSR/R %3.2f; "
             "RSR/R %3.2f; "
             "\n",
-            tid_, allocation_count_sum_, sizeclass_refill_count_sum_,
+            (uint64_t)tid_, allocation_count_sum_, sizeclass_refill_count_sum_,
             block_stealing_count_sum_, free_count, hot_free_count_sum_,
             warm_free_count_sum_, slow_free_count_sum_,
             100.0*static_cast<double>(sizeclass_refill_count_sum_) /
@@ -412,9 +412,9 @@ class Profiler {
     fprintf(fp_, "SC-HISTO (and Frag): ");
     for (unsigned i = 1; i < kNumClasses + 1; ++i) {
       if (sizeclass_histogram_sum_[i] > 1000) {
-        fprintf(fp_, "%d=%luk; ", i, sizeclass_histogram_sum_[i]/1000);
+        fprintf(fp_, "%d=%" PRIu64 "k; ", i, sizeclass_histogram_sum_[i]/1000);
       } else {
-        fprintf(fp_, "%d=%lu; ", i, sizeclass_histogram_sum_[i]);
+        fprintf(fp_, "%d=%" PRIu64 " ", i, sizeclass_histogram_sum_[i]);
       }
     }
     fprintf(fp_, "\n\n");

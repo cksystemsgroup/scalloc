@@ -10,4 +10,12 @@
 const size_t kPageShift = 12;
 const size_t kPageSize = 1UL << kPageShift;
 
+#if defined(__APPLE__)
+
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif  // MAP_ANONYMOUS
+
+#endif  // __APPLE__
+
 #endif  // SCALLOC_PLATFORM_H_

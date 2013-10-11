@@ -15,7 +15,7 @@ namespace utils {
 size_t Cpus() {
   static size_t cpus = 0;
   if (cpus == 0) {
-    const long ret = sysconf(_SC_NPROCESSORS_CONF);
+    const int64_t ret = sysconf(_SC_NPROCESSORS_CONF);
     if (ret == -1) {
       if (errno == 0) {
         ErrorOut("sysconf: _SC_NPROCESSORS_CONF not supported");
@@ -28,5 +28,5 @@ size_t Cpus() {
   return cpus;
 }
 
-}
-}
+}  // namespace utils
+}  // namespace scalloc
