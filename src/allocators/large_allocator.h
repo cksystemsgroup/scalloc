@@ -51,10 +51,11 @@ inline void LargeAllocator::Free(LargeObjectHeader* lbh) {
 }
 
 inline bool LargeAllocator::Owns(const void* p) {
-  LargeObjectHeader* lbh = reinterpret_cast<LargeObjectHeader*>(const_cast<void*>(p));
+  LargeObjectHeader* lbh = reinterpret_cast<LargeObjectHeader*>(
+      const_cast<void*>(p));
   return lbh->type == kLargeObject;
 }
-  
+
 }  // namespace scalloc
 
 #endif  // SCALLOC_ALLOCATORS_LARGE_ALLOCATOR_H_

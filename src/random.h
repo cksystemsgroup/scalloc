@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -6,8 +6,6 @@
 #define SCALLOC_RANDOM_H_
 
 #include <stdint.h>
-
-#include "common.h"
 
 inline uint64_t rdtsc(void) {
   unsigned int hi, lo;

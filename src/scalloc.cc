@@ -28,11 +28,12 @@
 #endif
 
 namespace scalloc {
+
 cache_aligned Arena InternalArena;
+
 cache_aligned Arena SmallArena;
-}
 
-
+}  // namespace scalloc
 
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
@@ -158,7 +159,7 @@ int mallopt(int cmd, int value) {
 }
 
 bool Ours(const void* p) {
-  return SmallArena.Contains((void*)p) || LargeAllocator::Owns(p);
+  return SmallArena.Contains(const_cast<void*>(p)) || LargeAllocator::Owns(p);
 }
 
 }  // namespace scalloc

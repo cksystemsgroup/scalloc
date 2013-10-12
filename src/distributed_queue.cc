@@ -39,7 +39,7 @@ void DistributedQueue::Init(size_t p) {
 DistributedQueue::State* DistributedQueue::NewState() {
   SpinLockHolder holder(&g_state_lock);
   CompilerBarrier();
-  
+
   State* state = state_allocator_.New();
 #ifdef HAVE_TLS
   state_ = state;

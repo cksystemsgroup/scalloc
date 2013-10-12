@@ -25,7 +25,7 @@
 #error Override only working for OS X 10.6 and later.
 #endif
 
-namespace {
+namespace zoned {
 
 kern_return_t mi_enumerator(task_t task, void *,
                             unsigned type_mask, vm_address_t zone_address,
@@ -89,7 +89,7 @@ void mz_destroy(malloc_zone_t* zone) {
   // A no-op -- we will not be destroyed!
 }
 
-}  // namespace
+}  // namespace zoned
 
 extern "C" {
   void cfree(void* p) { scalloc::free(p); }
@@ -108,28 +108,28 @@ static void ReplaceSystemAlloc() {
   static malloc_introspection_t scalloc_introspection;
   memset(&scalloc_introspection, 0, sizeof(scalloc_introspection));
 
-  scalloc_introspection.enumerator = &mi_enumerator;
-  scalloc_introspection.good_size = &mi_good_size;
-  scalloc_introspection.check = &mi_check;
-  scalloc_introspection.print = &mi_print;
-  scalloc_introspection.log = &mi_log;
-  scalloc_introspection.force_lock = &mi_force_lock;
-  scalloc_introspection.force_unlock = &mi_force_unlock;
-  scalloc_introspection.zone_locked = &mi_zone_locked;
+  scalloc_introspection.enumerator = &zoned::mi_enumerator;
+  scalloc_introspection.good_size = &zoned::mi_good_size;
+  scalloc_introspection.check = &zoned::mi_check;
+  scalloc_introspection.print = &zoned::mi_print;
+  scalloc_introspection.log = &zoned::mi_log;
+  scalloc_introspection.force_lock = &zoned::mi_force_lock;
+  scalloc_introspection.force_unlock = &zoned::mi_force_unlock;
+  scalloc_introspection.zone_locked = &zoned::mi_zone_locked;
 
   static malloc_zone_t scalloc_zone;
   memset(&scalloc_zone, 0, sizeof(scalloc_zone));
 
   scalloc_zone.version = 6;
   scalloc_zone.zone_name = "scalloc";
-  scalloc_zone.size = &mz_size;
-  scalloc_zone.malloc = &mz_malloc;
-  scalloc_zone.valloc = &mz_valloc;
-  scalloc_zone.calloc = &mz_calloc;
-  scalloc_zone.free = &mz_free;
-  scalloc_zone.memalign = &mz_memalign;
-  scalloc_zone.realloc = &mz_realloc;
-  scalloc_zone.destroy = &mz_destroy;
+  scalloc_zone.size = &zoned::mz_size;
+  scalloc_zone.malloc = &zoned::mz_malloc;
+  scalloc_zone.valloc = &zoned::mz_valloc;
+  scalloc_zone.calloc = &zoned::mz_calloc;
+  scalloc_zone.free = &zoned::mz_free;
+  scalloc_zone.memalign = &zoned::mz_memalign;
+  scalloc_zone.realloc = &zoned::mz_realloc;
+  scalloc_zone.destroy = &zoned::mz_destroy;
   scalloc_zone.introspect = &scalloc_introspection;
 
   scalloc_zone.batch_malloc = NULL;

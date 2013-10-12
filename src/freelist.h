@@ -5,12 +5,6 @@
 #ifndef SCALLOC_FREELIST_H_
 #define SCALLOC_FREELIST_H_
 
-#ifdef HAVE_CONFIG_H_
-#include "config.h"
-#endif  // HAVE_CONFIG_H_
-
-//#include <cstdint>
-
 #include "common.h"
 #include "log.h"
 

@@ -95,7 +95,10 @@ class TaggedAtomic {
   RawType raw_;
 };
 
-template<typename AtomicType, typename TagType, int AtomicWidth, int AtomicAlign>
+template<typename AtomicType,
+         typename TagType,
+         int AtomicWidth,
+         int AtomicAlign>
 inline void TaggedAtomic<AtomicType, TagType, AtomicWidth, AtomicAlign>::Pack(
     AtomicType atomic, TagType tag) {
   Atomic64 tmp = 0;
@@ -106,7 +109,10 @@ inline void TaggedAtomic<AtomicType, TagType, AtomicWidth, AtomicAlign>::Pack(
   Atomic64_Write(&raw_, tmp);
 }
 
-template<typename AtomicType, typename TagType, int AtomicWidth, int AtomicAlign>
+template<typename AtomicType,
+         typename TagType,
+         int AtomicWidth,
+         int AtomicAlign>
 inline void TaggedAtomic<AtomicType, TagType, AtomicWidth, AtomicAlign>::WeakPack(AtomicType atomic, TagType tag) {
   // Ignores the cast iff AtomicType == uintptr_t, otherwise it will do a
   // reinterpret_cast.

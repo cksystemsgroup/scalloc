@@ -25,7 +25,7 @@
 
 #if defined(__APPLE__)
 #undef HAVE_TLS
-#endif // __APPLE__
+#endif  // __APPLE__
 
 const size_t kMinAlignment = 16;
 const size_t kMaxSmallShift = 8;  // up to 2MiB
