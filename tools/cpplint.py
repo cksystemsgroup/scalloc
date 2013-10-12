@@ -136,6 +136,22 @@ Syntax: cpplint.py [--verbose=#] [--output=vs7] [--filter=-x,+y,...]
       the top-level categories like 'build' and 'whitespace' will
       also be printed. If 'detailed' is provided, then a count
       is provided for each category like 'build/class'.
+
+    root=subdir
+      The root directory used for deriving header guard CPP variable.
+      By default, the header guard CPP variable is calculated as the relative
+      path to the directory that contains .git, .hg, or .svn.  When this flag
+      is specified, the relative path is calculated from the specified
+      directory. If the specified directory does not exist, this flag is
+      ignored.
+
+      Examples:
+        Assuing that src/.git exists, the header guard CPP variables for
+        src/chrome/browser/ui/browser.h are:
+
+        No flag => CHROME_BROWSER_UI_BROWSER_H_
+        --root=chrome => BROWSER_UI_BROWSER_H_
+        --root=chrome/browser => UI_BROWSER_H_
 """
 
 # We categorize each error message we print.  Here are the categories.
@@ -241,8 +257,9 @@ _CPP_HEADERS = frozenset([
     'numeric', 'ostream', 'ostream.h', 'parsestream.h', 'pfstream.h',
     'PlotFile.h', 'procbuf.h', 'pthread_alloc.h', 'rope', 'rope.h',
     'ropeimpl.h', 'SFile.h', 'slist', 'slist.h', 'stack.h', 'stdexcept',
-    'stdiostream.h', 'streambuf.h', 'stream.h', 'strfile.h', 'string',
-    'strstream', 'strstream.h', 'tempbuf.h', 'tree.h', 'typeinfo', 'valarray',
+    'stdiostream.h', 'streambuf', 'streambuf.h', 'stream.h', 'strfile.h',
+    'string', 'strstream', 'strstream.h', 'tempbuf.h', 'tree.h', 'typeinfo',
+    'valarray',
     ])
 
 
@@ -335,6 +352,10 @@ _RE_SUPPRESSION = re.compile(r'\bNOLINT\b(\([^)]*\))?')
 # {str, set(int)}: a map from error categories to sets of linenumbers
 # on which those errors are expected and should be suppressed.
 _error_suppressions = {}
+
+# The root directory used for deriving header guard CPP variable.
+# This is set by --root flag.
+_root = None
 
 def ParseNolintSuppressions(filename, raw_line, linenum, error):
   """Updates the global list of error-suppressions.
@@ -855,6 +876,9 @@ def Error(filename, linenum, category, confidence, message):
     if _cpplint_state.output_format == 'vs7':
       sys.stderr.write('%s(%s):  %s  [%s] [%d]\n' % (
           filename, linenum, message, category, confidence))
+    elif _cpplint_state.output_format == 'eclipse':
+      sys.stderr.write('%s:%s: warning: %s  [%s] [%d]\n' % (
+          filename, linenum, message, category, confidence))
     else:
       sys.stderr.write('%s:%s:  %s  [%s] [%d]\n' % (
           filename, linenum, message, category, confidence))
@@ -1102,7 +1126,10 @@ def GetHeaderGuardCPPVariable(filename):
   filename = re.sub(r'/\.flymake/([^/]*)$', r'/\1', filename)
 
   fileinfo = FileInfo(filename)
-  return re.sub(r'[-./\s]', '_', fileinfo.RepositoryName()).upper() + '_'
+  file_path_from_root = fileinfo.RepositoryName()
+  if _root:
+    file_path_from_root = re.sub('^' + _root + os.sep, '', file_path_from_root)
+  return re.sub(r'[-./\s]', '_', file_path_from_root).upper() + '_'
 
 
 def CheckForHeaderGuard(filename, lines, error):
@@ -3933,7 +3960,8 @@ def ParseArguments(args):
   try:
     (opts, filenames) = getopt.getopt(args, '', ['help', 'output=', 'verbose=',
                                                  'counting=',
-                                                 'filter='])
+                                                 'filter=',
+                                                 'root='])
   except getopt.GetoptError:
     PrintUsage('Invalid arguments.')
 
@@ -3946,8 +3974,8 @@ def ParseArguments(args):
     if opt == '--help':
       PrintUsage(None)
     elif opt == '--output':
-      if not val in ('emacs', 'vs7'):
-        PrintUsage('The only allowed output formats are emacs and vs7.')
+      if not val in ('emacs', 'vs7', 'eclipse'):
+        PrintUsage('The only allowed output formats are emacs, vs7 and eclipse.')
       output_format = val
     elif opt == '--verbose':
       verbosity = int(val)
@@ -3959,6 +3987,9 @@ def ParseArguments(args):
       if val not in ('total', 'toplevel', 'detailed'):
         PrintUsage('Valid counting options are total, toplevel, and detailed')
       counting_style = val
+    elif opt == '--root':
+      global _root
+      _root = val
 
   if not filenames:
     PrintUsage('No files were specified.')
