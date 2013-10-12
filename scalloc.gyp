@@ -67,7 +67,6 @@
         'src/allocators/span_pool.h',
         'src/atomic.h',
         'src/common.h',
-        'src/config.h',
         'src/block_header.h',
         'src/distributed_queue.cc',
         'src/distributed_queue.h',
