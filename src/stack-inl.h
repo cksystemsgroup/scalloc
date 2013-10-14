@@ -5,6 +5,8 @@
 #ifndef SCALLOC_STACK_INL_H_
 #define SCALLOC_STACK_INL_H_
 
+#include <cstddef>  // NULL
+
 namespace scalloc {
 
 class SequentialStack {

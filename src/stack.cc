@@ -4,6 +4,8 @@
 
 #include "stack.h"
 
+#include <cstddef>  // NULL
+
 #include "atomic.h"
 
 namespace {
