@@ -36,6 +36,7 @@ TaggedValue<ValueType, TagType, TagWidth>::TaggedValue(
 template<typename ValueType, typename TagType, int TagWidth>
 void TaggedValue<ValueType, TagType, TagWidth>::Pack(
     ValueType value, TagType tag) {
+  raw = 0;
   raw |= (((uint64_t)(value) >> kTagWidth) & kValueMask);
   raw |= (((uint64_t)(tag) << (kWidth - kTagWidth)) & kTagMask);
 }
