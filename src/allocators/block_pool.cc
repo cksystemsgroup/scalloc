@@ -9,20 +9,19 @@
 
 namespace scalloc {
 
-void BlockPool::InitModule() {
-  Instance().Init();
-}
+BlockPool BlockPool::block_pool_ cache_aligned;
 
 void BlockPool::Init() {
+  BlockPool& bp = Instance();
   for (size_t i = 0; i < kNumClasses; i++) {
-    dqs_[i].Init(utils::Cpus());
+    bp.dqs_[i].Init(utils::Cpus());
   }
 }
 
 void* BlockPool::Allocate(const size_t sc,
-                              const size_t dq_id,
-                              const size_t tid,
-                              SpanHeader** block) {
+                          const size_t dq_id,
+                          const size_t tid,
+                          SpanHeader** block) {
   void* p = dqs_[sc].DequeueAt(dq_id % utils::Cpus());
   *block = NULL;
 

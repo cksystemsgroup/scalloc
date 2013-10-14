@@ -9,11 +9,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "alloc.h"
 #include "common.h"
 #include "log.h"
 #include "scalloc_arenas.h"
 #include "spinlock-inl.h"
-#include "stack-inl.h"
+#include "stack.h"
+#include "utils.h"
 
 namespace scalloc {
 
@@ -24,7 +26,7 @@ const int kNoAlignment = 1;
 // Almost lock-free free-list allocator that may be used internally for fixed
 // types and alignments.
 template<typename T, int ALIGNMENT = kNoAlignment>
-class PageHeapAllocator {
+  class PageHeapAllocator : public TypedAllocator<T> {
  public:
   // No constructor, but an init function, because PageHeapAllocator must be
   // available from a global context (before main).
@@ -42,15 +44,13 @@ class PageHeapAllocator {
         ErrorOut("PageHeapAllocator: ALIGNMENT must be a divisor of system "
                  "page size");
       }
-      tsize_ = PadSize(tsize_, ALIGNMENT);
+      tsize_ = utils::PadSize(tsize_, ALIGNMENT);
     }
 
     if (tsize_ > alloc_increment_) {
       ErrorOut("PageHeapAllocator: type T is too large for current "
                "allocation increment.");
     }
-
-    free_list_.Init();
   }
 
   void* Refill() {
@@ -66,19 +66,18 @@ class PageHeapAllocator {
   }
 
   T* New() {
+    LockScope(&refill_lock_)
+
     void* result = free_list_.Pop();
     if (result == NULL) {
-      SpinLockHolder lock_holder(&refill_lock_);
-      CompilerBarrier();
-      result = free_list_.Pop();
-      if (result == NULL) {
-        result = Refill();
-      }
+      result = Refill();
     }
     return reinterpret_cast<T*>(result);
   }
 
   void Delete(T* ptr) {
+    LockScope(&refill_lock_)
+
     free_list_.Push(ptr);
   }
 
@@ -86,7 +85,7 @@ class PageHeapAllocator {
   size_t alloc_increment_;
   size_t tsize_;
   SpinLock refill_lock_;
-  Stack free_list_;
+  SequentialStack free_list_;
 };
 
 }  // namespace scalloc

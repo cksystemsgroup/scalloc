@@ -23,6 +23,9 @@
         'xcode_settings': {
           'OTHER_CFLAGS': ['-g', '-O0']
         },
+        'defines': [
+          'DEBUG',
+        ]
       },
       'Release': {
         'cflags': ['-O3'],
@@ -41,7 +44,9 @@
       'ldflags': [ '<@(default_ldflags)' ],
       'xcode_settings': {
         'OTHER_CFLAGS': [ '<@(default_cflags)' ],
-        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ]
+        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
+        'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
+        'CLANG_CXX_LIBRARY': "libc++",
       },
       'defines': [
         'LOG_LEVEL=<@(log_level)',
@@ -65,6 +70,8 @@
         'src/allocators/small_allocator.h',
         'src/allocators/span_pool.cc',
         'src/allocators/span_pool.h',
+        'src/alloc.h',
+        'src/assert.h',
         'src/atomic.h',
         'src/common.h',
         'src/block_header.h',
@@ -89,6 +96,8 @@
         'src/size_map.h',
         'src/spinlock-inl.h',
         'src/stack-inl.h',
+        'src/stack.cc',
+        'src/stack.h',
         'src/system-alloc.cc',
         'src/system-alloc.h',
         'src/thread_cache.cc',

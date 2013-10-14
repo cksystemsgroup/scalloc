@@ -72,7 +72,7 @@ inline ThreadCache& ThreadCache::GetCache() {
     InitModule();
   }
   cache = NewIfNecessary();
-  ScallocAssert(cache != NULL, "cache == NULL");
+  ScallocAssert(cache != NULL);
   return *cache;
 }
 

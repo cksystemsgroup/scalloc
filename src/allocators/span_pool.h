@@ -20,7 +20,7 @@ namespace scalloc {
 
 class SpanPool {
  public:
-  static void InitModule();
+  static void Init();
   static SpanPool& Instance();
 
   void Refill(const size_t refill);
@@ -36,7 +36,7 @@ class SpanPool {
   void* RefillOne();
 };
 
-always_inline SpanPool& SpanPool::Instance() {
+inline SpanPool& SpanPool::Instance() {
   return page_heap_;
 }
 

@@ -88,7 +88,6 @@ inline void Freelist::AddRange(const void* start,
   }
 }
 
-
 always_inline bool Freelist::Empty() {
   return list_ == NULL;
 }

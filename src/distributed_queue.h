@@ -8,21 +8,26 @@
 #include <cstdlib>
 #include <pthread.h>
 
+#include "alloc.h"
 #include "common.h"
 #include "random.h"
 #include "page_heap_allocator.h"
-#include "spinlock-inl.h"
-#include "stack-inl.h"
+#include "stack.h"
+
+namespace scalloc {
 
 class DistributedQueue {
  public:
-  // Initialize the DQ module in a thread-safe way.
-  static void InitModule();
+  // Upper bound on DQ backends (and thus also State records).
+  static const size_t kMaxBackends = 80;
 
-  // Initializer method instead of constructor to enable global use (before
-  // main). Note: NOT thread-safe!
+  struct State {
+    uint64_t backend_states[kMaxBackends];
+  };
+
+  static void Init(TypedAllocator<DistributedQueue::State>* alloc);
+
   void Init(size_t p);
-
   void Enqueue(void* p);
   void EnqueueAt(void* p, size_t start);
   void* Dequeue();
@@ -30,21 +35,7 @@ class DistributedQueue {
   void* DequeueAt(size_t start);
 
  private:
-  // Upper bound on DQ backends (and thus also State records).
-  static const size_t kMaxBackends = 80;
-
-  typedef Stack Backend;
-
-  struct State {
-    uint64_t backend_states[kMaxBackends];
-  };
-
-
-  // Allocator used to get backend stacks.
-  static scalloc::PageHeapAllocator<Backend, 64> backend_allocator_;
-
-  // Allocator used to get a State instance.
-  static scalloc::PageHeapAllocator<State, 64> state_allocator_;
+  typedef scalloc::Stack1 Backend;
 
 #ifdef HAVE_TLS
   // State object used to record backend states by each thread in the emptiness
@@ -60,31 +51,30 @@ class DistributedQueue {
   // The actual DQ backends.
   Backend* backends_[kMaxBackends];
 
-  // Create a new threadlocal state.
+  // threadlocal state routines.
   State* NewState();
   State* GetState();
 };
 
-
-always_inline void DistributedQueue::Enqueue(void* p) {
+inline void DistributedQueue::Enqueue(void* p) {
   size_t start = static_cast<size_t>(hwrand()) % p_;
   EnqueueAt(p, start);
 }
 
-always_inline void DistributedQueue::EnqueueAt(void* p, size_t start) {
-  backends_[start]->Put(p);
+inline void DistributedQueue::EnqueueAt(void* p, size_t start) {
+  backends_[start]->Push(p);
 }
 
-always_inline void* DistributedQueue::Dequeue() {
+inline void* DistributedQueue::Dequeue() {
   size_t start = static_cast<size_t>(hwrand()) % p_;
   return DequeueAt(start);
 }
 
-always_inline void* DistributedQueue::DequeueOnlyAt(size_t backend_id) {
+inline void* DistributedQueue::DequeueOnlyAt(size_t backend_id) {
   return backends_[backend_id]->Pop();
 }
 
-always_inline void* DistributedQueue::DequeueAt(size_t start) {
+inline void* DistributedQueue::DequeueAt(size_t start) {
   void* result;
   State* state = GetState();
   if (state == NULL) {
@@ -102,7 +92,7 @@ always_inline void* DistributedQueue::DequeueAt(size_t start) {
     }
     for (size_t _cnt = 0; _cnt < p_; _cnt++) {
       i = (_cnt + start) % p_;
-      if (state->backend_states[i] != backends_[i]->GetState()) {
+      if (state->backend_states[i] != backends_[i]->State()) {
         start = i;
         goto GET_RETRY;
       }
@@ -110,5 +100,7 @@ always_inline void* DistributedQueue::DequeueAt(size_t start) {
     return NULL;
   }
 }
+
+}  // namespace scalloc
 
 #endif  // SCALLOC_DISTRIBUTED_QUEUE_H_

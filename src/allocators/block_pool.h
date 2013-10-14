@@ -5,14 +5,9 @@
 #ifndef SCALLOC_ALLOCATORS_BLOCK_POOL_H_
 #define SCALLOC_ALLOCATORS_BLOCK_POOL_H_
 
-#include <pthread.h>
-#include <stdlib.h>
-
 #include "block_header.h"
 #include "common.h"
 #include "distributed_queue.h"
-#include "freelist.h"
-#include "span_pool.h"
 #include "size_map.h"
 #include "utils.h"
 
@@ -20,10 +15,9 @@ namespace scalloc {
 
 class BlockPool {
  public:
-  static void InitModule();
+  static void Init();
   static BlockPool& Instance();
 
-  void Init();
   void Free(void* p, const size_t sc, const size_t dq_id);
   void* Allocate(const size_t sc,
                  const size_t dq_id,
@@ -31,17 +25,18 @@ class BlockPool {
                  SpanHeader** block);
 
  private:
-  DistributedQueue dqs_[kNumClasses] cache_aligned;
-} cache_aligned;
+  static BlockPool block_pool_ cache_aligned;
 
-always_inline BlockPool& BlockPool::Instance() {
-  static BlockPool singleton;
-  return singleton;
+  DistributedQueue dqs_[kNumClasses] cache_aligned;
+};
+
+inline BlockPool& BlockPool::Instance() {
+  return block_pool_;
 }
 
-always_inline void BlockPool::Free(void* p,
-                                       const size_t sc,
-                                       const size_t dq_id) {
+inline void BlockPool::Free(void* p,
+                            const size_t sc,
+                            const size_t dq_id) {
   dqs_[sc].EnqueueAt(p, dq_id % utils::Cpus());
 }
 

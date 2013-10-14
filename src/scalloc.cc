@@ -17,6 +17,7 @@
 #include "scalloc_arenas.h"
 #include "scalloc_guard.h"
 #include "size_map.h"
+#include "stack.h"
 #include "thread_cache.h"
 
 #ifdef PROFILER_ON
@@ -26,6 +27,12 @@
 #ifndef __THROW
 #define __THROW
 #endif
+
+namespace {
+  scalloc::PageHeapAllocator<scalloc::Stack1, 64> stack_allocator_;
+  scalloc::PageHeapAllocator<scalloc::DistributedQueue::State, 64>
+      dq_state_allocator_;
+}  // namespace
 
 namespace scalloc {
 
@@ -40,12 +47,17 @@ ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
     ReplaceSystemAlloc();
 
+    stack_allocator_.Init(kPageSize);
+    scalloc::Stack1::Init(&stack_allocator_);
+
+    dq_state_allocator_.Init(kPageSize);
+    scalloc::DistributedQueue::Init(&dq_state_allocator_);
+
     scalloc::SizeMap::InitModule();
     scalloc::InternalArena.Init(kInternalSpace);
     scalloc::SmallArena.Init(kSmallSpace);
-    DistributedQueue::InitModule();
-    scalloc::SpanPool::InitModule();
-    scalloc::BlockPool::InitModule();
+    scalloc::SpanPool::Init();
+    scalloc::BlockPool::Init();
     scalloc::SmallAllocator::InitModule();
     scalloc::ThreadCache::InitModule();
 

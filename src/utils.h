@@ -10,9 +10,31 @@
 namespace scalloc {
 namespace utils {
 
+inline size_t PadSize(size_t size, size_t multiple) {
+  return (size + multiple - 1) / multiple * multiple;
+}
+
+#define LT(n) n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n
+static const char log_table[256] = {
+  -1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
+  LT(4), LT(5), LT(5), LT(6), LT(6), LT(6), LT(6),
+  LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7)
+};
+
+// base-2 logarithm of 32-bit integers
+inline int Log2(size_t v) {
+  unsigned int t, tt, r;  // temp vars
+  if ((tt = (v >> 16))) {
+    r =  (t = (tt >> 8)) ? 24 + log_table[t] : 16 + log_table[tt];
+  } else {
+    r =  (t = (v >> 8)) ? 8 + log_table[t] : log_table[v];
+  }
+  return r;
+}
+
 size_t Cpus();
 
-}
-}
+}  // namespace utils
+}  // namespace scalloc
 
 #endif  // SCALLOC_UTILS_H_
