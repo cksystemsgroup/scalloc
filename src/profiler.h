@@ -40,7 +40,7 @@ class GlobalProfiler {
     const char *filename = "global-memtrace";
     fp_ = fopen(filename, "w");
     if (fp_ == NULL) {
-      ErrorOut("unable to open file global-memtrace");
+      Fatal("unable to open file global-memtrace");
     }
   }
 
@@ -329,7 +329,7 @@ class Profiler {
              (uint64_t)tid_);
     fp_ = fopen(filename, "w");
     if (fp_ == NULL) {
-      ErrorOut("unable to open file %s", &filename);
+      Fatal("unable to open file %s", &filename);
     }
     self_allocating_ = false;
   }

@@ -39,8 +39,6 @@ struct ActiveOwner {
 
 class Header {
  public:
-  static Header* GetFromObject(void* p);
-
   BlockType type;
 };
 
@@ -90,9 +88,9 @@ class LargeObjectHeader : public Header {
     uintptr_t page_ptr = ptr & ~(kPageSize - 1);
     Header* bh = reinterpret_cast<Header*>(page_ptr);
     if (UNLIKELY(bh->type != kLargeObject)) {
-      ErrorOut("Calling LargeObjectHeader::GetFromObject on kSlab type. "
-               "type: %d, ptr: %p, page_ptr: %p",
-               bh->type, p, reinterpret_cast<void*>(page_ptr));
+      Fatal("Calling LargeObjectHeader::GetFromObject on kSlab type. "
+            "type: %d, ptr: %p, page_ptr: %p",
+            bh->type, p, reinterpret_cast<void*>(page_ptr));
     }
     return reinterpret_cast<LargeObjectHeader*>(bh);
   }
@@ -103,11 +101,5 @@ class LargeObjectHeader : public Header {
     this->size = size;
   }
 } cache_aligned;
-
-always_inline Header* Header::GetFromObject(void* p) {
-  ErrorOut("Calling Header::GetObject.");
-  // unreachable...
-  return NULL;
-}
 
 #endif  // SCALLOC_BLOCK_HEADER_H_

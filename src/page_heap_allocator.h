@@ -38,18 +38,18 @@ template<typename T, int ALIGNMENT = kNoAlignment>
     tsize_ = sizeof(T);
     if (ALIGNMENT > kNoAlignment) {
       if (tsize_ + ALIGNMENT <= tsize_) {
-        ErrorOut("PageHeapAllocator: overflow");
+        Fatal("PageHeapAllocator: overflow");
       }
       if (kPageSize % ALIGNMENT != 0) {
-        ErrorOut("PageHeapAllocator: ALIGNMENT must be a divisor of system "
-                 "page size");
+        Fatal("PageHeapAllocator: ALIGNMENT must be a divisor of system "
+              "page size");
       }
       tsize_ = utils::PadSize(tsize_, ALIGNMENT);
     }
 
     if (tsize_ > alloc_increment_) {
-      ErrorOut("PageHeapAllocator: type T is too large for current "
-               "allocation increment.");
+      Fatal("PageHeapAllocator: type T is too large for current "
+            "allocation increment.");
     }
   }
 

@@ -7,18 +7,25 @@
 
 #include "log.h"
 
+#define Fatal(format, ...) do {                                                \
+  LogPrintf(kFatal, format, ##__VA_ARGS__);                                    \
+  abort();                                                                     \
+} while (0)
+
 #define QUOTEME(x) #x
 
 #ifdef DEBUG
 
-#define ScallocAssert(c)                                                       \
+#define ScallocAssert(c) do {                                                  \
   if (!(c)) {                                                                  \
-    ErrorOut("assertion failed: " QUOTEME(c));                                 \
-  }
+    Fatal("assertion failed: " QUOTEME(c));                                    \
+  }                                                                            \
+} while (0)
 
 #else  // !DEBUG
 
-#define ScallocAssert(c) {}
+#define ScallocAssert(c) do {                                                  \
+} while (0)
 
 #endif  // DEBUG
 

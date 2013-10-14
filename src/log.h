@@ -32,20 +32,13 @@ void LogPrintf(const int severity, const char* format, ...);
 
 #define LOG_ON(severity) (kVerbosity >= severity)
 
-#define LOG(severity, format, ...) do {           \
-  if (LOG_ON(severity)) {                         \
-    LogPrintf(severity, format, ##__VA_ARGS__);   \
-  }                                               \
-  if (severity == kFatal) {                       \
-    abort();                                      \
-  }                                               \
-} while (0)
-
-#define ErrorOut(format, ...) do {                \
-  if (LOG_ON(kFatal)) {                           \
-    LogPrintf(kFatal, format, ##__VA_ARGS__);     \
-  }                                               \
-  abort();                                        \
+#define LOG(severity, format, ...) do {                                        \
+  if (LOG_ON(severity)) {                                                      \
+    LogPrintf(severity, format, ##__VA_ARGS__);                                \
+  }                                                                            \
+  if (severity == kFatal) {                                                    \
+    abort();                                                                   \
+  }                                                                            \
 } while (0)
 
 #endif  // SCALLOC_LOG_H_

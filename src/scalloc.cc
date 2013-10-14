@@ -147,27 +147,27 @@ void* realloc(void* ptr, size_t size) {
 }
 
 void* memalign(size_t __alignment, size_t __size) {
-  ErrorOut("memalign() not yet implemented.");
+  Fatal("memalign() not yet implemented.");
 }
 
 int posix_memalign(void** ptr, size_t align, size_t size) {
-  ErrorOut("posix_memalign() not yet implemented.");
+  Fatal("posix_memalign() not yet implemented.");
 }
 
 void* valloc(size_t __size) {
-  ErrorOut("valloc() not yet implemented.");
+  Fatal("valloc() not yet implemented.");
 }
 
 void* pvalloc(size_t __size) {
-  ErrorOut("pvalloc() not yet implemented.");
+  Fatal("pvalloc() not yet implemented.");
 }
 
 void malloc_stats(void) {
-  ErrorOut("malloc_stats() not yet implemented.");
+  Fatal("malloc_stats() not yet implemented.");
 }
 
 int mallopt(int cmd, int value) {
-  ErrorOut("mallopt() not yet implemented.");
+  Fatal("mallopt() not yet implemented.");
 }
 
 bool Ours(const void* p) {
