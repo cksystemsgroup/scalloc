@@ -66,7 +66,6 @@ template<typename T, int ALIGNMENT = kNoAlignment>
   }
 
   T* New() {
-    printf("in New()\n");
     LockScope(&refill_lock_)
 
     void* result = free_list_.Pop();

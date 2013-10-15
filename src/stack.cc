@@ -19,13 +19,11 @@ namespace {
 namespace scalloc {
 
 void Stack1::Init(TypedAllocator<Stack1>* alloc) {
-  printf("setting stack_allocator: %p\n", alloc);
   stack_allocator = alloc;
 }
 
 Stack1* Stack1::New() {
   ScallocAssert(stack_allocator != NULL);
-  printf("stack allocator: %p\n", stack_allocator);
   Stack1* s = stack_allocator->New();
   ScallocAssert(s != NULL);
   s->top_.store(kNullValue.raw);
