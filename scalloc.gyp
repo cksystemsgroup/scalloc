@@ -23,6 +23,9 @@
         'xcode_settings': {
           'OTHER_CFLAGS': ['-g', '-O0']
         },
+        'defines': [
+          'DEBUG',
+        ]
       },
       'Release': {
         'cflags': ['-O3'],
@@ -42,6 +45,8 @@
       'xcode_settings': {
         'OTHER_CFLAGS': [ '<@(default_cflags)' ],
         'OTHER_LDFLAGS': [ '<@(default_ldflags)' ]
+        'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
+        'CLANG_CXX_LIBRARY': "libc++",
       },
       'defines': [
         'LOG_LEVEL=<@(log_level)',
