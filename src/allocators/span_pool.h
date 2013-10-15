@@ -28,7 +28,7 @@ class SpanPool {
   void Put(void* p, size_t sc, uint32_t tid);
 
  private:
-  static SpanPool page_heap_ cache_aligned;
+  static SpanPool span_pool_ cache_aligned;
   static const size_t kSpanPoolBackends = kNumClasses;
 
   DistributedQueue size_class_pool_[kNumClasses] cache_aligned;
@@ -37,7 +37,7 @@ class SpanPool {
 };
 
 inline SpanPool& SpanPool::Instance() {
-  return page_heap_;
+  return span_pool_;
 }
 
 always_inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {

@@ -9,8 +9,8 @@
 #include <stdint.h>
 #include <sys/mman.h>  // madvise
 
+#include "assert.h"
 #include "common.h"
-#include "log.h"
 
 class Arena {
  public:
@@ -25,24 +25,24 @@ class Arena {
   size_t size_;
 } cache_aligned;
 
-always_inline bool Arena::Contains(void* p) {
+inline bool Arena::Contains(void* p) {
   return (reinterpret_cast<uintptr_t>(p) ^ start_) < size_;
 }
 
 inline void* Arena::Allocate(const size_t size) {
   void* p =  reinterpret_cast<void*>(__sync_fetch_and_add(&current_, size));
   if (reinterpret_cast<uintptr_t>(p) > (start_ + size_)) {
-    Fatal("[Arena]: oom");
+    Fatal("arena: out of memory");
   }
   return p;
 }
 
 inline void Arena::Free(void* p, size_t len) {
   if (reinterpret_cast<uintptr_t>(p) > current_) {
-    Fatal("[Arena]: cannot free space");
+    Fatal("arena: invalid free pointer");
   }
   if (madvise(p, len, MADV_DONTNEED) == -1) {
-    Fatal("[Arena]: madvise failed. errno: %lu", errno);
+    Fatal("arena: madvise failed. errno: %lu", errno);
   }
 }
 

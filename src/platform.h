@@ -10,6 +10,8 @@
 const size_t kPageShift = 12;
 const size_t kPageSize = 1UL << kPageShift;
 
+#define cache_aligned __attribute__((aligned(64)))
+
 #if defined(__APPLE__)
 
 #ifndef MAP_ANONYMOUS

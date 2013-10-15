@@ -9,12 +9,12 @@
 
 namespace scalloc {
 
-SpanPool SpanPool::page_heap_ cache_aligned;
+SpanPool SpanPool::span_pool_ cache_aligned;
 
 void SpanPool::Init() {
   unsigned num_cores = utils::Cpus();
   for (unsigned i = 0; i < kNumClasses; ++i) {
-    page_heap_.size_class_pool_[i].Init(num_cores);
+    span_pool_.size_class_pool_[i].Init(num_cores);
   }
 }
 

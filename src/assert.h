@@ -18,7 +18,7 @@
 
 #define ScallocAssert(c) do {                                                  \
   if (!(c)) {                                                                  \
-    Fatal("assertion failed: " QUOTEME(c));                                    \
+    Fatal("assertion failed: " QUOTEME((c)));                                  \
   }                                                                            \
 } while (0)
 

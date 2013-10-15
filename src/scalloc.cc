@@ -35,32 +35,28 @@ namespace {
 }  // namespace
 
 namespace scalloc {
-
+  
 cache_aligned Arena InternalArena;
-
 cache_aligned Arena SmallArena;
-
-}  // namespace scalloc
-
+  
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
     ReplaceSystemAlloc();
 
+    InternalArena.Init(kInternalSpace);
+    SmallArena.Init(kSmallSpace);
+
     stack_allocator_.Init(kPageSize);
-    scalloc::Stack1::Init(&stack_allocator_);
-
+    Stack1::Init(&stack_allocator_);
     dq_state_allocator_.Init(kPageSize);
-    scalloc::DistributedQueue::Init(&dq_state_allocator_);
-
+    DistributedQueue::Init(&dq_state_allocator_);
     scalloc::SizeMap::InitModule();
-    scalloc::InternalArena.Init(kInternalSpace);
-    scalloc::SmallArena.Init(kSmallSpace);
-    scalloc::SpanPool::Init();
-    scalloc::BlockPool::Init();
+
+    SpanPool::Init();
+    BlockPool::Init();
     scalloc::SmallAllocator::InitModule();
     scalloc::ThreadCache::InitModule();
-
     free(malloc(1));
 
 #ifdef PROFILER_ON
@@ -74,10 +70,8 @@ ScallocGuard::~ScallocGuard() {
   if (--scallocguard_refcount == 0) {
   }
 }
-
-static ScallocGuard StartupExitHook;
-
-namespace scalloc {
+  
+ScallocGuard StartupExitHook;
 
 void* malloc(const size_t size) {
   void* p;

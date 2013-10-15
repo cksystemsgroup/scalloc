@@ -14,8 +14,6 @@
 #define UNLIKELY(x)   __builtin_expect((x), 0)
 #define LIKELY(x)     __builtin_expect((x), 1)
 
-#define cache_aligned __attribute__((aligned(64)))
-
 #define always_inline inline __attribute__((always_inline))
 #define no_inline __attribute__((noinline))
 
@@ -39,7 +37,6 @@ const uintptr_t kVirtualSpanMask = ~(kVirtualSpanSize - 1);
 const size_t kFineClasses = kMaxSmallSize / kMinAlignment + 1;
 const size_t kCoarseClasses = kMaxMediumShift - kMaxSmallShift;
 const size_t kNumClasses = kFineClasses + kCoarseClasses;
-
 
 #ifdef SMALL_SPACE_SIZE
 const size_t kSmallSpace = SMALL_SPACE_SIZE;
