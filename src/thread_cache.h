@@ -23,7 +23,7 @@ namespace scalloc {
 // have __thread, or implement it with malloc().
 class ThreadCache {
  public:
-  static void InitModule();
+  static void Init(TypedAllocator<ThreadCache>* alloc);
 
   static ThreadCache& GetCache();
 
@@ -68,19 +68,20 @@ inline ThreadCache& ThreadCache::GetCache() {
   if (LIKELY(cache != NULL)) {
     return *cache;
   }
-  if (!module_init_) {
-    InitModule();
-  }
+  ScallocAssert(module_init_);
+//  if (!module_init_) {
+//    InitModule();
+//  }
   cache = NewIfNecessary();
   ScallocAssert(cache != NULL);
   return *cache;
 }
 
-always_inline void* ThreadCache::Allocate(const size_t size) {
+inline void* ThreadCache::Allocate(const size_t size) {
   return allocator_.Allocate(size);
 }
 
-always_inline void ThreadCache::Free(void* p, Header* hdr) {
+inline void ThreadCache::Free(void* p, Header* hdr) {
   allocator_.Free(p, reinterpret_cast<SpanHeader*>(hdr));
 }
 

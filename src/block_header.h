@@ -5,15 +5,18 @@
 #ifndef SCALLOC_BLOCK_HEADER_H_
 #define SCALLOC_BLOCK_HEADER_H_
 
+#include <stdint.h>
+
 #include "common.h"
 #include "freelist.h"
 #include "log.h"
 #include "size_map.h"
 
 enum BlockType {
-  UNDEF,
+  kUndefined,
   kSlab,
-  kLargeObject
+  kLargeObject,
+  kMaxObjectTypes
 };
 
 struct ActiveOwner {
@@ -44,28 +47,30 @@ class Header {
 
 class SpanHeader : public Header {
  public:
-  static always_inline SpanHeader* GetFromObject(void* p) {
+  static inline SpanHeader* GetFromObject(void* p) {
     return reinterpret_cast<SpanHeader*>
         (reinterpret_cast<uintptr_t>(p) & kVirtualSpanMask);
   }
+  
+  // The utilization of the span in percent.
+  inline size_t Utilization() {
+    return 100 - ((this->flist.Size() * 100) / this->max_num_blocks);
+  }
 
   // read-only properties
-
   struct {
-  size_t size_class;
-  size_t max_num_blocks;
-  size_t remote_flist;
+    size_t size_class;
+    size_t max_num_blocks;
+    size_t remote_flist;
   } cache_aligned;
 
   // mostly read properties
-
   cache_aligned ActiveOwner aowner;
 
   // thread-local read/write properties
-
   struct {
-  uint64_t in_use;
-  Freelist flist;
+    uint64_t in_use;
+    Freelist flist;
   } cache_aligned;
 
   inline void Reset(const size_t size_class, const size_t remote_flist) {
@@ -74,16 +79,11 @@ class SpanHeader : public Header {
     this->remote_flist = remote_flist;
     this->in_use = 0;
   }
-
-  // The utilization of the span in percent.
-  inline size_t Utilization() {
-    return 100 - ((this->flist.Size() * 100) / this->max_num_blocks);
-  }
 } cache_aligned;
 
 class LargeObjectHeader : public Header {
  public:
-  static always_inline LargeObjectHeader* GetFromObject(void* p) {
+  static inline LargeObjectHeader* GetFromObject(void* p) {
     uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
     uintptr_t page_ptr = ptr & ~(kPageSize - 1);
     Header* bh = reinterpret_cast<Header*>(page_ptr);
@@ -94,12 +94,13 @@ class LargeObjectHeader : public Header {
     }
     return reinterpret_cast<LargeObjectHeader*>(bh);
   }
-  size_t size;
 
   inline void Reset(size_t size) {
     this->type = kLargeObject;
     this->size = size;
   }
+  
+  size_t size;
 } cache_aligned;
 
 #endif  // SCALLOC_BLOCK_HEADER_H_

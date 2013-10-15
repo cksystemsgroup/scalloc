@@ -49,12 +49,12 @@ inline bool SmallAllocator::Enabled() {
   return enabled_;
 }
 
-always_inline void SmallAllocator::SetActiveSlab(const size_t sc,
+inline void SmallAllocator::SetActiveSlab(const size_t sc,
                                                   const SpanHeader* hdr) {
   my_headers_[sc] = const_cast<SpanHeader*>(hdr);
 }
 
-always_inline void* SmallAllocator::Allocate(const size_t size) {
+inline void* SmallAllocator::Allocate(const size_t size) {
   const size_t sc = SizeMap::SizeToClass(size);
   SpanHeader* hdr = my_headers_[sc];
   void* result;
@@ -73,7 +73,7 @@ always_inline void* SmallAllocator::Allocate(const size_t size) {
   return AllocateNoSlab(sc, size);
 }
 
-always_inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
+inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
   SpanHeader* cur_sc_hdr = my_headers_[hdr->size_class];
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used slab block.
@@ -116,7 +116,7 @@ always_inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
         return;
       }
 
-      MemoryBarrier();
+      utils::MemoryBarrier();
       hdr->aowner.active = false;
       return;
     }

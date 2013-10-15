@@ -30,6 +30,6 @@
 #endif  // DEBUG
 
 #define UNREACHABLE()                                                          \
-  ErrorOut("unreachable code segment");
+  Fatal("unreachable code segment");
 
 #endif  // SCALLOC_ASSERT_H_

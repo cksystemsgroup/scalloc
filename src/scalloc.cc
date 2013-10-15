@@ -24,14 +24,17 @@
 #include "profiler.h"
 #endif  // PROFILER_ON
 
-#ifndef __THROW
-#define __THROW
-#endif
+
 
 namespace {
-  scalloc::PageHeapAllocator<scalloc::Stack1, 64> stack_allocator_;
-  scalloc::PageHeapAllocator<scalloc::DistributedQueue::State, 64>
-      dq_state_allocator_;
+cache_aligned scalloc::PageHeapAllocator<scalloc::Stack1, 64>
+    stack_allocator_;
+cache_aligned scalloc::PageHeapAllocator<scalloc::DistributedQueue::State, 64>
+    dq_state_allocator_;
+cache_aligned scalloc::PageHeapAllocator<scalloc::ThreadCache, 64>
+    threadcache_allocator_;
+
+int scallocguard_refcount = 0;
 }  // namespace
 
 namespace scalloc {
@@ -39,24 +42,27 @@ namespace scalloc {
 cache_aligned Arena InternalArena;
 cache_aligned Arena SmallArena;
   
-static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
     ReplaceSystemAlloc();
 
     InternalArena.Init(kInternalSpace);
     SmallArena.Init(kSmallSpace);
-
+    SizeMap::Init();
+    
+    // initialize internal allocators
     stack_allocator_.Init(kPageSize);
-    Stack1::Init(&stack_allocator_);
     dq_state_allocator_.Init(kPageSize);
+    threadcache_allocator_.Init(kPageSize);
+    
+    Stack1::Init(&stack_allocator_);
     DistributedQueue::Init(&dq_state_allocator_);
-    scalloc::SizeMap::InitModule();
 
     SpanPool::Init();
     BlockPool::Init();
     scalloc::SmallAllocator::InitModule();
-    scalloc::ThreadCache::InitModule();
+    ThreadCache::Init(&threadcache_allocator_);
+    
     free(malloc(1));
 
 #ifdef PROFILER_ON
@@ -75,7 +81,7 @@ ScallocGuard StartupExitHook;
 
 void* malloc(const size_t size) {
   void* p;
-  if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
+  if (LIKELY(size <= kMaxSmallSize && SmallAllocator::Enabled())) {
     p = ThreadCache::GetCache().Allocate(size);
   } else {
     p = LargeAllocator::Alloc(size);
@@ -170,6 +176,10 @@ bool Ours(const void* p) {
 
 }  // namespace scalloc
 
+#ifndef __THROW
+#define __THROW
+#endif
+
 extern "C" {
 void* scalloc_malloc(size_t size) __THROW {
   return scalloc::malloc(size);
@@ -210,4 +220,5 @@ void scalloc_malloc_stats() __THROW {
 int scalloc_mallopt(int cmd, int value) __THROW {
   return scalloc::mallopt(cmd, value);
 }
+  
 }
