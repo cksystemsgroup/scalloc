@@ -44,7 +44,7 @@
       'ldflags': [ '<@(default_ldflags)' ],
       'xcode_settings': {
         'OTHER_CFLAGS': [ '<@(default_cflags)' ],
-        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ]
+        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
         'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
         'CLANG_CXX_LIBRARY': "libc++",
       },
