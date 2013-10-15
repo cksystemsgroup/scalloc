@@ -19,42 +19,43 @@
 #include "size_map.h"
 #include "stack.h"
 #include "thread_cache.h"
+#include "typed_allocator.h"
 
 #ifdef PROFILER_ON
 #include "profiler.h"
 #endif  // PROFILER_ON
 
 
-
 namespace {
-cache_aligned scalloc::PageHeapAllocator<scalloc::Stack1, 64>
+
+cache_aligned scalloc::TypedAllocator<scalloc::Stack1>
     stack_allocator_;
-cache_aligned scalloc::PageHeapAllocator<scalloc::DistributedQueue::State, 64>
+cache_aligned scalloc::TypedAllocator<scalloc::DistributedQueue::State>
     dq_state_allocator_;
-cache_aligned scalloc::PageHeapAllocator<scalloc::ThreadCache, 64>
+cache_aligned scalloc::TypedAllocator<scalloc::ThreadCache>
     threadcache_allocator_;
 
-int scallocguard_refcount = 0;
 }  // namespace
 
 namespace scalloc {
   
 cache_aligned Arena InternalArena;
 cache_aligned Arena SmallArena;
+
+int ScallocGuard::scallocguard_refcount = 0;
   
 ScallocGuard::ScallocGuard() {
-  if (scallocguard_refcount++ == 0) {
+  if (__sync_fetch_and_add(&scallocguard_refcount, 1) == 0) {
     ReplaceSystemAlloc();
 
     InternalArena.Init(kInternalSpace);
     SmallArena.Init(kSmallSpace);
-    SizeMap::Init();
     
     // initialize internal allocators
-    stack_allocator_.Init(kPageSize);
-    dq_state_allocator_.Init(kPageSize);
-    threadcache_allocator_.Init(kPageSize);
-    
+    stack_allocator_.Init(kPageSize, 64);
+    dq_state_allocator_.Init(kPageSize, 64);
+    threadcache_allocator_.Init(kPageSize, 64);
+
     Stack1::Init(&stack_allocator_);
     DistributedQueue::Init(&dq_state_allocator_);
 
@@ -62,7 +63,8 @@ ScallocGuard::ScallocGuard() {
     BlockPool::Init();
     scalloc::SmallAllocator::InitModule();
     ThreadCache::Init(&threadcache_allocator_);
-    
+    SizeMap::Init();
+
     free(malloc(1));
 
 #ifdef PROFILER_ON

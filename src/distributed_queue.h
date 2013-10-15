@@ -8,11 +8,10 @@
 #include <cstdlib>
 #include <pthread.h>
 
-#include "alloc.h"
 #include "common.h"
 #include "random.h"
-#include "page_heap_allocator.h"
 #include "stack.h"
+#include "typed_allocator.h"
 
 namespace scalloc {
 

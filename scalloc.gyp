@@ -70,7 +70,6 @@
         'src/allocators/small_allocator.h',
         'src/allocators/span_pool.cc',
         'src/allocators/span_pool.h',
-        'src/alloc.h',
         'src/assert.h',
         'src/atomic.h',
         'src/common.h',
@@ -83,7 +82,6 @@
         'src/override.h',
         'src/override_osx.h',
         'src/override_gcc_weak.h',
-        'src/page_heap_allocator.h',
         'src/platform.h',
         'src/profiler.cc',
         'src/profiler.h',
@@ -102,6 +100,7 @@
         'src/system-alloc.h',
         'src/thread_cache.cc',
         'src/thread_cache.h',
+        'src/typed_allocator.h',
         'src/utils.cc',
         'src/utils.h'
       ],

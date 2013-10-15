@@ -10,6 +10,7 @@
 #include "allocators/small_allocator.h"
 #include "block_header.h"
 #include "common.h"
+#include "typed_allocator.h"
 
 #ifdef PROFILER_ON
 #include "profiler.h"

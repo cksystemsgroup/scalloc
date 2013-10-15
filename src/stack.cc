@@ -9,21 +9,25 @@
 
 #include "assert.h"
 #include "atomic.h"
+#include "typed_allocator.h"
+#include "utils.h"
 
 namespace {
-  const TaggedValue<void*, uint8_t> kNullValue(NULL, 0);
 
-  scalloc::TypedAllocator<scalloc::Stack1>* stack_allocator = NULL;
+scalloc::TypedAllocator<scalloc::Stack1>* stack_allocator;
+
 }  // namespace
 
 namespace scalloc {
 
 void Stack1::Init(TypedAllocator<Stack1>* alloc) {
+  ScallocAssert(alloc != NULL);
   stack_allocator = alloc;
 }
 
 Stack1* Stack1::New() {
-  ScallocAssert(stack_allocator != NULL);
+  const TaggedValue<void*, uint8_t> kNullValue(NULL, 0);
+
   Stack1* s = stack_allocator->New();
   ScallocAssert(s != NULL);
   s->top_.store(kNullValue.raw);
@@ -31,6 +35,8 @@ Stack1* Stack1::New() {
 }
 
 Stack1::Stack1() {
+  const TaggedValue<void*, uint8_t> kNullValue(NULL, 0);
+
   top_.store(kNullValue.raw);
 }
 

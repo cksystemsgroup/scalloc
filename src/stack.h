@@ -9,8 +9,7 @@
 
 #include <atomic>
 
-#include "alloc.h"
-#include "stack-inl.h"
+#include "typed_allocator.h"
 
 namespace scalloc {
 

@@ -9,46 +9,42 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "alloc.h"
+#include "assert.h"
 #include "common.h"
 #include "log.h"
 #include "scalloc_arenas.h"
 #include "spinlock-inl.h"
-#include "stack.h"
+#include "stack-inl.h"
 #include "utils.h"
 
 namespace scalloc {
 
-// Since an alignment of 1 does not make any sense we can use it to indicate no
-// alignment.
-const int kNoAlignment = 1;
-
 // Almost lock-free free-list allocator that may be used internally for fixed
 // types and alignments.
-template<typename T, int ALIGNMENT = kNoAlignment>
-  class PageHeapAllocator : public TypedAllocator<T> {
+template<typename T>
+class TypedAllocator {
  public:
-  // No constructor, but an init function, because PageHeapAllocator must be
+  // No constructor, but an init function, because TypedAllocator must be
   // available from a global context (before main).
   //
   // alloc_increment_ needs to be a multiple of the system page size.
-  void Init(size_t alloc_increment) {
+  void Init(size_t alloc_increment, size_t alignment) {
     alloc_increment_ = alloc_increment;
 
     tsize_ = sizeof(T);
-    if (ALIGNMENT > kNoAlignment) {
-      if (tsize_ + ALIGNMENT <= tsize_) {
-        Fatal("PageHeapAllocator: overflow");
+    if (alignment > kNoAlignment) {
+      if (tsize_ + alignment <= tsize_) {
+        Fatal("TypedAllocator: overflow");
       }
-      if (kPageSize % ALIGNMENT != 0) {
-        Fatal("PageHeapAllocator: ALIGNMENT must be a divisor of system "
+      if (kPageSize % alignment != 0) {
+        Fatal("TypedAllocator: alignment must be a divisor of system "
               "page size");
       }
-      tsize_ = utils::PadSize(tsize_, ALIGNMENT);
+      tsize_ = utils::PadSize(tsize_, alignment);
     }
 
     if (tsize_ > alloc_increment_) {
-      Fatal("PageHeapAllocator: type T is too large for current "
+      Fatal("TypedAllocator: type T is too large for current "
             "allocation increment.");
     }
   }
@@ -66,7 +62,7 @@ template<typename T, int ALIGNMENT = kNoAlignment>
   }
 
   T* New() {
-    LockScope(&refill_lock_)
+    LockScope(&refill_lock_);
 
     void* result = free_list_.Pop();
     if (result == NULL) {
@@ -82,6 +78,8 @@ template<typename T, int ALIGNMENT = kNoAlignment>
   }
 
  private:
+  static const size_t kNoAlignment = 1;
+
   size_t alloc_increment_;
   size_t tsize_;
   SpinLock refill_lock_;

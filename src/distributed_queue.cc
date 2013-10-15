@@ -8,7 +8,7 @@
 
 namespace {
   scalloc::TypedAllocator<scalloc::DistributedQueue::State>* state_allocator;
-}
+}  // namespace
 
 namespace scalloc {
 
@@ -28,7 +28,7 @@ void DistributedQueue::Init(TypedAllocator<DistributedQueue::State>* alloc) {
 void DistributedQueue::Init(size_t p) {
   p_ = p;
   for (size_t i = 0; i < p_; i++) {
-    backends_[i] = scalloc::Stack1::New();
+    backends_[i] = Stack1::New();
   }
 }
 

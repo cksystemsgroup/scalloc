@@ -9,6 +9,8 @@ namespace scalloc {
 
 class ScallocGuard {
  public:
+  static int scallocguard_refcount;
+
   ScallocGuard();
   ~ScallocGuard();
 };
