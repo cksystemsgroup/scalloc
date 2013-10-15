@@ -7,7 +7,6 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "assert.h"
 #include "common.h"
 
 namespace scalloc {
@@ -19,9 +18,9 @@ size_t Cpus() {
     const int64_t ret = sysconf(_SC_NPROCESSORS_CONF);
     if (ret == -1) {
       if (errno == 0) {
-        Fatal("sysconf: _SC_NPROCESSORS_CONF not supported");
+        ErrorOut("sysconf: _SC_NPROCESSORS_CONF not supported");
       } else {
-        Fatal("sysconf(_SC_NPROCESSORS_CONF) failed");
+        ErrorOut("sysconf(_SC_NPROCESSORS_CONF) failed");
       }
     }
     cpus = static_cast<size_t>(ret);

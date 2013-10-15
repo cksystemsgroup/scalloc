@@ -15,9 +15,13 @@ void LogPrintf(const int severity, const char* format, ...) {
   int rest = kLogLen;
   va_list args;
   va_start(args, format);
-  if (severity == kFatal) {
+  switch (severity) {
+  case kFatal:
     strncat(buffer, fatal_prefix, kLogLen);
     rest -= strlen(fatal_prefix);
+    break;
+  default:
+    break;
   }
   const size_t netto_len = rest - strlen(suffix) - 1;
   int would = vsnprintf(&(buffer[kLogLen-rest]), netto_len, format, args);

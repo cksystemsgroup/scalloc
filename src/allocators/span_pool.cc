@@ -5,21 +5,29 @@
 #include "allocators/span_pool.h"
 
 #include "scalloc_arenas.h"
-#include "utils.h"  // Cpus()
+#include "common.h"
+#include "log.h"
+#include "system-alloc.h"
+#include "utils.h"
 
 namespace scalloc {
 
-SpanPool SpanPool::span_pool_ cache_aligned;
+SpanPool SpanPool::page_heap_ cache_aligned;
+cache_aligned size_t global_refill;
+cache_aligned SpinLock refill_lock_(LINKER_INITIALIZED);
 
-void SpanPool::Init() {
+void SpanPool::InitModule() {
   unsigned num_cores = utils::Cpus();
   for (unsigned i = 0; i < kNumClasses; ++i) {
-    span_pool_.size_class_pool_[i].Init(num_cores);
+    page_heap_.size_class_pool_[i].Init(num_cores);
   }
 }
 
 void* SpanPool::RefillOne() {
-  return reinterpret_cast<void*>(SmallArena.Allocate(kVirtualSpanSize));
+  const size_t block_size = kVirtualSpanSize;
+  uintptr_t ptr = reinterpret_cast<uintptr_t>(SmallArena.Allocate(block_size));
+  void* result = reinterpret_cast<void*>(ptr);
+  return result;
 }
 
 }  // namespace scalloc

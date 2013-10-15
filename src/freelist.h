@@ -88,15 +88,16 @@ inline void Freelist::AddRange(const void* start,
   }
 }
 
-inline bool Freelist::Empty() {
+
+always_inline bool Freelist::Empty() {
   return list_ == NULL;
 }
 
-inline size_t Freelist::Size() {
+always_inline size_t Freelist::Size() {
   return len_;
 }
 
-inline void Freelist::Push(void* p) {
+always_inline void Freelist::Push(void* p) {
 #ifdef FREELIST_CHECK_BOUNDS
   if (!((reinterpret_cast<uintptr_t>(p) >= lower_) &&
         (reinterpret_cast<uintptr_t>(p) < upper_))) {
@@ -108,7 +109,7 @@ inline void Freelist::Push(void* p) {
   len_++;
 }
 
-inline void* Freelist::Pop() {
+always_inline void* Freelist::Pop() {
   void* result = list_;
   if (result != NULL) {
 #ifdef FREELIST_CHECK_BOUNDS

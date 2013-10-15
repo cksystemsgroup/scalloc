@@ -7,8 +7,9 @@
 namespace {
 
 cache_aligned SpinLock g_threadcache_lock(LINKER_INITIALIZED);
+cache_aligned scalloc::PageHeapAllocator<scalloc::ThreadCache, 64>
+    g_threadcache_alloc;
 cache_aligned uint64_t g_thread_id;
-scalloc::TypedAllocator<scalloc::ThreadCache>* threadcache_allocator;
 
 }  // namespace
 
@@ -21,11 +22,12 @@ pthread_key_t ThreadCache::cache_key_;
 __thread TLS_MODE ThreadCache* ThreadCache::tl_cache_;
 #endif  // HAVE_TLS
 
-void ThreadCache::Init(TypedAllocator<ThreadCache>* alloc) {
-  LockScope(&g_threadcache_lock)
+void ThreadCache::InitModule() {
+  SpinLockHolder holder(&g_threadcache_lock);
+  CompilerBarrier();
 
   if (!module_init_) {
-    threadcache_allocator = alloc;
+    g_threadcache_alloc.Init(kPageSize);
     // http://pubs.opengroup.org/onlinepubs/009696799/functions/pthread_key_create.html
     //
     // At thread exit, if a key value has a non-NULL destructor pointer, and the
@@ -40,7 +42,7 @@ void ThreadCache::Init(TypedAllocator<ThreadCache>* alloc) {
 }
 
 ThreadCache* ThreadCache::New(pthread_t owner) {
-  ThreadCache* cache = threadcache_allocator->New();
+  ThreadCache* cache = g_threadcache_alloc.New();
   cache->allocator_.Init(__sync_fetch_and_add(&g_thread_id, 1));
   cache->owner_ = owner;
   cache->next_ = thread_caches_;
@@ -53,7 +55,8 @@ ThreadCache* ThreadCache::NewIfNecessary() {
   const pthread_t me = pthread_self();
   ThreadCache* cache = NULL;
   {
-    LockScope(&g_threadcache_lock)
+    SpinLockHolder holder(&g_threadcache_lock);
+    CompilerBarrier();
 
     // pthread_setspecific may call into malloc.
     for (ThreadCache* c = thread_caches_; c != NULL; c = c->next_) {
@@ -92,7 +95,7 @@ void ThreadCache::DestroyThreadCache(void* p) {
   cache->allocator_.Destroy();
 
   // Finally, delete the cache.
-  threadcache_allocator->Delete(cache);
+  g_threadcache_alloc.Delete(cache);
 }
 
 }  // namespace scalloc

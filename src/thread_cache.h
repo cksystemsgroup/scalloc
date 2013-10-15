@@ -10,7 +10,6 @@
 #include "allocators/small_allocator.h"
 #include "block_header.h"
 #include "common.h"
-#include "typed_allocator.h"
 
 #ifdef PROFILER_ON
 #include "profiler.h"
@@ -24,7 +23,7 @@ namespace scalloc {
 // have __thread, or implement it with malloc().
 class ThreadCache {
  public:
-  static void Init(TypedAllocator<ThreadCache>* alloc);
+  static void InitModule();
 
   static ThreadCache& GetCache();
 
@@ -69,20 +68,19 @@ inline ThreadCache& ThreadCache::GetCache() {
   if (LIKELY(cache != NULL)) {
     return *cache;
   }
-  ScallocAssert(module_init_);
-//  if (!module_init_) {
-//    InitModule();
-//  }
+  if (!module_init_) {
+    InitModule();
+  }
   cache = NewIfNecessary();
-  ScallocAssert(cache != NULL);
+  ScallocAssert(cache != NULL, "cache == NULL");
   return *cache;
 }
 
-inline void* ThreadCache::Allocate(const size_t size) {
+always_inline void* ThreadCache::Allocate(const size_t size) {
   return allocator_.Allocate(size);
 }
 
-inline void ThreadCache::Free(void* p, Header* hdr) {
+always_inline void ThreadCache::Free(void* p, Header* hdr) {
   allocator_.Free(p, reinterpret_cast<SpanHeader*>(hdr));
 }
 

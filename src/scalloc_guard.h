@@ -5,16 +5,10 @@
 #ifndef SCALLOC_SCALLOC_GUARD_H_
 #define SCALLOC_SCALLOC_GUARD_H_
 
-namespace scalloc {
-
 class ScallocGuard {
  public:
-  static int scallocguard_refcount;
-
   ScallocGuard();
   ~ScallocGuard();
 };
-
-}  // namespace scalloc
 
 #endif  // SCALLOC_SCALLOC_GUARD_H_

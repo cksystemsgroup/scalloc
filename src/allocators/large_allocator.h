@@ -10,7 +10,6 @@
 #include "block_header.h"
 #include "common.h"
 #include "system-alloc.h"
-#include "utils.h"
 
 #ifdef PROFILER_ON
 #include "profiler.h"
@@ -26,12 +25,13 @@ class LargeAllocator {
 };
 
 inline void* LargeAllocator::Alloc(size_t size) {
-  size = utils::PadSize(size + sizeof(LargeObjectHeader), kPageSize);
+  size = PadSize(size + sizeof(LargeObjectHeader),
+                 kPageSize);
   size_t actual_size;
   uintptr_t p = reinterpret_cast<uintptr_t>(
       scalloc::SystemAlloc_Mmap(size, &actual_size));
   if (UNLIKELY(p % kPageSize != 0)) {
-    Fatal("large malloc alignment failed");
+    ErrorOut("large malloc alignment failed");
   }
   LargeObjectHeader* lbh = reinterpret_cast<LargeObjectHeader*>(p);
   lbh->Reset(actual_size);

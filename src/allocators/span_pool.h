@@ -20,7 +20,7 @@ namespace scalloc {
 
 class SpanPool {
  public:
-  static void Init();
+  static void InitModule();
   static SpanPool& Instance();
 
   void Refill(const size_t refill);
@@ -28,7 +28,7 @@ class SpanPool {
   void Put(void* p, size_t sc, uint32_t tid);
 
  private:
-  static SpanPool span_pool_ cache_aligned;
+  static SpanPool page_heap_ cache_aligned;
   static const size_t kSpanPoolBackends = kNumClasses;
 
   DistributedQueue size_class_pool_[kNumClasses] cache_aligned;
@@ -36,11 +36,11 @@ class SpanPool {
   void* RefillOne();
 };
 
-inline SpanPool& SpanPool::Instance() {
-  return span_pool_;
+always_inline SpanPool& SpanPool::Instance() {
+  return page_heap_;
 }
 
-inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
+always_inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool]: put: %p", p);
 
 #ifdef EAGER_MADVISE_ON
@@ -61,7 +61,7 @@ inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
 #endif  // PROFILER_ON
 }
 
-inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
+always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   LOG(kTrace, "[SpanPool]: get request");
 #ifdef PROFILER_ON
   Profiler::GetProfiler().IncreaseRealSpanFragmentation(

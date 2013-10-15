@@ -17,53 +17,37 @@
 #include "scalloc_arenas.h"
 #include "scalloc_guard.h"
 #include "size_map.h"
-#include "stack.h"
 #include "thread_cache.h"
-#include "typed_allocator.h"
 
 #ifdef PROFILER_ON
 #include "profiler.h"
 #endif  // PROFILER_ON
 
-
-namespace {
-
-cache_aligned scalloc::TypedAllocator<scalloc::Stack1>
-    stack_allocator_;
-cache_aligned scalloc::TypedAllocator<scalloc::DistributedQueue::State>
-    dq_state_allocator_;
-cache_aligned scalloc::TypedAllocator<scalloc::ThreadCache>
-    threadcache_allocator_;
-
-}  // namespace
+#ifndef __THROW
+#define __THROW
+#endif
 
 namespace scalloc {
-  
+
 cache_aligned Arena InternalArena;
+
 cache_aligned Arena SmallArena;
 
-int ScallocGuard::scallocguard_refcount = 0;
-  
+}  // namespace scalloc
+
+static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
-  if (__sync_fetch_and_add(&scallocguard_refcount, 1) == 0) {
+  if (scallocguard_refcount++ == 0) {
     ReplaceSystemAlloc();
 
-    InternalArena.Init(kInternalSpace);
-    SmallArena.Init(kSmallSpace);
-    
-    // initialize internal allocators
-    stack_allocator_.Init(kPageSize, 64);
-    dq_state_allocator_.Init(kPageSize, 64);
-    threadcache_allocator_.Init(kPageSize, 64);
-
-    Stack1::Init(&stack_allocator_);
-    DistributedQueue::Init(&dq_state_allocator_);
-
-    SpanPool::Init();
-    BlockPool::Init();
+    scalloc::SizeMap::InitModule();
+    scalloc::InternalArena.Init(kInternalSpace);
+    scalloc::SmallArena.Init(kSmallSpace);
+    DistributedQueue::InitModule();
+    scalloc::SpanPool::InitModule();
+    scalloc::BlockPool::InitModule();
     scalloc::SmallAllocator::InitModule();
-    ThreadCache::Init(&threadcache_allocator_);
-    SizeMap::Init();
+    scalloc::ThreadCache::InitModule();
 
     free(malloc(1));
 
@@ -78,12 +62,14 @@ ScallocGuard::~ScallocGuard() {
   if (--scallocguard_refcount == 0) {
   }
 }
-  
-ScallocGuard StartupExitHook;
+
+static ScallocGuard StartupExitHook;
+
+namespace scalloc {
 
 void* malloc(const size_t size) {
   void* p;
-  if (LIKELY(size <= kMaxSmallSize && SmallAllocator::Enabled())) {
+  if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
     p = ThreadCache::GetCache().Allocate(size);
   } else {
     p = LargeAllocator::Alloc(size);
@@ -149,27 +135,27 @@ void* realloc(void* ptr, size_t size) {
 }
 
 void* memalign(size_t __alignment, size_t __size) {
-  Fatal("memalign() not yet implemented.");
+  ErrorOut("memalign() not yet implemented.");
 }
 
 int posix_memalign(void** ptr, size_t align, size_t size) {
-  Fatal("posix_memalign() not yet implemented.");
+  ErrorOut("posix_memalign() not yet implemented.");
 }
 
 void* valloc(size_t __size) {
-  Fatal("valloc() not yet implemented.");
+  ErrorOut("valloc() not yet implemented.");
 }
 
 void* pvalloc(size_t __size) {
-  Fatal("pvalloc() not yet implemented.");
+  ErrorOut("pvalloc() not yet implemented.");
 }
 
 void malloc_stats(void) {
-  Fatal("malloc_stats() not yet implemented.");
+  ErrorOut("malloc_stats() not yet implemented.");
 }
 
 int mallopt(int cmd, int value) {
-  Fatal("mallopt() not yet implemented.");
+  ErrorOut("mallopt() not yet implemented.");
 }
 
 bool Ours(const void* p) {
@@ -177,10 +163,6 @@ bool Ours(const void* p) {
 }
 
 }  // namespace scalloc
-
-#ifndef __THROW
-#define __THROW
-#endif
 
 extern "C" {
 void* scalloc_malloc(size_t size) __THROW {
@@ -222,5 +204,4 @@ void scalloc_malloc_stats() __THROW {
 int scalloc_mallopt(int cmd, int value) __THROW {
   return scalloc::mallopt(cmd, value);
 }
-  
 }

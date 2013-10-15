@@ -1,11 +1,9 @@
-// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
 #ifndef SCALLOC_BLOCK_HEADER_H_
 #define SCALLOC_BLOCK_HEADER_H_
-
-#include <stdint.h>
 
 #include "common.h"
 #include "freelist.h"
@@ -13,10 +11,9 @@
 #include "size_map.h"
 
 enum BlockType {
-  kUndefined,
+  UNDEF,
   kSlab,
-  kLargeObject,
-  kMaxObjectTypes
+  kLargeObject
 };
 
 struct ActiveOwner {
@@ -42,35 +39,37 @@ struct ActiveOwner {
 
 class Header {
  public:
+  static Header* GetFromObject(void* p);
+
   BlockType type;
 };
 
+
+
 class SpanHeader : public Header {
  public:
-  static inline SpanHeader* GetFromObject(void* p) {
+  static always_inline SpanHeader* GetFromObject(void* p) {
     return reinterpret_cast<SpanHeader*>
         (reinterpret_cast<uintptr_t>(p) & kVirtualSpanMask);
   }
-  
-  // The utilization of the span in percent.
-  inline size_t Utilization() {
-    return 100 - ((this->flist.Size() * 100) / this->max_num_blocks);
-  }
 
   // read-only properties
+
   struct {
-    size_t size_class;
-    size_t max_num_blocks;
-    size_t remote_flist;
+  size_t size_class;
+  size_t max_num_blocks;
+  size_t remote_flist;
   } cache_aligned;
 
   // mostly read properties
+
   cache_aligned ActiveOwner aowner;
 
   // thread-local read/write properties
+
   struct {
-    uint64_t in_use;
-    Freelist flist;
+  uint64_t in_use;
+  Freelist flist;
   } cache_aligned;
 
   inline void Reset(const size_t size_class, const size_t remote_flist) {
@@ -79,28 +78,38 @@ class SpanHeader : public Header {
     this->remote_flist = remote_flist;
     this->in_use = 0;
   }
+
+  // The utilization of the span in percent.
+  inline size_t Utilization() {
+    return 100 - ((this->flist.Size() * 100) / this->max_num_blocks);
+  }
 } cache_aligned;
 
 class LargeObjectHeader : public Header {
  public:
-  static inline LargeObjectHeader* GetFromObject(void* p) {
+  static always_inline LargeObjectHeader* GetFromObject(void* p) {
     uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
     uintptr_t page_ptr = ptr & ~(kPageSize - 1);
     Header* bh = reinterpret_cast<Header*>(page_ptr);
     if (UNLIKELY(bh->type != kLargeObject)) {
-      Fatal("Calling LargeObjectHeader::GetFromObject on kSlab type. "
-            "type: %d, ptr: %p, page_ptr: %p",
-            bh->type, p, reinterpret_cast<void*>(page_ptr));
+      ErrorOut("Calling LargeObjectHeader::GetFromObject on kSlab type. "
+               "type: %d, ptr: %p, page_ptr: %p",
+               bh->type, p, reinterpret_cast<void*>(page_ptr));
     }
     return reinterpret_cast<LargeObjectHeader*>(bh);
   }
+  size_t size;
 
   inline void Reset(size_t size) {
     this->type = kLargeObject;
     this->size = size;
   }
-  
-  size_t size;
 } cache_aligned;
+
+always_inline Header* Header::GetFromObject(void* p) {
+  ErrorOut("Calling Header::GetObject.");
+  // unreachable...
+  return NULL;
+}
 
 #endif  // SCALLOC_BLOCK_HEADER_H_

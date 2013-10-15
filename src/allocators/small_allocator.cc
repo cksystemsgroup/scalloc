@@ -70,7 +70,7 @@ void SmallAllocator::Refill(const size_t sc) {
   uintptr_t block = reinterpret_cast<uintptr_t>
       (SpanPool::Instance().Get(sc, id_, &reusable));
   if (UNLIKELY(block == 0)) {
-    Fatal("SpanPool out of memory");
+    ErrorOut("SpanPool out of memory");
   }
   SpanHeader* hdr;
   hdr = reinterpret_cast<SpanHeader*>(block);

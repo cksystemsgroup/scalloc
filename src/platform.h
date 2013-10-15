@@ -7,25 +7,15 @@
 
 #include <stddef.h>  // size_t
 
-#define UNLIKELY(x)   __builtin_expect((x), 0)
-#define LIKELY(x)     __builtin_expect((x), 1)
-
-#define cache_aligned __attribute__((aligned(64)))
-
-#define HAVE_TLS 1
-#define TLS_MODE __attribute__((tls_model ("initial-exec")))
+const size_t kPageShift = 12;
+const size_t kPageSize = 1UL << kPageShift;
 
 #if defined(__APPLE__)
-
-#undef HAVE_TLS
 
 #ifndef MAP_ANONYMOUS
 #define MAP_ANONYMOUS MAP_ANON
 #endif  // MAP_ANONYMOUS
 
 #endif  // __APPLE__
-
-const size_t kPageShift = 12;
-const size_t kPageSize = 1UL << kPageShift;
 
 #endif  // SCALLOC_PLATFORM_H_

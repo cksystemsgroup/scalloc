@@ -40,7 +40,7 @@ class GlobalProfiler {
     const char *filename = "global-memtrace";
     fp_ = fopen(filename, "w");
     if (fp_ == NULL) {
-      Fatal("unable to open file global-memtrace");
+      ErrorOut("unable to open file global-memtrace");
     }
   }
 
@@ -56,7 +56,7 @@ class GlobalProfiler {
                          uint64_t slow_free_count,
                          uint64_t local_span_reuse_count,
                          uint64_t remote_span_reuse_count) {
-    LockScope(&lock_);
+    SpinLockHolder holder(&lock_);
 
     for (unsigned i = 0; i < kNumClasses+1; ++i) {
       sizeclass_histogram_[i] += sizeclass_histogram[i];
@@ -83,15 +83,15 @@ class GlobalProfiler {
   }
 
   void LogSpanPoolPut(size_t sc) {
-    LockScope(&lock_);
+    SpinLockHolder holder(&lock_);
     spanpool_put_histogram_[sc]++;
   }
   void LogSpanPoolGet(size_t sc) {
-    LockScope(&lock_);
+    SpinLockHolder holder(&lock_);
     spanpool_get_histogram_[sc]++;
   }
   void LogSpanShrink(size_t sc) {
-    LockScope(&lock_);
+    SpinLockHolder holder(&lock_);
     spanpool_shrink_histogram_[sc]++;
   }
 
@@ -323,13 +323,10 @@ class Profiler {
     self_allocating_ = true;
     tid_ = pthread_self();
     char filename[128];
-    snprintf(filename,
-             sizeof(filename),
-             "memtrace-%" PRIu64 "",
-             (uint64_t)tid_);
+    snprintf(filename, sizeof(filename), "memtrace-%lu", (long unsigned int)tid_);
     fp_ = fopen(filename, "w");
     if (fp_ == NULL) {
-      Fatal("unable to open file %s", &filename);
+      ErrorOut("unable to open file %s", &filename);
     }
     self_allocating_ = false;
   }

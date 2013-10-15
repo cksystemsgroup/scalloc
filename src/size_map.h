@@ -5,64 +5,63 @@
 #ifndef SCALLOC_SIZE_MAP_H_
 #define SCALLOC_SIZE_MAP_H_
 
-#include "assert.h"
 #include "common.h"
-#include "utils.h"
 
 namespace scalloc {
 
 class SizeMap {
  public:
-  static void Init();
+  static void InitModule();
+
   static SizeMap& Instance();
   static size_t SizeToClass(const size_t size);
   static size_t SizeToBlockSize(const size_t size);
 
+  void Init();
   size_t ClassToSize(const size_t sclass);
   size_t ClassToSpanSize(const size_t sclass);
   size_t MaxObjectsPerClass(const size_t sclass);
 
  private:
-  static SizeMap size_map_;
-
   size_t class_to_size_[kNumClasses];
   size_t class_to_objs_[kNumClasses];
   size_t class_to_span_size_[kNumClasses];
 };
 
-inline SizeMap& SizeMap::Instance() {
-  return size_map_;
+always_inline SizeMap& SizeMap::Instance() {
+  static SizeMap singleton;
+  return singleton;
 }
 
-inline size_t SizeMap::SizeToClass(const size_t size) {
-  if (size <= kMaxFineSize) {
+always_inline size_t SizeMap::SizeToClass(const size_t size) {
+  if (size <= kMaxSmallSize) {
     return (size + kMinAlignment - 1) / kMinAlignment;
-  } else if (size <= kMaxSmallSize) {
-    return utils::Log2(size - 1) - kMaxSmallShift + kFineClasses;
   }
-  UNREACHABLE();
+  if (size <= kMaxMediumSize) {
+    return Log2(size - 1) - kMaxSmallShift + kFineClasses;
+  }
   return 0;
 }
 
-inline size_t SizeMap::SizeToBlockSize(const size_t size) {
-  if (size <= kMaxFineSize) {
+always_inline size_t SizeMap::SizeToBlockSize(const size_t size) {
+  if (size <= kMaxSmallSize) {
     return (size + kMinAlignment - 1) & ~(kMinAlignment-1);
-  } else if (size <= kMaxSmallSize) {
-    return 1UL << (utils::Log2(size - 1) + 1);
+  } else if (size <= kMaxMediumSize) {
+    return 1UL << (Log2(size - 1) + 1);
   }
-  UNREACHABLE();
+  // TODO(maigner): never called on large objects. handle anyways
   return 0;
 }
 
-inline size_t SizeMap::ClassToSize(const size_t sclass) {
+always_inline size_t SizeMap::ClassToSize(const size_t sclass) {
   return class_to_size_[sclass];
 }
 
-inline size_t SizeMap::MaxObjectsPerClass(const size_t sclass) {
+always_inline size_t SizeMap::MaxObjectsPerClass(const size_t sclass) {
   return class_to_objs_[sclass];
 }
 
-inline size_t SizeMap::ClassToSpanSize(const size_t sclass) {
+always_inline size_t SizeMap::ClassToSpanSize(const size_t sclass) {
   return class_to_span_size_[sclass];
 }
 

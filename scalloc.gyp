@@ -23,9 +23,6 @@
         'xcode_settings': {
           'OTHER_CFLAGS': ['-g', '-O0']
         },
-        'defines': [
-          'DEBUG',
-        ]
       },
       'Release': {
         'cflags': ['-O3'],
@@ -44,9 +41,7 @@
       'ldflags': [ '<@(default_ldflags)' ],
       'xcode_settings': {
         'OTHER_CFLAGS': [ '<@(default_cflags)' ],
-        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
-        'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
-        'CLANG_CXX_LIBRARY': "libc++",
+        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ]
       },
       'defines': [
         'LOG_LEVEL=<@(log_level)',
@@ -70,7 +65,6 @@
         'src/allocators/small_allocator.h',
         'src/allocators/span_pool.cc',
         'src/allocators/span_pool.h',
-        'src/assert.h',
         'src/atomic.h',
         'src/common.h',
         'src/block_header.h',
@@ -82,6 +76,7 @@
         'src/override.h',
         'src/override_osx.h',
         'src/override_gcc_weak.h',
+        'src/page_heap_allocator.h',
         'src/platform.h',
         'src/profiler.cc',
         'src/profiler.h',
@@ -94,13 +89,10 @@
         'src/size_map.h',
         'src/spinlock-inl.h',
         'src/stack-inl.h',
-        'src/stack.cc',
-        'src/stack.h',
         'src/system-alloc.cc',
         'src/system-alloc.h',
         'src/thread_cache.cc',
         'src/thread_cache.h',
-        'src/typed_allocator.h',
         'src/utils.cc',
         'src/utils.h'
       ],
