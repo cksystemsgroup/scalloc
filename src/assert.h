@@ -34,23 +34,23 @@
 
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName)                                     \
- private:                                                                      \
+private:                                                                       \
   TypeName(const TypeName&);                                                   \
   void operator=(const TypeName&)
 
 
 #define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName)                               \
- private:                                                                      \
+private:                                                                       \
   TypeName();                                                                  \
   DISALLOW_COPY_AND_ASSIGN(TypeName)
 
 
 #define DISALLOW_ALLOCATION()                                                  \
- public:                                                                       \
+public:                                                                        \
   void operator delete(void* pointer) {                                        \
     UNREACHABLE();                                                             \
   }                                                                            \
- private:                                                                      \
+private:                                                                       \
   void* operator new(size_t size);
 
 

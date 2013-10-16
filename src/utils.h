@@ -34,7 +34,7 @@ inline int Log2(size_t v) {
 
 size_t Cpus();
 
-}
-}
+}  // namespace utils
+}  // namespace scalloc
 
 #endif  // SCALLOC_UTILS_H_

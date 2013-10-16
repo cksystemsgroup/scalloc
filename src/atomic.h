@@ -33,8 +33,8 @@ class TaggedValue {
   static const uint64_t kValueMask = (1ULL << (kWidth - kTagWidth)) - 1;
   static const uint64_t kTagMask = ~kValueMask;
 
-  DISALLOW_COPY_AND_ASSIGN(TaggedValue);
   DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(TaggedValue);
 };
 
 template<typename ValueType, typename TagType, int TagWidth>

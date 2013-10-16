@@ -60,7 +60,7 @@ inline void Stack::Push(void* p) {
     // write the old top's pointer into the current block
     *(reinterpret_cast<void**>(p)) = top_old.Value();
     top_new.Pack(p, top_old.Tag() + 1);
-  } while(!top_.compare_exchange_weak(top_old.raw, top_new.raw));
+  } while (!top_.compare_exchange_weak(top_old.raw, top_new.raw));
 }
 
 inline void* Stack::Pop() {
@@ -74,7 +74,7 @@ inline void* Stack::Pop() {
     }
     top_new.Pack(*(reinterpret_cast<void**>(top_old.Value())),
                  top_old.Tag() + 1);
-  } while(!top_.compare_exchange_weak(top_old.raw, top_new.raw));
+  } while (!top_.compare_exchange_weak(top_old.raw, top_new.raw));
   return top_old.Value();
 }
 
@@ -90,7 +90,7 @@ inline void* Stack::PopRecordState(uint64_t* state) {
     }
     top_new.Pack(*(reinterpret_cast<void**>(top_old.Value())),
                  top_old.Tag() + 1);
-  } while(!top_.compare_exchange_weak(top_old.raw, top_new.raw));
+  } while (!top_.compare_exchange_weak(top_old.raw, top_new.raw));
   return top_old.Value();
 }
 
