@@ -12,9 +12,10 @@
 #include "size_map.h"
 
 enum BlockType {
-  UNDEF,
+  kUndef,
   kSlab,
-  kLargeObject
+  kLargeObject,
+  kNumHeaders
 };
 
 struct ActiveOwner {
