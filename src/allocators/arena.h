@@ -26,7 +26,7 @@ class Arena {
   size_t size_;
 } cache_aligned;
 
-always_inline bool Arena::Contains(void* p) {
+inline bool Arena::Contains(void* p) {
   return (reinterpret_cast<uintptr_t>(p) ^ start_) < size_;
 }
 

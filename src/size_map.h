@@ -28,12 +28,12 @@ class SizeMap {
   size_t class_to_span_size_[kNumClasses];
 };
 
-always_inline SizeMap& SizeMap::Instance() {
+inline SizeMap& SizeMap::Instance() {
   static SizeMap singleton;
   return singleton;
 }
 
-always_inline size_t SizeMap::SizeToClass(const size_t size) {
+inline size_t SizeMap::SizeToClass(const size_t size) {
   if (size <= kMaxSmallSize) {
     return (size + kMinAlignment - 1) / kMinAlignment;
   }
@@ -43,7 +43,7 @@ always_inline size_t SizeMap::SizeToClass(const size_t size) {
   return 0;
 }
 
-always_inline size_t SizeMap::SizeToBlockSize(const size_t size) {
+inline size_t SizeMap::SizeToBlockSize(const size_t size) {
   if (size <= kMaxSmallSize) {
     return (size + kMinAlignment - 1) & ~(kMinAlignment-1);
   } else if (size <= kMaxMediumSize) {
@@ -53,15 +53,15 @@ always_inline size_t SizeMap::SizeToBlockSize(const size_t size) {
   return 0;
 }
 
-always_inline size_t SizeMap::ClassToSize(const size_t sclass) {
+inline size_t SizeMap::ClassToSize(const size_t sclass) {
   return class_to_size_[sclass];
 }
 
-always_inline size_t SizeMap::MaxObjectsPerClass(const size_t sclass) {
+inline size_t SizeMap::MaxObjectsPerClass(const size_t sclass) {
   return class_to_objs_[sclass];
 }
 
-always_inline size_t SizeMap::ClassToSpanSize(const size_t sclass) {
+inline size_t SizeMap::ClassToSpanSize(const size_t sclass) {
   return class_to_span_size_[sclass];
 }
 

@@ -34,14 +34,14 @@ class BlockPool {
   DistributedQueue dqs_[kNumClasses] cache_aligned;
 } cache_aligned;
 
-always_inline BlockPool& BlockPool::Instance() {
+inline BlockPool& BlockPool::Instance() {
   static BlockPool singleton;
   return singleton;
 }
 
-always_inline void BlockPool::Free(void* p,
-                                       const size_t sc,
-                                       const size_t dq_id) {
+inline void BlockPool::Free(void* p,
+                            const size_t sc,
+                            const size_t dq_id) {
   dqs_[sc].EnqueueAt(p, dq_id % utils::Cpus());
 }
 

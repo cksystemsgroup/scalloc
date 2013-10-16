@@ -76,11 +76,11 @@ inline ThreadCache& ThreadCache::GetCache() {
   return *cache;
 }
 
-always_inline void* ThreadCache::Allocate(const size_t size) {
+inline void* ThreadCache::Allocate(const size_t size) {
   return allocator_.Allocate(size);
 }
 
-always_inline void ThreadCache::Free(void* p, Header* hdr) {
+inline void ThreadCache::Free(void* p, Header* hdr) {
   allocator_.Free(p, reinterpret_cast<SpanHeader*>(hdr));
 }
 

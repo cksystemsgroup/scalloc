@@ -49,7 +49,7 @@ class Header {
 
 class SpanHeader : public Header {
  public:
-  static always_inline SpanHeader* GetFromObject(void* p) {
+  static inline SpanHeader* GetFromObject(void* p) {
     return reinterpret_cast<SpanHeader*>
         (reinterpret_cast<uintptr_t>(p) & kVirtualSpanMask);
   }
@@ -88,7 +88,7 @@ class SpanHeader : public Header {
 
 class LargeObjectHeader : public Header {
  public:
-  static always_inline LargeObjectHeader* GetFromObject(void* p) {
+  static inline LargeObjectHeader* GetFromObject(void* p) {
     uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
     uintptr_t page_ptr = ptr & ~(kPageSize - 1);
     Header* bh = reinterpret_cast<Header*>(page_ptr);
@@ -107,7 +107,7 @@ class LargeObjectHeader : public Header {
   }
 } cache_aligned;
 
-always_inline Header* Header::GetFromObject(void* p) {
+inline Header* Header::GetFromObject(void* p) {
   Fatal("Calling Header::GetObject.");
   // unreachable...
   return NULL;

@@ -11,22 +11,6 @@
 #include "log.h"
 #include "platform.h"
 
-#define UNLIKELY(x)   __builtin_expect((x), 0)
-#define LIKELY(x)     __builtin_expect((x), 1)
-
-#define cache_aligned __attribute__((aligned(64)))
-
-#define always_inline inline __attribute__((always_inline))
-#define no_inline __attribute__((noinline))
-
-#define TLS_MODE __attribute__((tls_model ("initial-exec")))
-
-#define HAVE_TLS 1
-
-#if defined(__APPLE__)
-#undef HAVE_TLS
-#endif  // __APPLE__
-
 const size_t kMinAlignment = 16;
 const size_t kMaxSmallShift = 8;  // up to 2MiB
 const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
@@ -63,7 +47,7 @@ static const char log_table[256] = {
 };
 
 // base-2 logarithm of 32-bit integers
-always_inline int Log2(size_t v) {
+inline int Log2(size_t v) {
   unsigned int t, tt, r;  // temp vars
   if ((tt = (v >> 16))) {
     r =  (t = (tt >> 8)) ? 24 + log_table[t] : 16 + log_table[tt];
@@ -86,7 +70,7 @@ inline void MemoryBarrier() {
   __asm__ __volatile__("mfence" : : : "memory");
 }
 
-always_inline size_t PadSize(size_t size, size_t multiple) {
+inline size_t PadSize(size_t size, size_t multiple) {
   return (size + multiple - 1) / multiple * multiple;
 }
 

@@ -66,25 +66,25 @@ class DistributedQueue {
 };
 
 
-always_inline void DistributedQueue::Enqueue(void* p) {
+inline void DistributedQueue::Enqueue(void* p) {
   size_t start = static_cast<size_t>(hwrand()) % p_;
   EnqueueAt(p, start);
 }
 
-always_inline void DistributedQueue::EnqueueAt(void* p, size_t start) {
+inline void DistributedQueue::EnqueueAt(void* p, size_t start) {
   backends_[start]->Put(p);
 }
 
-always_inline void* DistributedQueue::Dequeue() {
+inline void* DistributedQueue::Dequeue() {
   size_t start = static_cast<size_t>(hwrand()) % p_;
   return DequeueAt(start);
 }
 
-always_inline void* DistributedQueue::DequeueOnlyAt(size_t backend_id) {
+inline void* DistributedQueue::DequeueOnlyAt(size_t backend_id) {
   return backends_[backend_id]->Pop();
 }
 
-always_inline void* DistributedQueue::DequeueAt(size_t start) {
+inline void* DistributedQueue::DequeueAt(size_t start) {
   void* result;
   State* state = GetState();
   if (state == NULL) {

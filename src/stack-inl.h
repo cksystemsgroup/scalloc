@@ -36,19 +36,19 @@ class Stack {
   TaggedAtomic<void*, uint64_t> top_;
 };
 
-always_inline void Stack::Put(void* p) {
+inline void Stack::Put(void* p) {
   Push(p);
 }
 
-always_inline void* Stack::Get() {
+inline void* Stack::Get() {
   return Pop();
 }
 
-always_inline void Stack::Init() {
+inline void Stack::Init() {
   top_.Pack(NULL, 0);
 }
 
-always_inline void Stack::Push(void* p) {
+inline void Stack::Push(void* p) {
   TaggedAtomic<void*, uint64_t> top_old;
   TaggedAtomic<void*, uint64_t> top_new;
   do {
@@ -59,7 +59,7 @@ always_inline void Stack::Push(void* p) {
   } while (!top_.AtomicExchange(top_old, top_new));
 }
 
-always_inline void* Stack::Pop() {
+inline void* Stack::Pop() {
   TaggedAtomic<void*, uint64_t> top_old;
   TaggedAtomic<void*, uint64_t> top_new;
   do {
@@ -74,7 +74,7 @@ always_inline void* Stack::Pop() {
   return top_old.Atomic();
 }
 
-always_inline void* Stack::PopRecordState(uint64_t* state) {
+inline void* Stack::PopRecordState(uint64_t* state) {
   TaggedAtomic<void*, uint64_t> top_old;
   TaggedAtomic<void*, uint64_t> top_new;
   do {
@@ -90,7 +90,7 @@ always_inline void* Stack::PopRecordState(uint64_t* state) {
   return top_old.Atomic();
 }
 
-always_inline uint64_t Stack::GetState() {
+inline uint64_t Stack::GetState() {
   return top_.Tag();
 }
 

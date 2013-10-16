@@ -36,11 +36,11 @@ class SpanPool {
   void* RefillOne();
 };
 
-always_inline SpanPool& SpanPool::Instance() {
+inline SpanPool& SpanPool::Instance() {
   return page_heap_;
 }
 
-always_inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
+inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool]: put: %p", p);
 
 #ifdef EAGER_MADVISE_ON
@@ -61,7 +61,7 @@ always_inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
 #endif  // PROFILER_ON
 }
 
-always_inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
+inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   LOG(kTrace, "[SpanPool]: get request");
 #ifdef PROFILER_ON
   Profiler::GetProfiler().IncreaseRealSpanFragmentation(
