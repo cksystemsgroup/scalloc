@@ -68,8 +68,8 @@ class PageHeapAllocator {
   T* New() {
     void* result = free_list_.Pop();
     if (result == NULL) {
-      SpinLockHolder lock_holder(&refill_lock_);
-      CompilerBarrier();
+      LockScope(refill_lock_);
+
       result = free_list_.Pop();
       if (result == NULL) {
         result = Refill();

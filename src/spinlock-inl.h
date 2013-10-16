@@ -36,6 +36,10 @@ class SpinLock {
   volatile uint64_t lockword_;
 };
 
+#define LockScope(lock)                                                        \
+  SpinLockHolder holder(&lock);                                                \
+  __asm__ __volatile__("" : : : "memory");
+
 class SpinLockHolder {
  public:
   inline explicit SpinLockHolder(SpinLock *lock) : lock_(lock) {

@@ -23,8 +23,7 @@ __thread TLS_MODE ThreadCache* ThreadCache::tl_cache_;
 #endif  // HAVE_TLS
 
 void ThreadCache::InitModule() {
-  SpinLockHolder holder(&g_threadcache_lock);
-  CompilerBarrier();
+  LockScope(g_threadcache_lock);
 
   if (!module_init_) {
     g_threadcache_alloc.Init(kPageSize);
@@ -55,8 +54,7 @@ ThreadCache* ThreadCache::NewIfNecessary() {
   const pthread_t me = pthread_self();
   ThreadCache* cache = NULL;
   {
-    SpinLockHolder holder(&g_threadcache_lock);
-    CompilerBarrier();
+    LockScope(g_threadcache_lock);
 
     // pthread_setspecific may call into malloc.
     for (ThreadCache* c = thread_caches_; c != NULL; c = c->next_) {

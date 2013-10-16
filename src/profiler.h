@@ -57,7 +57,7 @@ class GlobalProfiler {
                          uint64_t slow_free_count,
                          uint64_t local_span_reuse_count,
                          uint64_t remote_span_reuse_count) {
-    SpinLockHolder holder(&lock_);
+    LockScope(lock_);
 
     for (unsigned i = 0; i < kNumClasses+1; ++i) {
       sizeclass_histogram_[i] += sizeclass_histogram[i];
@@ -84,15 +84,15 @@ class GlobalProfiler {
   }
 
   void LogSpanPoolPut(size_t sc) {
-    SpinLockHolder holder(&lock_);
+    LockScope(lock_);
     spanpool_put_histogram_[sc]++;
   }
   void LogSpanPoolGet(size_t sc) {
-    SpinLockHolder holder(&lock_);
+    LockScope(lock_);
     spanpool_get_histogram_[sc]++;
   }
   void LogSpanShrink(size_t sc) {
-    SpinLockHolder holder(&lock_);
+    LockScope(lock_);
     spanpool_shrink_histogram_[sc]++;
   }
 
