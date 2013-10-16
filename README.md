@@ -67,6 +67,13 @@ In order to make use of scalloc, just preload it using `LD_PRELOAD`.
 
     LD_PRELOAD=/path/to/libscalloc.so ./foo
 
+On Linux, you may also need to disable overcommit accounting
+
+    sudo sh -c "echo 1 > /proc/sys/vm/overcommit_memory"
+    
+See the [kernel docs](https://www.kernel.org/doc/Documentation/vm/overcommit-accounting)
+for more information.
+
 ## License
 
 Copyright (c) 2012-2013, the scalloc Project Authors.
