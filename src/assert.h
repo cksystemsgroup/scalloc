@@ -32,4 +32,26 @@
 #define UNREACHABLE()                                                          \
   Fatal("unreachable code segment");
 
+
+#define DISALLOW_COPY_AND_ASSIGN(TypeName)                                     \
+ private:                                                                      \
+  TypeName(const TypeName&);                                                   \
+  void operator=(const TypeName&)
+
+
+#define DISALLOW_IMPLICIT_CONSTRUCTORS(TypeName)                               \
+ private:                                                                      \
+  TypeName();                                                                  \
+  DISALLOW_COPY_AND_ASSIGN(TypeName)
+
+
+#define DISALLOW_ALLOCATION()                                                  \
+ public:                                                                       \
+  void operator delete(void* pointer) {                                        \
+    UNREACHABLE();                                                             \
+  }                                                                            \
+ private:                                                                      \
+  void* operator new(size_t size);
+
+
 #endif  // SCALLOC_ASSERT_H_

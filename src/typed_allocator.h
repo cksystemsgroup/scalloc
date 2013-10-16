@@ -53,8 +53,7 @@ class TypedAllocator {
   }
 
   void* Refill() {
-    void* result = reinterpret_cast<void*>(
-        InternalArena.Allocate(alloc_increment_));
+    void* result = InternalArena.Allocate(alloc_increment_);
     uintptr_t ptr = reinterpret_cast<uintptr_t>(result) + tsize_;
     for (size_t i = 1; i < (alloc_increment_ / tsize_); i++) {
       free_list_.Push(reinterpret_cast<void*>(ptr));

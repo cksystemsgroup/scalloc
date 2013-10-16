@@ -5,6 +5,7 @@
 #ifndef SCALLOC_STACK_INL_H_
 #define SCALLOC_STACK_INL_H_
 
+#include <atomic>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -14,12 +15,13 @@
 // Treiber stack
 //
 // Note: The implementation stores the next pointers in the memory provided, and
-// thus needs blocks of at least sizeof(TaggedAtomic) with an alignment of
+// thus needs blocks of at least sizeof(TaggedValue) with an alignment of
 // AtomicAlign (default 4).
 class Stack {
  public:
   static void InitModule() {}
 
+  Stack() {}
   void Init();
   void Push(void* p);
   void* Pop();
@@ -33,7 +35,9 @@ class Stack {
   uint64_t GetState();
 
  private:
-  TaggedAtomic<void*, uint64_t> top_;
+  std::atomic<TaggedValue<void*, uint64_t>::RawType> top_;
+
+  DISALLOW_COPY_AND_ASSIGN(Stack);
 };
 
 inline void Stack::Put(void* p) {
@@ -45,53 +49,53 @@ inline void* Stack::Get() {
 }
 
 inline void Stack::Init() {
-  top_.Pack(NULL, 0);
+  top_.store(0);
 }
 
 inline void Stack::Push(void* p) {
-  TaggedAtomic<void*, uint64_t> top_old;
-  TaggedAtomic<void*, uint64_t> top_new;
+  TaggedValue<void*, uint64_t> top_old;
+  TaggedValue<void*, uint64_t> top_new;
   do {
-    top_old.CopyFrom(top_);
+    top_old.raw = top_.load();
     // write the old top's pointer into the current block
-    *(reinterpret_cast<void**>(p)) = top_old.Atomic();
-    top_new.WeakPack(p, top_old.Tag() + 1);
-  } while (!top_.AtomicExchange(top_old, top_new));
+    *(reinterpret_cast<void**>(p)) = top_old.Value();
+    top_new.Pack(p, top_old.Tag() + 1);
+  } while(!top_.compare_exchange_weak(top_old.raw, top_new.raw));
 }
 
 inline void* Stack::Pop() {
-  TaggedAtomic<void*, uint64_t> top_old;
-  TaggedAtomic<void*, uint64_t> top_new;
+  TaggedValue<void*, uint64_t> top_old;
+  TaggedValue<void*, uint64_t> top_new;
   do {
-    top_old.CopyFrom(top_);
+    top_old.raw = top_.load();
     // check whether we top points to NULL, which indicates empty
-    if (top_old.Atomic() == NULL) {
+    if (top_old.Value() == NULL) {
       return NULL;
     }
-    top_new.WeakPack(*(reinterpret_cast<void**>(top_old.Atomic())),
-                     top_old.Tag() + 1);
-  } while (!top_.AtomicExchange(top_old, top_new));
-  return top_old.Atomic();
+    top_new.Pack(*(reinterpret_cast<void**>(top_old.Value())),
+                 top_old.Tag() + 1);
+  } while(!top_.compare_exchange_weak(top_old.raw, top_new.raw));
+  return top_old.Value();
 }
 
 inline void* Stack::PopRecordState(uint64_t* state) {
-  TaggedAtomic<void*, uint64_t> top_old;
-  TaggedAtomic<void*, uint64_t> top_new;
+  TaggedValue<void*, uint64_t> top_old;
+  TaggedValue<void*, uint64_t> top_new;
   do {
-    top_old.CopyFrom(top_);
+    top_old.raw = top_.load();
     // check whether we top points to NULL, which indicates empty
-    if (top_old.Atomic() == NULL) {
-      *state = top_old.Tag();
+    if (top_old.Value() == NULL) {
+      *state = top_old.raw;
       return NULL;
     }
-    top_new.WeakPack(*(reinterpret_cast<void**>(top_old.Atomic())),
-                     top_old.Tag() + 1);
-  } while (!top_.AtomicExchange(top_old, top_new));
-  return top_old.Atomic();
+    top_new.Pack(*(reinterpret_cast<void**>(top_old.Value())),
+                 top_old.Tag() + 1);
+  } while(!top_.compare_exchange_weak(top_old.raw, top_new.raw));
+  return top_old.Value();
 }
 
 inline uint64_t Stack::GetState() {
-  return top_.Tag();
+  return top_.load();
 }
 
 #endif  // SCALLOC_STACK_INL_H_
