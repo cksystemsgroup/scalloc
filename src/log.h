@@ -41,11 +41,4 @@ void LogPrintf(const int severity, const char* format, ...);
   }                                               \
 } while (0)
 
-#define ErrorOut(format, ...) do {                \
-  if (LOG_ON(kFatal)) {                           \
-    LogPrintf(kFatal, format, ##__VA_ARGS__);     \
-  }                                               \
-  abort();                                        \
-} while (0)
-
 #endif  // SCALLOC_LOG_H_

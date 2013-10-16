@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "assert.h"
 #include "common.h"
 #include "log.h"
 #include "random.h"
@@ -40,7 +41,7 @@ class GlobalProfiler {
     const char *filename = "global-memtrace";
     fp_ = fopen(filename, "w");
     if (fp_ == NULL) {
-      ErrorOut("unable to open file global-memtrace");
+      Fatal("unable to open file global-memtrace");
     }
   }
 
@@ -326,7 +327,7 @@ class Profiler {
     snprintf(filename, sizeof(filename), "memtrace-%lu", (long unsigned int)tid_);
     fp_ = fopen(filename, "w");
     if (fp_ == NULL) {
-      ErrorOut("unable to open file %s", &filename);
+      Fatal("unable to open file %s", &filename);
     }
     self_allocating_ = false;
   }

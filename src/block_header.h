@@ -5,6 +5,7 @@
 #ifndef SCALLOC_BLOCK_HEADER_H_
 #define SCALLOC_BLOCK_HEADER_H_
 
+#include "assert.h"
 #include "common.h"
 #include "freelist.h"
 #include "log.h"
@@ -92,9 +93,9 @@ class LargeObjectHeader : public Header {
     uintptr_t page_ptr = ptr & ~(kPageSize - 1);
     Header* bh = reinterpret_cast<Header*>(page_ptr);
     if (UNLIKELY(bh->type != kLargeObject)) {
-      ErrorOut("Calling LargeObjectHeader::GetFromObject on kSlab type. "
-               "type: %d, ptr: %p, page_ptr: %p",
-               bh->type, p, reinterpret_cast<void*>(page_ptr));
+      Fatal("Calling LargeObjectHeader::GetFromObject on kSlab type. "
+            "type: %d, ptr: %p, page_ptr: %p",
+            bh->type, p, reinterpret_cast<void*>(page_ptr));
     }
     return reinterpret_cast<LargeObjectHeader*>(bh);
   }
@@ -107,7 +108,7 @@ class LargeObjectHeader : public Header {
 } cache_aligned;
 
 always_inline Header* Header::GetFromObject(void* p) {
-  ErrorOut("Calling Header::GetObject.");
+  Fatal("Calling Header::GetObject.");
   // unreachable...
   return NULL;
 }

@@ -70,6 +70,7 @@
         'src/allocators/small_allocator.h',
         'src/allocators/span_pool.cc',
         'src/allocators/span_pool.h',
+        'src/assert.h',
         'src/atomic.h',
         'src/common.h',
         'src/block_header.h',

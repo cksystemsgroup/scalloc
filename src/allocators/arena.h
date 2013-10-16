@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <sys/mman.h>  // madvise
 
+#include "assert.h"
 #include "common.h"
 #include "log.h"
 
@@ -32,17 +33,17 @@ always_inline bool Arena::Contains(void* p) {
 inline void* Arena::Allocate(const size_t size) {
   void* p =  reinterpret_cast<void*>(__sync_fetch_and_add(&current_, size));
   if (reinterpret_cast<uintptr_t>(p) > (start_ + size_)) {
-    ErrorOut("[Arena]: oom");
+    Fatal("arena: oom");
   }
   return p;
 }
 
 inline void Arena::Free(void* p, size_t len) {
   if (reinterpret_cast<uintptr_t>(p) > current_) {
-    ErrorOut("[Arena]: cannot free space");
+    Fatal("arena: cannot free space");
   }
   if (madvise(p, len, MADV_DONTNEED) == -1) {
-    ErrorOut("[Arena]: madvise failed. errno: %lu", errno);
+    Fatal("arena: madvise failed. errno: %lu", errno);
   }
 }
 

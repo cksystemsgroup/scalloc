@@ -90,21 +90,4 @@ always_inline size_t PadSize(size_t size, size_t multiple) {
   return (size + multiple - 1) / multiple * multiple;
 }
 
-#define SAFEMODE 1
-
-#ifdef SAFEMODE
-
-#define ScallocAssert(c, msg)                                                  \
-  if (!(c)) {                                                                  \
-    ErrorOut(msg);                                                             \
-  }
-#else
-
-#define ScallocAssert(c, msg) {}
-
-#endif  // SAFEMODE
-
-#define UNREACHABLE()                                                          \
-  ErrorOut("reached unreachable code segment");
-
 #endif  // SCALLOC_COMMON_H_
