@@ -22,7 +22,7 @@ namespace scalloc {
 template<typename T>
 class TypedAllocator {
  public:
-  static const int kNoAlignment = 1;
+  static const size_t kNoAlignment = 1;
 
   // No constructor, but an init function, because TypedAllocator must be
   // available from a global context (before main).
