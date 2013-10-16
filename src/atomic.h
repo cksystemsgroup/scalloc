@@ -7,55 +7,6 @@
 
 #include <stdint.h>
 
-// Packed structure for tagged values (ABA stamped pointers). The structure
-// is *NOT* concurrency safe. Use within std::atomic!
-// Layout: |---tag---|---value---|
-template<typename ValueType, typename TagType, int TagWidth = 4>
-class TaggedValue {
-public:
-  inline TaggedValue() {
-    raw = 0;
-  }
-  inline TaggedValue(ValueType value, TagType tag);
-  void Pack(ValueType value, TagType tag);
-  inline ValueType Value() const;
-  inline TagType Tag() const;
-  
-  uint64_t raw;
-  
-private:
-  static const int kWidth = sizeof(uint64_t);
-  static const int kTagWidth = TagWidth;
-  static const uint64_t kValueMask = (1ULL << (kWidth - TagWidth)) - 1;
-  static const uint64_t kTagMask = ~kValueMask;
-};
-
-template<typename ValueType, typename TagType, int TagWidth>
-TaggedValue<ValueType, TagType, TagWidth>::TaggedValue(
-                                                       ValueType value, TagType tag) {
-  Pack(value, tag);
-}
-
-template<typename ValueType, typename TagType, int TagWidth>
-void TaggedValue<ValueType, TagType, TagWidth>::Pack(
-                                                     ValueType value, TagType tag) {
-  raw = 0;
-  raw |= (((uint64_t)(value) >> kTagWidth) & kValueMask);
-  raw |= (((uint64_t)(tag) << (kWidth - kTagWidth)) & kTagMask);
-}
-
-template<typename ValueType, typename TagType, int TagWidth>
-ValueType TaggedValue<ValueType, TagType, TagWidth>::Value() const {
-  return (ValueType)((raw & kValueMask) << kTagWidth);
-}
-
-template<typename ValueType, typename TagType, int TagWidth>
-TagType TaggedValue<ValueType, TagType, TagWidth>::Tag() const {
-  return (TagType)(raw & kTagMask);
-}
-
-// --- TODO: remove below ---
-
 typedef uint64_t Atomic64;
 
 #if defined(__i386__)  // IA-32

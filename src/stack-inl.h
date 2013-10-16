@@ -33,7 +33,7 @@ class Stack {
   uint64_t GetState();
 
  private:
-  TaggedValue<void*, uint64_t> top_;
+  TaggedAtomic<void*, uint64_t> top_;
 };
 
 inline void Stack::Put(void* p) {
@@ -49,46 +49,45 @@ inline void Stack::Init() {
 }
 
 inline void Stack::Push(void* p) {
-  TaggedValue<void*, uint64_t> top_old(NULL, 0);
-  TaggedValue<void*, uint64_t> top_new(NULL, 0);
+  TaggedAtomic<void*, uint64_t> top_old;
+  TaggedAtomic<void*, uint64_t> top_new;
   do {
-    top_old.raw = top_.raw;
+    top_old.CopyFrom(top_);
     // write the old top's pointer into the current block
-    *(reinterpret_cast<void**>(p)) = top_old.Value();
-    top_new.Pack(p, top_old.Tag() + 1);
-    //top_new.WeakPack(p, top_old.Tag() + 1);
-  } while (!__sync_bool_compare_and_swap(&top_.raw, top_old.raw, top_new.raw));
+    *(reinterpret_cast<void**>(p)) = top_old.Atomic();
+    top_new.WeakPack(p, top_old.Tag() + 1);
+  } while (!top_.AtomicExchange(top_old, top_new));
 }
 
 inline void* Stack::Pop() {
-  TaggedValue<void*, uint64_t> top_old(NULL, 0);
-  TaggedValue<void*, uint64_t> top_new(NULL, 0);
+  TaggedAtomic<void*, uint64_t> top_old;
+  TaggedAtomic<void*, uint64_t> top_new;
   do {
-    top_old.raw = top_.raw;
+    top_old.CopyFrom(top_);
     // check whether we top points to NULL, which indicates empty
-    if (top_old.Value() == NULL) {
+    if (top_old.Atomic() == NULL) {
       return NULL;
     }
-    top_new.Pack(*reinterpret_cast<void**>(top_old.Value()), top_old.Tag() + 1);
-  } while (!__sync_bool_compare_and_swap(&top_.raw, top_old.raw, top_new.raw));
-           
-  return top_old.Value();
+    top_new.WeakPack(*(reinterpret_cast<void**>(top_old.Atomic())),
+                     top_old.Tag() + 1);
+  } while (!top_.AtomicExchange(top_old, top_new));
+  return top_old.Atomic();
 }
 
 inline void* Stack::PopRecordState(uint64_t* state) {
-  TaggedValue<void*, uint64_t> top_old(NULL, 0);
-  TaggedValue<void*, uint64_t> top_new(NULL, 0);
+  TaggedAtomic<void*, uint64_t> top_old;
+  TaggedAtomic<void*, uint64_t> top_new;
   do {
-    top_old.raw = top_.raw;
+    top_old.CopyFrom(top_);
     // check whether we top points to NULL, which indicates empty
-    if (top_old.Value() == NULL) {
+    if (top_old.Atomic() == NULL) {
       *state = top_old.Tag();
       return NULL;
     }
-    top_new.Pack(*reinterpret_cast<void**>(top_old.Value()), top_old.Tag() + 1);
-  } while (!__sync_bool_compare_and_swap(&top_.raw, top_old.raw, top_new.raw));
-  
-  return top_old.Value();
+    top_new.WeakPack(*(reinterpret_cast<void**>(top_old.Atomic())),
+                     top_old.Tag() + 1);
+  } while (!top_.AtomicExchange(top_old, top_new));
+  return top_old.Atomic();
 }
 
 inline uint64_t Stack::GetState() {
