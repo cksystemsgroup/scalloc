@@ -11,7 +11,8 @@
 
 // Packed structure for ABA stamped pointers.
 // Not concurrency safe. Use with std::atomic.
-template<typename ValueType, typename TagType, int TagWidth = 4> class TaggedValue {
+template<typename ValueType, typename TagType, int TagWidth = 4>
+class TaggedValue {
  public:
   inline TaggedValue() : raw(0) {}
   inline TaggedValue(ValueType atomic, TagType tag) {
@@ -37,7 +38,8 @@ template<typename ValueType, typename TagType, int TagWidth = 4> class TaggedVal
 };
 
 template<typename ValueType, typename TagType, int TagWidth>
-inline void TaggedValue<ValueType, TagType, TagWidth>::Pack(ValueType atomic, TagType tag) {
+inline void TaggedValue<ValueType, TagType, TagWidth>::Pack(ValueType atomic,
+                                                            TagType tag) {
   raw = 0;
   raw |= (((RawType)(atomic) >> kTagWidth) & kValueMask);
   raw |= (((RawType)(tag) << (kWidth - kTagWidth)) & kTagMask);

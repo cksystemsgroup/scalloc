@@ -14,6 +14,7 @@
     'log_level%': "kWarning",
     'span_reuse_threshold%': 80,
     'local_reuse_threshold%': 80,
+    'small_space%': -1,
   },
   'target_defaults': {
     'product_dir': "out/<(CONFIGURATION_NAME)",
@@ -49,14 +50,19 @@
         'CLANG_CXX_LIBRARY': "libc++",
       },
       'defines': [
-        'LOG_LEVEL=<@(log_level)',
-        'SPAN_REUSE_THRESHOLD=<@(span_reuse_threshold)',
-        'LOCAL_REUSE_THRESHOLD=<@(local_reuse_threshold)',
+        'LOG_LEVEL=<(log_level)',
+        'SPAN_REUSE_THRESHOLD=<(span_reuse_threshold)',
+        'LOCAL_REUSE_THRESHOLD=<(local_reuse_threshold)',
       ],
       'conditions': [
         ['OS=="linux"', {
           'ldflags': [
             '-pthread'
+          ]
+        }],
+        ['<(small_space)!=-1', {
+          'defines': [
+            'SMALL_SPACE=<(small_space)'
           ]
         }]
       ],

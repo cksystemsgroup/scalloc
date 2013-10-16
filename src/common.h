@@ -26,8 +26,14 @@ const size_t kCoarseClasses = kMaxMediumShift - kMaxSmallShift;
 const size_t kNumClasses = kFineClasses + kCoarseClasses;
 
 #if defined(__x86_64__)
+
+#ifdef SMALL_SPACE
+const size_t kSmallSpace = SMALL_SPACE;
+#else
 const size_t kSmallSpace = 1UL << 45;  // 32TiB
+#endif
 const size_t kInternalSpace = 1UL << 31;  // 2GiB
+
 #else
 #error "platform not supported"
 #endif

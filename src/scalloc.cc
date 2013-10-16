@@ -24,10 +24,6 @@
 #include "profiler.h"
 #endif  // PROFILER_ON
 
-#ifndef __THROW
-#define __THROW
-#endif
-
 namespace scalloc {
 
 cache_aligned Arena InternalArena;
@@ -164,6 +160,10 @@ bool Ours(const void* p) {
 }
 
 }  // namespace scalloc
+
+#ifndef __THROW
+#define __THROW
+#endif
 
 extern "C" {
 void* scalloc_malloc(size_t size) __THROW {
