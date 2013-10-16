@@ -14,6 +14,7 @@
 #include "scalloc_arenas.h"
 #include "spinlock-inl.h"
 #include "stack-inl.h"
+#include "utils.h"
 
 namespace scalloc {
 
@@ -40,7 +41,7 @@ class TypedAllocator {
         Fatal("PageHeapAllocator: ALIGNMENT must be a divisor of system "
               "page size");
       }
-      tsize_ = PadSize(tsize_, alignment);
+      tsize_ = utils::PadSize(tsize_, alignment);
     }
 
     if (tsize_ > alloc_increment_) {

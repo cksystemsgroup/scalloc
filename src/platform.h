@@ -29,4 +29,14 @@
 const size_t kPageShift = 12;
 const size_t kPageSize = 1UL << kPageShift;
 
+// Prohibit reordering of instructions by the compiler.
+inline void CompilerBarrier() {
+  __asm__ __volatile__("" : : : "memory");
+}
+
+// Full memory fence on x86-64
+inline void MemoryBarrier() {
+  __asm__ __volatile__("mfence" : : : "memory");
+}
+
 #endif  // SCALLOC_PLATFORM_H_

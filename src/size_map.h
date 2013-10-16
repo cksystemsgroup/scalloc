@@ -6,6 +6,7 @@
 #define SCALLOC_SIZE_MAP_H_
 
 #include "common.h"
+#include "utils.h"
 
 namespace scalloc {
 
@@ -38,7 +39,7 @@ inline size_t SizeMap::SizeToClass(const size_t size) {
     return (size + kMinAlignment - 1) / kMinAlignment;
   }
   if (size <= kMaxMediumSize) {
-    return Log2(size - 1) - kMaxSmallShift + kFineClasses;
+    return utils::Log2(size - 1) - kMaxSmallShift + kFineClasses;
   }
   return 0;
 }
@@ -47,7 +48,7 @@ inline size_t SizeMap::SizeToBlockSize(const size_t size) {
   if (size <= kMaxSmallSize) {
     return (size + kMinAlignment - 1) & ~(kMinAlignment-1);
   } else if (size <= kMaxMediumSize) {
-    return 1UL << (Log2(size - 1) + 1);
+    return 1UL << (utils::Log2(size - 1) + 1);
   }
   // TODO(maigner): never called on large objects. handle anyways
   return 0;
