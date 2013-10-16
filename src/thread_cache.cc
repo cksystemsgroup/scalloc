@@ -7,7 +7,7 @@
 namespace {
 
 cache_aligned SpinLock g_threadcache_lock(LINKER_INITIALIZED);
-cache_aligned scalloc::PageHeapAllocator<scalloc::ThreadCache, 64>
+cache_aligned scalloc::TypedAllocator<scalloc::ThreadCache>
     g_threadcache_alloc;
 cache_aligned uint64_t g_thread_id;
 
@@ -26,7 +26,7 @@ void ThreadCache::InitModule() {
   LockScope(g_threadcache_lock);
 
   if (!module_init_) {
-    g_threadcache_alloc.Init(kPageSize);
+    g_threadcache_alloc.Init(kPageSize, 64);
     // http://pubs.opengroup.org/onlinepubs/009696799/functions/pthread_key_create.html
     //
     // At thread exit, if a key value has a non-NULL destructor pointer, and the

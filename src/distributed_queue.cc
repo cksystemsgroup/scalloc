@@ -11,8 +11,8 @@ namespace {
   cache_aligned SpinLock g_state_lock(LINKER_INITIALIZED);
 }
 
-scalloc::PageHeapAllocator<Stack, 64> DistributedQueue::backend_allocator_;
-scalloc::PageHeapAllocator<DistributedQueue::State, 64>
+scalloc::TypedAllocator<Stack> DistributedQueue::backend_allocator_;
+scalloc::TypedAllocator<DistributedQueue::State>
     DistributedQueue::state_allocator_;
 #ifdef HAVE_TLS
 __thread DistributedQueue::State* DistributedQueue::state_;
@@ -21,8 +21,8 @@ pthread_key_t DistributedQueue::state_key_;
 #endif
 
 void DistributedQueue::InitModule() {
-  backend_allocator_.Init(kPageSize);
-  state_allocator_.Init(kPageSize);
+  backend_allocator_.Init(kPageSize, 64);
+  state_allocator_.Init(kPageSize, 64);
 #ifndef HAVE_TLS
   pthread_key_create(&state_key_, NULL);
 #endif

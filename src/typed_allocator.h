@@ -2,47 +2,45 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#ifndef SCALLOC_PAGE_HEAP_ALLOCATOR_
-#define SCALLOC_PAGE_HEAP_ALLOCATOR_
+#ifndef SCALLOC_TYPED_ALLOCATOR_H_
+#define SCALLOC_TYPED_ALLOCATOR_H_
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "assert.h"
 #include "common.h"
-#include "log.h"
 #include "scalloc_arenas.h"
 #include "spinlock-inl.h"
 #include "stack-inl.h"
 
 namespace scalloc {
 
-// Since an alignment of 1 does not make any sense we can use it to indicate no
-// alignment.
-const int kNoAlignment = 1;
-
 // Almost lock-free free-list allocator that may be used internally for fixed
 // types and alignments.
-template<typename T, int ALIGNMENT = kNoAlignment>
-class PageHeapAllocator {
+template<typename T>
+class TypedAllocator {
  public:
-  // No constructor, but an init function, because PageHeapAllocator must be
+  static const int kNoAlignment = 1;
+
+  // No constructor, but an init function, because TypedAllocator must be
   // available from a global context (before main).
   //
   // alloc_increment_ needs to be a multiple of the system page size.
-  void Init(size_t alloc_increment) {
+  void Init(size_t alloc_increment, size_t alignment) {
     alloc_increment_ = alloc_increment;
 
     tsize_ = sizeof(T);
-    if (ALIGNMENT > kNoAlignment) {
-      if (tsize_ + ALIGNMENT <= tsize_) {
+    if (alignment > kNoAlignment) {
+      if (tsize_ + alignment <= tsize_) {
         Fatal("PageHeapAllocator: overflow");
       }
-      if (kPageSize % ALIGNMENT != 0) {
+      if (kPageSize % alignment != 0) {
         Fatal("PageHeapAllocator: ALIGNMENT must be a divisor of system "
               "page size");
       }
-      tsize_ = PadSize(tsize_, ALIGNMENT);
+      tsize_ = PadSize(tsize_, alignment);
     }
 
     if (tsize_ > alloc_increment_) {
@@ -91,4 +89,4 @@ class PageHeapAllocator {
 
 }  // namespace scalloc
 
-#endif  // SCALLOC_PAGE_HEAP_ALLOCATOR_
+#endif  // SCALLOC_TYPED_ALLOCATOR_H_

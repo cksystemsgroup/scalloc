@@ -10,9 +10,9 @@
 
 #include "common.h"
 #include "random.h"
-#include "page_heap_allocator.h"
 #include "spinlock-inl.h"
 #include "stack-inl.h"
+#include "typed_allocator.h"
 
 class DistributedQueue {
  public:
@@ -41,10 +41,10 @@ class DistributedQueue {
 
 
   // Allocator used to get backend stacks.
-  static scalloc::PageHeapAllocator<Backend, 64> backend_allocator_;
+  static scalloc::TypedAllocator<Backend> backend_allocator_;
 
   // Allocator used to get a State instance.
-  static scalloc::PageHeapAllocator<State, 64> state_allocator_;
+  static scalloc::TypedAllocator<State> state_allocator_;
 
 #ifdef HAVE_TLS
   // State object used to record backend states by each thread in the emptiness
