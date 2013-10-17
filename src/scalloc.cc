@@ -17,7 +17,9 @@
 #include "override.h"
 #include "scalloc_arenas.h"
 #include "scalloc_guard.h"
-#include "size_map.h"
+#include "size_classes_raw.h"
+#include "size_classes.h"
+//#include "size_map.h"
 #include "thread_cache.h"
 
 #ifdef PROFILER_ON
@@ -30,6 +32,24 @@ cache_aligned Arena InternalArena;
 
 cache_aligned Arena SmallArena;
 
+cache_aligned const uint64_t ClassToObjects[] = {
+#define SIZE_CLASS(a,b,c,d) (d),
+SIZE_CLASSES
+#undef SIZE_CLASS
+};
+  
+cache_aligned const uint64_t ClassToSize[] = {
+#define SIZE_CLASS(a,b,c,d) (b),
+SIZE_CLASSES
+#undef SIZE_CLASS
+};
+  
+cache_aligned const uint64_t ClassToSpanSize[] = {
+#define SIZE_CLASS(a,b,c,d) (c),
+SIZE_CLASSES
+#undef SIZE_CLASS
+};
+  
 }  // namespace scalloc
 
 static int scallocguard_refcount = 0;
@@ -37,7 +57,7 @@ ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
     ReplaceSystemAlloc();
 
-    scalloc::SizeMap::InitModule();
+//    scalloc::SizeMap::InitModule();
     scalloc::InternalArena.Init(kInternalSpace);
     scalloc::SmallArena.Init(kSmallSpace);
     DistributedQueue::InitModule();
@@ -47,6 +67,9 @@ ScallocGuard::ScallocGuard() {
     scalloc::ThreadCache::InitModule();
 
     free(malloc(1));
+    
+//    scalloc::SizeMap::Instance().PrintSizeMap();
+//scalloc::PrintSizeMap();
 
 #ifdef PROFILER_ON
     scalloc::GlobalProfiler::Instance().Init();
@@ -110,9 +133,11 @@ void* realloc(void* ptr, size_t size) {
   void* new_ptr;
   size_t old_size;
   if (scalloc::SmallArena.Contains(ptr)) {
-    old_size = SizeMap::Instance().ClassToSize(
-        reinterpret_cast<SpanHeader*>(
-            SpanHeader::GetFromObject(ptr))->size_class);
+//    old_size = SizeMap::Instance().ClassToSize(
+//        reinterpret_cast<SpanHeader*>(
+//            SpanHeader::GetFromObject(ptr))->size_class);
+    old_size = ClassToSize[reinterpret_cast<SpanHeader*>(
+        SpanHeader::GetFromObject(ptr))->size_class];
   } else {
     old_size =
         reinterpret_cast<LargeObjectHeader*>(

@@ -9,7 +9,8 @@
 
 #include "common.h"
 #include "distributed_queue.h"
-#include "size_map.h"
+//#include "size_map.h"
+#include "size_classes.h"
 #include "utils.h"
 
 #ifdef PROFILER_ON
@@ -104,8 +105,8 @@ inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
 
     madvise(reinterpret_cast<void*>(
             reinterpret_cast<uintptr_t>(result) +
-            SizeMap::Instance().ClassToSpanSize(sc)),
-        kVirtualSpanSize - SizeMap::Instance().ClassToSpanSize(sc),
+            ClassToSpanSize[sc]),
+        kVirtualSpanSize - ClassToSpanSize[sc],
         MADV_DONTNEED);
   }
 

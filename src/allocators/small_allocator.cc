@@ -77,11 +77,13 @@ void SmallAllocator::Refill(const size_t sc) {
   hdr->Reset(sc, id_);
   hdr->aowner.owner = id_;
   hdr->aowner.active = true;
-  hdr->max_num_blocks = SizeMap::Instance().MaxObjectsPerClass(sc);
+  hdr->max_num_blocks = ClassToObjects[sc];
+  //hdr->max_num_blocks = SizeMap::Instance().MaxObjectsPerClass(sc);
 
   if (!reusable) {
     block += sizeof(SpanHeader);
-    size_t block_size = SizeMap::Instance().ClassToSize(sc);
+    size_t block_size = ClassToSize[sc];
+    //size_t block_size = SizeMap::Instance().ClassToSize(sc);
     hdr->flist.FromBlock(reinterpret_cast<void*>
                          (block), block_size, hdr->max_num_blocks);
   }

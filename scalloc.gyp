@@ -15,6 +15,7 @@
     'span_reuse_threshold%': 80,
     'local_reuse_threshold%': 80,
     'small_space%': -1,
+    'eager_madvise_threshold%': -1,
   },
   'target_defaults': {
     'product_dir': "out/<(CONFIGURATION_NAME)",
@@ -64,6 +65,12 @@
           'defines': [
             'SMALL_SPACE=<(small_space)'
           ]
+        }],
+        ['<(eager_madvise_threshold)!=-1', {
+          'defines': [
+            'EAGER_MADVISE',
+            'EAGER_MADVISE_THRESHOLD=<(eager_madvise_threshold)'
+          ]
         }]
       ],
       'sources': [
@@ -96,6 +103,8 @@
         'src/scalloc.h',
         'src/scalloc_arenas.h',
         'src/scalloc_guard.h',
+        'src/size_classes_raw.h',
+        'src/size_classes.h',
         'src/size_map.cc',
         'src/size_map.h',
         'src/spinlock-inl.h',

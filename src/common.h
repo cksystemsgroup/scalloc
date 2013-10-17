@@ -8,13 +8,13 @@
 #include <stddef.h>  // size_t
 #include <stdint.h>  // size_t
 
-#include "log.h"
 #include "platform.h"
 
 const size_t kMinAlignment = 16;
 const size_t kMaxSmallShift = 8;  // up to 2MiB
 const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
 const size_t kMaxMediumShift = 21;  // up to 2MiB
+
 const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
 
 const size_t kVirtualSpanShift = 22;  // 4MiB

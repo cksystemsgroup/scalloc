@@ -13,7 +13,8 @@
 #include "distributed_queue.h"
 #include "freelist.h"
 #include "span_pool.h"
-#include "size_map.h"
+//#include "size_map.h"
+#include "size_classes.h"
 #include "utils.h"
 
 namespace scalloc {

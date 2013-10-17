@@ -18,7 +18,8 @@
 #include "common.h"
 #include "log.h"
 #include "random.h"
-#include "size_map.h"
+//#include "size_map.h"
+#include "size_classes.h"
 #include "spinlock-inl.h"
 
 #define SCALLOC_PROFILER_METHOD_GUARD \
@@ -179,7 +180,8 @@ class GlobalProfiler {
     char s1[3]; char s2[3]; char s3[3]; char s4[3]; char s5[3];
     char s6[3]; char s7[3];
     for (unsigned i = 1; i < kNumClasses + 1; ++i) {
-      uint64_t blocksize = SizeMap::Instance().ClassToSize(i);
+//      uint64_t blocksize = SizeMap::Instance().ClassToSize(i);
+      uint64_t blocksize = ClassToSize[i];
       uint64_t nr_objects = sizeclass_histogram_[i];
       fprintf(fp_,
               "Class\t%5" PRIu64 "%2sB\t"
@@ -227,15 +229,17 @@ class Profiler {
   inline void LogAllocation(size_t size) {
     SCALLOC_PROFILER_METHOD_GUARD
 
-    size_t size_class = SizeMap::SizeToClass(size);
-
+    //size_t size_class = SizeMap::SizeToClass(size);
+    const size_t size_class = SizeToClass(size);
+    
     allocation_count_++;
     allocated_bytes_count_ += size;
     sizeclass_histogram_[size_class]++;
 
     if (size_class > 0 && size_class <= kNumClasses) {
-      DecreaseRealSpanFragmentation(
-          size_class, SizeMap::Instance().ClassToSize(size_class));
+//      DecreaseRealSpanFragmentation(
+//          size_class, SizeMap::Instance().ClassToSize(size_class));
+      DecreaseRealSpanFragmentation(size_class, ClassToSize[size_class]);
     }
 
     if (UNLIKELY(allocated_bytes_count_ >= kTimeQuantum_)) {
@@ -257,8 +261,9 @@ class Profiler {
     }
 
     if (size_class > 0 && size_class <= kNumClasses) {
-      IncreaseRealSpanFragmentation(
-          size_class, SizeMap::Instance().ClassToSize(size_class));
+//      IncreaseRealSpanFragmentation(
+//          size_class, SizeMap::Instance().ClassToSize(size_class));
+      IncreaseRealSpanFragmentation(size_class, ClassToSize[size_class]);
     }
   }
 

@@ -2,7 +2,9 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#include "size_map.h"
+#include "size_map_old.h"
+
+#include <stdio.h>
 
 #include "block_header.h"
 #include "common.h"
@@ -59,6 +61,19 @@ void SizeMap::Init() {
         ((class_to_objs_[i] * class_to_size_[i] + sizeof(SpanHeader))
          / kPageSize + 1)
         * kPageSize;
+  }
+}
+
+void SizeMap::PrintSizeMap() {
+  printf("sizeclass summary\n");
+  printf("kNumClasses: %lu\nkFineClasses: %lu\nkFineClasses/2: %lu\n",
+         kNumClasses, kFineClasses, kFineClasses/2);
+  for (int i = 0; i < kNumClasses; i++) {
+    printf("sc: %d, size: %lu, objs: %lu, real span size: %lu\n",
+           i,
+           class_to_size_[i],
+           class_to_objs_[i],
+           class_to_span_size_[i]);
   }
 }
 

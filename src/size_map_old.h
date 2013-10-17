@@ -22,7 +22,8 @@ class SizeMap {
   size_t ClassToSize(const size_t sclass);
   size_t ClassToSpanSize(const size_t sclass);
   size_t MaxObjectsPerClass(const size_t sclass);
-
+  void PrintSizeMap();
+  
  private:
   size_t class_to_size_[kNumClasses];
   size_t class_to_objs_[kNumClasses];

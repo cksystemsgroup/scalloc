@@ -12,7 +12,8 @@
 #include "common.h"
 #include "block_header.h"
 #include "span_pool.h"
-#include "size_map.h"
+//#include "size_map.h"
+#include "size_classes.h"
 
 #ifdef PROFILER_ON
 #include "profiler.h"
@@ -55,7 +56,8 @@ inline void SmallAllocator::SetActiveSlab(const size_t sc,
 }
 
 inline void* SmallAllocator::Allocate(const size_t size) {
-  const size_t sc = SizeMap::SizeToClass(size);
+  const size_t sc = SizeToClass(size);
+//  const size_t sc = SizeMap::SizeToClass(size);
   SpanHeader* hdr = my_headers_[sc];
   void* result;
   if (UNLIKELY(hdr == NULL)) {

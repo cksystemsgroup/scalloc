@@ -9,7 +9,7 @@
 #include "common.h"
 #include "freelist.h"
 #include "log.h"
-#include "size_map.h"
+//#include "size_map.h"
 
 enum BlockType {
   kUndef,
