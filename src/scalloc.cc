@@ -32,23 +32,23 @@ cache_aligned Arena InternalArena;
 cache_aligned Arena SmallArena;
 
 cache_aligned const uint64_t ClassToObjects[] = {
-#define SIZE_CLASS(a,b,c,d) (d),
+#define SIZE_CLASS(a, b, c, d) (d),
 SIZE_CLASSES
 #undef SIZE_CLASS
 };
-  
+
 cache_aligned const uint64_t ClassToSize[] = {
-#define SIZE_CLASS(a,b,c,d) (b),
+#define SIZE_CLASS(a, b, c, d) (b),
 SIZE_CLASSES
 #undef SIZE_CLASS
 };
-  
+
 cache_aligned const uint64_t ClassToSpanSize[] = {
-#define SIZE_CLASS(a,b,c,d) (c),
+#define SIZE_CLASS(a, b, c, d) (c),
 SIZE_CLASSES
 #undef SIZE_CLASS
 };
-  
+
 }  // namespace scalloc
 
 static int scallocguard_refcount = 0;
@@ -148,28 +148,30 @@ void* realloc(void* ptr, size_t size) {
   return new_ptr;
 }
 
-void* memalign(size_t __alignment, size_t __size) {
-  Fatal("memalign() not yet implemented.");
-}
-
 int posix_memalign(void** ptr, size_t align, size_t size) {
   Fatal("posix_memalign() not yet implemented.");
 }
 
+void* memalign(size_t __alignment, size_t __size) {
+  void* mem;
+  if (posix_memalign(&mem, __alignment, __size)) {
+    return NULL;
+  }
+  return mem;
+}
+
 void* valloc(size_t __size) {
-  Fatal("valloc() not yet implemented.");
+  return memalign(kPageSize, __size);
 }
 
 void* pvalloc(size_t __size) {
-  Fatal("pvalloc() not yet implemented.");
+  return memalign(kPageSize, utils::PadSize(__size, kPageSize));
 }
 
-void malloc_stats(void) {
-  Fatal("malloc_stats() not yet implemented.");
-}
+void malloc_stats(void) {}
 
 int mallopt(int cmd, int value) {
-  Fatal("mallopt() not yet implemented.");
+  return 0;
 }
 
 bool Ours(const void* p) {

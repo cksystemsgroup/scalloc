@@ -1,3 +1,7 @@
+// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
+
 #ifndef SCALLOC_SIZE_CLASSES_H_
 #define SCALLOC_SIZE_CLASSES_H_
 
@@ -11,6 +15,7 @@ extern const uint64_t ClassToObjects[];
 extern const uint64_t ClassToSize[];
 extern const uint64_t ClassToSpanSize[];
 
+
 inline size_t SizeToClass(const size_t size) {
   if (size <= kMaxSmallSize) {
     return (size + kMinAlignment - 1) / kMinAlignment;
@@ -22,6 +27,7 @@ inline size_t SizeToClass(const size_t size) {
   return 0;
 }
 
+
 inline size_t SizeToBlockSize(const size_t size) {
   if (size <= kMaxSmallSize) {
     return (size + kMinAlignment - 1) & ~(kMinAlignment-1);
@@ -32,21 +38,7 @@ inline size_t SizeToBlockSize(const size_t size) {
   return 0;
 }
 
-  /*
-inline void PrintSizeMap() {
-  printf("sizeclass summary 2\n");
-  printf("kNumClasses: %lu\nkFineClasses: %lu\nkFineClasses/2: %lu\n",
-         kNumClasses, kFineClasses, kFineClasses/2);
-  for (int i = 0; i < kNumClasses; i++) {
-    printf("sc: %d, size: %llu, objs: %llu, real span size: %llu\n",
-           i,
-           ClassToSize[i],
-           ClassToObjects[i],
-           ClassToSpanSize[i]);
-  }
-}
-   */
-  
+
 }  // namespace scalloc
 
 #endif  // SCALLOC_SIZE_CLASSES_H_

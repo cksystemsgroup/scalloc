@@ -18,24 +18,28 @@ lines = []
 lines.append("  SIZE_CLASS(0, 0, 0, 0) \\")
 
 span_size = 1 << 13
+fine = []
 for i in range(1, fine_classes/2):
   class_to_size.append(class_to_size[i-1] + min_alignment)
-  lines.append("  SIZE_CLASS({0}, {1}, {2}, {3}) \\".format(
+  fine.append("  SIZE_CLASS({0}, {1}, {2}, {3})".format(
     i,
     class_to_size[i],
     span_size,
     "({0} - sizeof(SpanHeader))/{1}".format(span_size, class_to_size[i])
   ))
+lines.append(" /* NOLINT */ \\\n".join(fine))
 
 span_size = 1 << 14
+coarse = []
 for i in range(fine_classes/2, fine_classes):
   class_to_size.append(class_to_size[i-1] + min_alignment)
-  lines.append("  SIZE_CLASS({0}, {1}, {2}, {3}) \\".format(
+  coarse.append("  SIZE_CLASS({0}, {1}, {2}, {3})".format(
     i,
     class_to_size[i],
     span_size,
     "({0} - sizeof(SpanHeader))/{1}".format(span_size, class_to_size[i])
   ))
+lines.append(" /* NOLINT */ \\\n".join(coarse))
 
 objs = [
   1 << 6,
@@ -63,7 +67,7 @@ for i in range(fine_classes, num_classes):
       - fine_classes], class_to_size[i]),
     objs[i - fine_classes]
   ))
-lines.append(" \\\n".join(large))
+lines.append(" /* NOLINT */ \\\n".join(large))
 
 f = open("src/size_classes_raw.h", "wt")
 
@@ -78,11 +82,11 @@ f.write(
 #define SCALLOC_SIZE_CLASSES_RAW_H_
 
 #define SIZE_CLASSES \\
-{size_classes}
+{size_classes} /* NOLINT */
 
 #endif  // SCALLOC_SIZE_CLASSES_RAW_H_
 """.format(
-  size_classes="\n".join(lines),
+  size_classes=" /* NOLINT */ \\\n".join(lines),
 ))
 
 f.close()
