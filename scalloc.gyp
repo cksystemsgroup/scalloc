@@ -105,8 +105,6 @@
         'src/scalloc_guard.h',
         'src/size_classes_raw.h',
         'src/size_classes.h',
-        'src/size_map.cc',
-        'src/size_map.h',
         'src/spinlock-inl.h',
         'src/stack-inl.h',
         'src/system-alloc.cc',
