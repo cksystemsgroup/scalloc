@@ -9,7 +9,6 @@
 
 #include "common.h"
 #include "distributed_queue.h"
-//#include "size_map.h"
 #include "size_classes.h"
 #include "utils.h"
 

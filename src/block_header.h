@@ -9,7 +9,6 @@
 #include "common.h"
 #include "freelist.h"
 #include "log.h"
-//#include "size_map.h"
 
 enum BlockType {
   kUndef,
@@ -41,8 +40,6 @@ struct ActiveOwner {
 
 class Header {
  public:
-  static Header* GetFromObject(void* p);
-
   BlockType type;
 };
 
@@ -107,11 +104,5 @@ class LargeObjectHeader : public Header {
     this->size = size;
   }
 } cache_aligned;
-
-inline Header* Header::GetFromObject(void* p) {
-  Fatal("Calling Header::GetObject.");
-  // unreachable...
-  return NULL;
-}
 
 #endif  // SCALLOC_BLOCK_HEADER_H_

@@ -19,7 +19,6 @@
 #include "scalloc_guard.h"
 #include "size_classes_raw.h"
 #include "size_classes.h"
-//#include "size_map.h"
 #include "thread_cache.h"
 
 #ifdef PROFILER_ON
@@ -57,7 +56,6 @@ ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
     ReplaceSystemAlloc();
 
-//    scalloc::SizeMap::InitModule();
     scalloc::InternalArena.Init(kInternalSpace);
     scalloc::SmallArena.Init(kSmallSpace);
     DistributedQueue::InitModule();
@@ -67,9 +65,6 @@ ScallocGuard::ScallocGuard() {
     scalloc::ThreadCache::InitModule();
 
     free(malloc(1));
-    
-//    scalloc::SizeMap::Instance().PrintSizeMap();
-//scalloc::PrintSizeMap();
 
 #ifdef PROFILER_ON
     scalloc::GlobalProfiler::Instance().Init();
@@ -133,9 +128,6 @@ void* realloc(void* ptr, size_t size) {
   void* new_ptr;
   size_t old_size;
   if (scalloc::SmallArena.Contains(ptr)) {
-//    old_size = SizeMap::Instance().ClassToSize(
-//        reinterpret_cast<SpanHeader*>(
-//            SpanHeader::GetFromObject(ptr))->size_class);
     old_size = ClassToSize[reinterpret_cast<SpanHeader*>(
         SpanHeader::GetFromObject(ptr))->size_class];
   } else {

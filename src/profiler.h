@@ -229,7 +229,6 @@ class Profiler {
   inline void LogAllocation(size_t size) {
     SCALLOC_PROFILER_METHOD_GUARD
 
-    //size_t size_class = SizeMap::SizeToClass(size);
     const size_t size_class = SizeToClass(size);
     
     allocation_count_++;
@@ -237,8 +236,6 @@ class Profiler {
     sizeclass_histogram_[size_class]++;
 
     if (size_class > 0 && size_class <= kNumClasses) {
-//      DecreaseRealSpanFragmentation(
-//          size_class, SizeMap::Instance().ClassToSize(size_class));
       DecreaseRealSpanFragmentation(size_class, ClassToSize[size_class]);
     }
 
@@ -261,8 +258,6 @@ class Profiler {
     }
 
     if (size_class > 0 && size_class <= kNumClasses) {
-//      IncreaseRealSpanFragmentation(
-//          size_class, SizeMap::Instance().ClassToSize(size_class));
       IncreaseRealSpanFragmentation(size_class, ClassToSize[size_class]);
     }
   }

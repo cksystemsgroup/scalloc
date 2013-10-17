@@ -78,7 +78,6 @@ void SmallAllocator::Refill(const size_t sc) {
   hdr->aowner.owner = id_;
   hdr->aowner.active = true;
   hdr->max_num_blocks = ClassToObjects[sc];
-  //hdr->max_num_blocks = SizeMap::Instance().MaxObjectsPerClass(sc);
 
   if (!reusable) {
     block += sizeof(SpanHeader);
