@@ -8,7 +8,7 @@
 #define SCALLOC_SIZE_CLASSES_RAW_H_
 
 #define SIZE_CLASSES \
-  SIZE_CLASS(0, 0, 0, 0) \ /* NOLINT */ \
+  SIZE_CLASS(0, 0, 0, 0) /* NOLINT */ \
   SIZE_CLASS(1, 16, 8192, (8192 - sizeof(SpanHeader))/16) /* NOLINT */ \
   SIZE_CLASS(2, 32, 8192, (8192 - sizeof(SpanHeader))/32) /* NOLINT */ \
   SIZE_CLASS(3, 48, 8192, (8192 - sizeof(SpanHeader))/48) /* NOLINT */ \

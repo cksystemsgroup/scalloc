@@ -15,7 +15,7 @@ class_to_size = [0]
 
 lines = []
 
-lines.append("  SIZE_CLASS(0, 0, 0, 0) \\")
+lines.append("  SIZE_CLASS(0, 0, 0, 0)")
 
 span_size = 1 << 13
 fine = []
