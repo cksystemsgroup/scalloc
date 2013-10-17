@@ -7,10 +7,6 @@
 #include "common.h"
 #include "spinlock-inl.h"
 
-namespace {
-  cache_aligned SpinLock g_state_lock(LINKER_INITIALIZED);
-}
-
 scalloc::TypedAllocator<Stack> DistributedQueue::backend_allocator_;
 scalloc::TypedAllocator<DistributedQueue::State>
     DistributedQueue::state_allocator_;
@@ -37,8 +33,6 @@ void DistributedQueue::Init(size_t p) {
 }
 
 DistributedQueue::State* DistributedQueue::NewState() {
-  LockScope(g_state_lock);
-
   State* state = state_allocator_.New();
 #ifdef HAVE_TLS
   state_ = state;
