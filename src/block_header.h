@@ -17,6 +17,7 @@ enum BlockType {
   kNumHeaders
 };
 
+
 struct ActiveOwner {
   union {
     struct {
@@ -38,11 +39,11 @@ struct ActiveOwner {
   }
 };
 
+
 class Header {
  public:
   BlockType type;
 };
-
 
 
 class SpanHeader : public Header {
@@ -83,6 +84,7 @@ class SpanHeader : public Header {
     return 100 - ((this->flist.Size() * 100) / this->max_num_blocks);
   }
 } cache_aligned;
+
 
 class LargeObjectHeader : public Header {
  public:

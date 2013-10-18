@@ -68,7 +68,6 @@
         }],
         ['<(eager_madvise_threshold)!=-1', {
           'defines': [
-            'EAGER_MADVISE',
             'EAGER_MADVISE_THRESHOLD=<(eager_madvise_threshold)'
           ]
         }]

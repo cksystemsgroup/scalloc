@@ -43,17 +43,16 @@ inline SpanPool& SpanPool::Instance() {
 inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool]: put: %p", p);
 
-#ifdef EAGER_MADVISE_ON
-  if (sc > kFineClasses + 3) {
-    madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) +
-                                    kPageSize),
-                                    kVirtualSpanSize -
-                                    kPageSize,
-                                    MADV_DONTNEED);
+#ifdef EAGER_MADVISE
+  if (ClassToSpanSize[sc] > kEagerMadviseThreshold) {
+    madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + kPageSize),
+            kVirtualSpanSize - kPageSize,
+            MADV_DONTNEED);
   }
 #endif  // EAGER_MADVISE_ON
 
-  size_class_pool_[sc-1].EnqueueAt(p, tid % utils::Cpus());
+  size_class_pool_[sc].EnqueueAt(p, tid % utils::Cpus());
+
 #ifdef PROFILER_ON
   Profiler::GetProfiler().DecreaseRealSpanFragmentation(
       sc, SizeMap::Instance().ClassToSpanSize(sc));
@@ -63,19 +62,18 @@ inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
 
 inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   LOG(kTrace, "[SpanPool]: get request");
+
 #ifdef PROFILER_ON
   Profiler::GetProfiler().IncreaseRealSpanFragmentation(
       sc, SizeMap::Instance().ClassToSpanSize(sc));
   GlobalProfiler::Instance().LogSpanPoolGet(sc);
 #endif  // PROFILER_ON
 
-  sc--;  // real size classe start at 1. DQ index starts at 0
-
   int index;
   size_t i;
   void* result;
   *reusable = false;
-  int qindex = tid % utils::Cpus();
+  const int qindex = tid % utils::Cpus();
 
   for (i = 0; i < kNumClasses; i++) {
     index = sc - i;
@@ -92,31 +90,33 @@ inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
     return RefillOne();
   }
 
-#ifdef EAGER_MADVISE_ON
-  if ((i > sc) && (i <= kFineClasses + 3)) {
+#ifdef EAGER_MADVISE
+  if ((i > sc) &&
+      (ClassToSpanSize[i] != ClassToSpanSize[sc]) &&
+      (ClassToSpanSize[sc] < kEagerMadviseThreshold)) {
 #else
-  if (i > sc) {
-#endif  // EAGER_MADVISE_ON
+  if ((i > sc) &&
+      (ClassToSpanSize[i] != ClassToSpanSize[sc])) {
+#endif  // EAGER_MADVISE
+    madvise(reinterpret_cast<void*>(
+                reinterpret_cast<uintptr_t>(result) + ClassToSpanSize[sc]),
+            kVirtualSpanSize - ClassToSpanSize[sc],
+            MADV_DONTNEED);
 
 #ifdef PROFILER_ON
     GlobalProfiler::Instance().LogSpanShrink(sc);
 #endif  // PROFILER_ON
 
-    madvise(reinterpret_cast<void*>(
-            reinterpret_cast<uintptr_t>(result) +
-            ClassToSpanSize[sc]),
-        kVirtualSpanSize - ClassToSpanSize[sc],
-        MADV_DONTNEED);
   }
 
-#ifdef EAGER_MADVISE_ON
-  if ((i == sc) && (i <= kFineClasses + 3)) {
+#ifdef EAGER_MADVISE
+  if ((i == sc) &&
+      (ClassToSpanSize[sc] < kEagerMadviseThreshold)) {
 #else
   if (i == sc) {
-#endif  // EAGER_MADVISE_ON
+#endif  // EAGER_MADVISE
     *reusable = true;
   }
-
 
   LOG(kTrace, "[SpanPool]: get: %p", result);
   return result;

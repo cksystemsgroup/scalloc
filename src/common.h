@@ -40,5 +40,9 @@ const size_t kInternalSpace = 1UL << 31;  // 2GiB
 
 const size_t kSpanReuseThreshold = SPAN_REUSE_THRESHOLD;
 const size_t kLocalReuseThreshold = LOCAL_REUSE_THRESHOLD;
+#ifdef EAGER_MADVISE_THRESHOLD
+#define EAGER_MADVISE 1
+const size_t kEagerMadviseThreshold = EAGER_MADVISE_THRESHOLD;
+#endif  // EAGER_MADVISE_THRESHOLD
 
 #endif  // SCALLOC_COMMON_H_
