@@ -20,6 +20,7 @@
 #include "size_classes_raw.h"
 #include "size_classes.h"
 #include "thread_cache.h"
+#include "utils.h"
 
 #ifdef PROFILER_ON
 #include "profiler.h"
@@ -149,7 +150,41 @@ void* realloc(void* ptr, size_t size) {
 }
 
 int posix_memalign(void** ptr, size_t align, size_t size) {
-  Fatal("posix_memalign() not yet implemented.");
+  if (UNLIKELY(size == 0)) {                    // Return free-able pointer if
+    *ptr = NULL;                                // size == 0.
+    return 0;
+  }
+  
+  const size_t size_needed = align + size;
+  
+  if (UNLIKELY(!utils::IsPowerOfTwo(align)) ||  // Power of 2 requirement.
+      size_needed < size) {                     // Overflow check.
+    return EINVAL;
+  }
+  
+  uintptr_t start = reinterpret_cast<uintptr_t>(malloc(size_needed));
+  if (UNLIKELY(start == 0)) {
+    return ENOMEM;
+  }
+  
+  if (SmallArena.Contains(reinterpret_cast<void*>(start))) {
+    start += (start % align);
+    ScallocAssert((start % align) == 0);
+  } else {
+    LargeObjectHeader* original_header = LargeObjectHeader::GetFromObject(
+        reinterpret_cast<void*>(start));
+    start += (start % align);
+    if ((start % kPageSize) == 0) {
+      uintptr_t new_hdr_adr = start - kPageSize;
+      if (new_hdr_adr != reinterpret_cast<uintptr_t>(original_header)) {
+        reinterpret_cast<LargeObjectHeader*>(new_hdr_adr)->Reset(0);
+        reinterpret_cast<LargeObjectHeader*>(new_hdr_adr)->fwd =
+        original_header;
+      }
+    }
+  }
+  *ptr = reinterpret_cast<void*>(start);
+  return 0;
 }
 
 void* memalign(size_t __alignment, size_t __size) {

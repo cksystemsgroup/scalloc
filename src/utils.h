@@ -31,6 +31,10 @@ inline int Log2(size_t v) {
   }
   return r;
 }
+  
+inline bool IsPowerOfTwo(size_t num) {
+  return (num != 0) && ((num & (num - 1)) == 0);
+}
 
 size_t Cpus();
 

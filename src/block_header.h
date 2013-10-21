@@ -91,6 +91,15 @@ class LargeObjectHeader : public Header {
   static inline LargeObjectHeader* GetFromObject(void* p) {
     uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
     uintptr_t page_ptr = ptr & ~(kPageSize - 1);
+    
+    if (UNLIKELY(ptr == page_ptr)) {
+      page_ptr -= kPageSize;
+      if (reinterpret_cast<LargeObjectHeader*>(page_ptr)->fwd != NULL) {
+        page_ptr = reinterpret_cast<uintptr_t>(
+            reinterpret_cast<LargeObjectHeader*>(page_ptr)->fwd);
+      }
+    }
+    
     Header* bh = reinterpret_cast<Header*>(page_ptr);
     if (UNLIKELY(bh->type != kLargeObject)) {
       Fatal("Calling LargeObjectHeader::GetFromObject on kSlab type. "
@@ -100,10 +109,12 @@ class LargeObjectHeader : public Header {
     return reinterpret_cast<LargeObjectHeader*>(bh);
   }
   size_t size;
+  LargeObjectHeader* fwd;
 
   inline void Reset(size_t size) {
     this->type = kLargeObject;
     this->size = size;
+    this->fwd = NULL;
   }
 } cache_aligned;
 

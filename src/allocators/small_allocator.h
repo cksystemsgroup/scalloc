@@ -75,18 +75,31 @@ inline void* SmallAllocator::Allocate(const size_t size) {
 
 inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
   SpanHeader* cur_sc_hdr = my_headers_[hdr->size_class];
+  const size_t sc = hdr->size_class;
+  
+  // p may be an address returned by posix_memalign(). We need to fix the
+  // address by aligning it to the next smaller possible block address.
+  // Logically: p = p - ((p - SpanHeaderSize) % BlockSize), which results in
+  // p = p - 0, for already aligned addresses.
+  p = reinterpret_cast<void*>(
+          (reinterpret_cast<uintptr_t>(p) -
+          ((reinterpret_cast<uintptr_t>(p) - sizeof(SpanHeader))
+              % ClassToSize[sc])));
+  
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used slab block.
+
 #ifdef PROFILER_ON
-      Profiler::GetProfiler().LogDeallocation(hdr->size_class);
+      Profiler::GetProfiler().LogDeallocation(sc);
 #endif  // PROFILER_ON
-      LOG(kTrace, "[SlabAllcoator]: free in active local block at %p", p);
+
+      LOG(kTrace, "[SlabAllcoator] free in active local block at %p", p);
       hdr->in_use--;
       hdr->flist.Push(p);
       if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
         if (UNLIKELY(hdr->in_use == 0)) {
-          SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
+          SpanPool::Instance().Put(hdr, sc, hdr->aowner.owner);
         } else {
           hdr->aowner.active = false;
         }
@@ -96,10 +109,10 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
     if (__sync_bool_compare_and_swap(
           &hdr->aowner.raw, me_inactive_, me_active_)) {
 #ifdef PROFILER_ON
-      Profiler::GetProfiler().LogDeallocation(hdr->size_class, false);
+      Profiler::GetProfiler().LogDeallocation(sc, false);
 #endif  // PROFILER_ON
-      LOG(kTrace, "[SlabAllcoator]: free in retired local block at %p, "
-                  "sc: %lu, in_use: %lu", p, hdr->size_class, hdr->in_use);
+      LOG(kTrace, "[SlabAllcoator] free in retired local block at %p, "
+                  "sc: %lu, in_use: %lu", p, sc, hdr->in_use);
       hdr->in_use--;
       hdr->flist.Push(p);
 
