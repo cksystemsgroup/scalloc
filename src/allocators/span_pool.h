@@ -44,9 +44,9 @@ inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool] put: %p", p);
 
 #ifdef EAGER_MADVISE
-  LOG(kTrace, "[SpanPool] madvise (eager): %p, class :%lu, spansize: %lu",
-      p, sc, ClassToSpanSize[sc]);
   if (ClassToSpanSize[sc] > kEagerMadviseThreshold) {
+    LOG(kTrace, "[SpanPool] madvise (eager): %p, class :%lu, spansize: %lu",
+        p, sc, ClassToSpanSize[sc]);
     madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + kPageSize),
             kVirtualSpanSize - kPageSize,
             MADV_DONTNEED);
