@@ -41,9 +41,11 @@ inline SpanPool& SpanPool::Instance() {
 }
 
 inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
-  LOG(kTrace, "[SpanPool]: put: %p", p);
+  LOG(kTrace, "[SpanPool] put: %p", p);
 
 #ifdef EAGER_MADVISE
+  LOG(kTrace, "[SpanPool] madvise (eager): %p, class :%lu, spansize: %lu",
+      p, sc, ClassToSpanSize[sc]);
   if (ClassToSpanSize[sc] > kEagerMadviseThreshold) {
     madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + kPageSize),
             kVirtualSpanSize - kPageSize,
@@ -61,7 +63,7 @@ inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
 }
 
 inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
-  LOG(kTrace, "[SpanPool]: get request");
+  LOG(kTrace, "[SpanPool] get request");
 
 #ifdef PROFILER_ON
   Profiler::GetProfiler().IncreaseRealSpanFragmentation(
@@ -94,9 +96,13 @@ inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   if ((i > sc) &&
       (ClassToSpanSize[i] != ClassToSpanSize[sc]) &&
       (ClassToSpanSize[sc] < kEagerMadviseThreshold)) {
+    LOG(kTrace, "[SpanPool] madvise (eager): %p, class :%lu, spansize: %lu",
+        reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
 #else
   if ((i > sc) &&
       (ClassToSpanSize[i] != ClassToSpanSize[sc])) {
+    LOG(kTrace, "[SpanPool] madvise (eager): %p, class :%lu, spansize: %lu",
+        reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
 #endif  // EAGER_MADVISE
     madvise(reinterpret_cast<void*>(
                 reinterpret_cast<uintptr_t>(result) + ClassToSpanSize[sc]),
@@ -118,7 +124,7 @@ inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
     *reusable = true;
   }
 
-  LOG(kTrace, "[SpanPool]: get: %p", result);
+  LOG(kTrace, "[SpanPool] get: %p", result);
   return result;
 }
 
