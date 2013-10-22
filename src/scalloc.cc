@@ -168,12 +168,12 @@ int posix_memalign(void** ptr, size_t align, size_t size) {
   }
   
   if (SmallArena.Contains(reinterpret_cast<void*>(start))) {
-    start += (start % align);
+    start += align - (start % align);
     ScallocAssert((start % align) == 0);
   } else {
     LargeObjectHeader* original_header = LargeObjectHeader::GetFromObject(
         reinterpret_cast<void*>(start));
-    start += (start % align);
+    start += align - (start % align);
     if ((start % kPageSize) == 0) {
       uintptr_t new_hdr_adr = start - kPageSize;
       if (new_hdr_adr != reinterpret_cast<uintptr_t>(original_header)) {
