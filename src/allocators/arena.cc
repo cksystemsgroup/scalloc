@@ -13,7 +13,7 @@ void Arena::Init(size_t size) {
     Fatal("arena: mmap failed.\n"
           "\tsize: %lu\n"
           "\terrno: %lu",
-          errno, size);
+          size, errno);
   }
   p += size_ - (p % size_);
   start_ = current_ = p;

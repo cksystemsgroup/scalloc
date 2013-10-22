@@ -82,8 +82,9 @@ void SmallAllocator::Refill(const size_t sc) {
   if (!reusable) {
     block += sizeof(SpanHeader);
     size_t block_size = ClassToSize[sc];
-    hdr->flist.FromBlock(reinterpret_cast<void*>
-                         (block), block_size, hdr->max_num_blocks);
+    hdr->flist.FromBlock(reinterpret_cast<void*>(block),
+                         block_size,
+                         hdr->max_num_blocks);
   }
 
   SetActiveSlab(sc, hdr);

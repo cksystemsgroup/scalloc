@@ -77,14 +77,14 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
   SpanHeader* cur_sc_hdr = my_headers_[hdr->size_class];
   const size_t sc = hdr->size_class;
   
-  // p may be an address returned by posix_memalign(). We need to fix the
-  // address by aligning it to the next smaller possible block address.
-  // Logically: p = p - ((p - SpanHeaderSize) % BlockSize), which results in
-  // p = p - 0, for already aligned addresses.
+  // p may be an address returned by posix_memalign(). We need to fix this.
+  // |---SpanHeader---|---block---|---block---|---...---|
+  // p may be anywhere in a block (because of memalign), hence we need to map it
+  // back to its block starting address.
   p = reinterpret_cast<void*>(
-          (reinterpret_cast<uintptr_t>(p) -
-          ((reinterpret_cast<uintptr_t>(p) - sizeof(SpanHeader))
-              % ClassToSize[sc])));
+      reinterpret_cast<uintptr_t>(p) -
+      ((reinterpret_cast<uintptr_t>(p) % ClassToSize[sc]) -
+          hdr->flist_aligned_blocksize_offset));
   
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used slab block.

@@ -84,6 +84,7 @@ static ScallocGuard StartupExitHook;
 namespace scalloc {
 
 void* malloc(const size_t size) {
+  LOG(kTrace, "malloc: size: %lu", size);
   void* p;
   if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
     p = ThreadCache::GetCache().Allocate(size);
@@ -93,6 +94,7 @@ void* malloc(const size_t size) {
   if (UNLIKELY(p == NULL)) {
     errno = ENOMEM;
   }
+  LOG(kTrace, "malloc: returning %p", p);
   return p;
 }
 
@@ -100,6 +102,7 @@ void free(void* p) {
   if (UNLIKELY(p == NULL)) {
     return;
   }
+  LOG(kTrace, "free: %p", p);
   if (SmallArena.Contains(p)) {
     ThreadCache::GetCache().Free(p, reinterpret_cast<SpanHeader*>(
         SpanHeader::GetFromObject(p)));
@@ -150,6 +153,7 @@ void* realloc(void* ptr, size_t size) {
 }
 
 int posix_memalign(void** ptr, size_t align, size_t size) {
+  LOG(kTrace, "posix_memalign: align: %lu, size: %lu", align, size);
   if (UNLIKELY(size == 0)) {                    // Return free-able pointer if
     *ptr = NULL;                                // size == 0.
     return 0;

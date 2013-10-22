@@ -9,6 +9,7 @@
 #include "common.h"
 #include "freelist.h"
 #include "log.h"
+#include "size_classes.h"
 
 enum BlockType {
   kUndef,
@@ -59,6 +60,7 @@ class SpanHeader : public Header {
   size_t size_class;
   size_t max_num_blocks;
   size_t remote_flist;
+  size_t flist_aligned_blocksize_offset;
   } cache_aligned;
 
   // mostly read properties
@@ -77,6 +79,9 @@ class SpanHeader : public Header {
     this->size_class = size_class;
     this->remote_flist = remote_flist;
     this->in_use = 0;
+    this->flist_aligned_blocksize_offset =
+        (reinterpret_cast<uintptr_t>(this) + sizeof(SpanHeader))
+            % scalloc::ClassToSize[size_class];
   }
 
   // The utilization of the span in percent.

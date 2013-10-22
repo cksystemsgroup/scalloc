@@ -26,6 +26,7 @@ class LargeAllocator {
 };
 
 inline void* LargeAllocator::Alloc(size_t size) {
+  LOG(kTrace, "large allocator: request size: %lu\n", size);
   size = utils::PadSize(size + sizeof(LargeObjectHeader), kPageSize);
   size_t actual_size;
   uintptr_t p = reinterpret_cast<uintptr_t>(
