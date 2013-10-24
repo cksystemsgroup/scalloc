@@ -6,6 +6,7 @@
 
 #include "allocators/span_pool.h"
 #include "log.h"
+#include "size_classes.h"
 
 namespace scalloc {
 
@@ -65,7 +66,8 @@ void SmallAllocator::Refill(const size_t sc) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogSizeclassRefill();
 #endif  // PROFILER_ON
-  LOG(kTrace, "[SlabAllocator]: refilling size class: %lu", sc);
+  LOG(kTrace, "[SlabAllocator] refilling size class: %lu, object size: %lu",
+      sc, ClassToSize[sc]);
   bool reusable;
   uintptr_t block = reinterpret_cast<uintptr_t>
       (SpanPool::Instance().Get(sc, id_, &reusable));

@@ -103,7 +103,7 @@ void free(void* p) {
     return;
   }
   LOG(kTrace, "free: %p", p);
-  if (SmallArena.Contains(p)) {
+  if (LIKELY(SmallArena.Contains(p))) {
     ThreadCache::GetCache().Free(p, reinterpret_cast<SpanHeader*>(
         SpanHeader::GetFromObject(p)));
   } else {

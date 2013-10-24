@@ -42,10 +42,12 @@ void ThreadCache::InitModule() {
 
 ThreadCache* ThreadCache::New(pthread_t owner) {
   ThreadCache* cache = g_threadcache_alloc.New();
-  cache->allocator_.Init(__sync_fetch_and_add(&g_thread_id, 1));
+  const uint64_t id = __sync_fetch_and_add(&g_thread_id, 1);
+  cache->allocator_.Init(id);
   cache->owner_ = owner;
   cache->next_ = thread_caches_;
   thread_caches_ = cache;
+  LOG(kTrace, "[ThreadCache] creating new cache; id: %lu, p: %p\n", id, cache);
   return cache;
 }
 
@@ -85,12 +87,30 @@ void ThreadCache::DestroyThreadCache(void* p) {
   if (p == NULL) {
     return;
   }
+  LOG(kTrace, "[ThreadCache] destroy; p :%p", p);
 #ifdef HAVE_TLS
   tl_cache_ = NULL;
 #endif  // HAVE_TLS
 
   ThreadCache* cache = reinterpret_cast<ThreadCache*>(p);
   cache->allocator_.Destroy();
+
+  {
+    LockScope(g_threadcache_lock);
+
+    ThreadCache* prev = NULL;
+    for (ThreadCache* c = thread_caches_; c != NULL; c = c->next_) {
+      if (c == cache) {
+        if (prev == NULL) {
+          thread_caches_ = NULL;
+        } else {
+          prev->next_ = c->next_;
+        }
+        break;
+      }
+      prev = c;
+    }
+  }
 
   // Finally, delete the cache.
   g_threadcache_alloc.Delete(cache);

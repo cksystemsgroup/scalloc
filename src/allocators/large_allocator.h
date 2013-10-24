@@ -26,7 +26,7 @@ class LargeAllocator {
 };
 
 inline void* LargeAllocator::Alloc(size_t size) {
-  LOG(kTrace, "large allocator: request size: %lu\n", size);
+  LOG(kTrace, "[LargeAllocator] request size: %lu", size);
   size = utils::PadSize(size + sizeof(LargeObjectHeader), kPageSize);
   size_t actual_size;
   uintptr_t p = reinterpret_cast<uintptr_t>(
@@ -39,8 +39,8 @@ inline void* LargeAllocator::Alloc(size_t size) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
-  LOG(kTrace, "[LargeAllocator]: allocation size: %lu, actual size: %lu, "
-              "p: %p", size, actual_size, reinterpret_cast<void*>(p));
+  LOG(kTrace, "[LargeAllocator] allocation size: %lu ,p: %p",
+      size, reinterpret_cast<void*>(p));
   return reinterpret_cast<void*>(p + sizeof(*lbh));
 };
 
@@ -48,6 +48,8 @@ inline void LargeAllocator::Free(LargeObjectHeader* lbh) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogDeallocation(lbh->size);
 #endif  // PROFILER_ON
+  LOG(kTrace, "[LargeAllocator] free: %p size: %lu",
+      reinterpret_cast<void*>(lbh), lbh->size);
   scalloc::SystemFree_Mmap(reinterpret_cast<void*>(lbh), lbh->size);
 }
 
