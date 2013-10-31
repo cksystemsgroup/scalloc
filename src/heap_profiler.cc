@@ -1,5 +1,7 @@
 #include "heap_profiler.h"
 
+#ifdef HEAP_PROFILE
+
 namespace {
 
   
@@ -18,3 +20,5 @@ HeapProfiler* HeapProfiler::New() {
 }
 
 }
+
+#endif  // HEAP_PROFILE
