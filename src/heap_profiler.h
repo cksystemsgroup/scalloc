@@ -8,14 +8,7 @@ namespace scalloc {
 
 #ifndef HEAP_PROFILE
 
-  //#define PROFILE_ALLOCATION(ptr, size) do {                                     \
-  //} while (0)
-
 #else  // HEAP_PROFILE
-
-  //#define PROFILE_ALLOCATION2(ptr, size) do {                                     \
-  //HeapProfiler::Get()->LogAllocation(ptr, size);                               \
-  //while (0)
 
 struct ProfileData {
 
