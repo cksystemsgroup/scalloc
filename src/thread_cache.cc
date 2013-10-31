@@ -2,7 +2,10 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
+#include "allocators/small_allocator.h"
+#include "spinlock-inl.h"
 #include "thread_cache.h"
+#include "typed_allocator.h"
 
 namespace {
 
@@ -43,7 +46,10 @@ void ThreadCache::InitModule() {
 ThreadCache* ThreadCache::New(pthread_t owner) {
   ThreadCache* cache = g_threadcache_alloc.New();
   const uint64_t id = __sync_fetch_and_add(&g_thread_id, 1);
-  cache->allocator_.Init(id);
+  cache->alloc_ = SmallAllocator::New();
+  cache->Allocator()->Init(id);
+  cache->profiler_ = HeapProfiler::New();
+  //cache->allocator_.Init(id);
   cache->owner_ = owner;
   cache->next_ = thread_caches_;
   thread_caches_ = cache;
@@ -93,7 +99,8 @@ void ThreadCache::DestroyThreadCache(void* p) {
 #endif  // HAVE_TLS
 
   ThreadCache* cache = reinterpret_cast<ThreadCache*>(p);
-  cache->allocator_.Destroy();
+  cache->Allocator()->Destroy();
+//  cache->allocator_.Destroy();
 
   {
     LockScope(g_threadcache_lock);

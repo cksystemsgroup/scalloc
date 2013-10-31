@@ -7,16 +7,17 @@
 
 #include <pthread.h>
 
-#include "allocators/small_allocator.h"
+//#include "allocators/small_allocator.h"
 #include "block_header.h"
 #include "common.h"
 
-#ifdef PROFILER_ON
-#include "profiler.h"
-#endif  // PROFILER_ON
-
 namespace scalloc {
 
+#ifdef HEAP_PROFILE
+class HeapProfiler;
+#endif  // HEAP_PROFILE
+class SmallAllocator;
+  
 // A threadlocal cache that may hold any allocator.  We use __thread as fast
 // path, but still implement a pthread_{get|set}specific version, since we need
 // a finalizer for threads that terminate and support platforms which do not
@@ -24,16 +25,21 @@ namespace scalloc {
 class ThreadCache {
  public:
   static void InitModule();
-
   static ThreadCache& GetCache();
 
-  void* Allocate(const size_t size);
-  void Free(void* ptr, Header* hdr);
-#ifdef PROFILER_ON
-  Profiler& GetProfiler() { return profiler_; }
-#endif  // PROFILER_ON
+//void* Allocate(const size_t size);
+//void Free(void* ptr, Header* hdr);
+#ifdef HEAP_PROFILE
+  inline HeapProfiler* Profiler() { return profiler_; }
+#endif  // HEAP_PROFILE
+  inline SmallAllocator* Allocator() { return alloc_; }
 
  private:
+  static ThreadCache* RawGetCache();
+  static ThreadCache* NewIfNecessary();
+  static ThreadCache* New(pthread_t owner);
+  static void DestroyThreadCache(void* p);
+
 #ifdef HAVE_TLS
   // Fast path thread-local access point.
   static __thread ThreadCache* tl_cache_ TLS_MODE;
@@ -41,19 +47,15 @@ class ThreadCache {
   static bool module_init_;
   static ThreadCache* thread_caches_;
   static pthread_key_t cache_key_;
-
-  static ThreadCache* RawGetCache();
-  static ThreadCache* NewIfNecessary();
-  static ThreadCache* New(pthread_t owner);
-  static void DestroyThreadCache(void* p);
-
-  SmallAllocator allocator_;
+  
+//  SmallAllocator allocator_;
+  SmallAllocator* alloc_;
   bool in_setspecific_;
   pthread_t owner_;
   ThreadCache* next_;
-#ifdef PROFILER_ON
-  Profiler profiler_;
-#endif  // PROFILER_ON
+#ifdef HEAP_PROFILE
+  HeapProfiler* profiler_;
+#endif  // HEAP_PROFILE
 } cache_aligned;
 
 inline ThreadCache* ThreadCache::RawGetCache() {
@@ -76,13 +78,13 @@ inline ThreadCache& ThreadCache::GetCache() {
   return *cache;
 }
 
-inline void* ThreadCache::Allocate(const size_t size) {
-  return allocator_.Allocate(size);
-}
-
-inline void ThreadCache::Free(void* p, Header* hdr) {
-  allocator_.Free(p, reinterpret_cast<SpanHeader*>(hdr));
-}
+//inline void* ThreadCache::Allocate(const size_t size) {
+//  return allocator_.Allocate(size);
+//}
+//
+//inline void ThreadCache::Free(void* p, Header* hdr) {
+//  allocator_.Free(p, reinterpret_cast<SpanHeader*>(hdr));
+//}
 
 }  // namespace scalloc
 

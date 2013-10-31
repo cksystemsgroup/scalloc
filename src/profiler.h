@@ -22,6 +22,14 @@
 #include "size_classes.h"
 #include "spinlock-inl.h"
 
+
+#ifdef PROFILE
+#define PROFILE_ALLOCATION(size) \
+  Profiler::Get()->LogAllocation(size);
+#else
+#define PROFILE_ALLOCATION(size) do {} while(0);
+#endif
+
 #define SCALLOC_PROFILER_METHOD_GUARD \
     if (UNLIKELY(!enabled_)) return; \
     if (UNLIKELY(self_allocating_)) return; \

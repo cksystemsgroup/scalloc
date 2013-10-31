@@ -14,6 +14,7 @@
 #include "assert.h"
 #include "common.h"
 #include "distributed_queue.h"
+#include "heap_profiler.h"
 #include "override.h"
 #include "scalloc_arenas.h"
 #include "scalloc_guard.h"
@@ -50,6 +51,11 @@ SIZE_CLASSES
 #undef SIZE_CLASS
 };
 
+#ifdef HEAP_PROFILE
+cache_aligned TypedAllocator<HeapProfiler> profile_allocator;
+#endif  // HEAP_PROFILE
+cache_aligned TypedAllocator<SmallAllocator> small_allocator_allocator;
+  
 }  // namespace scalloc
 
 static int scallocguard_refcount = 0;
@@ -62,9 +68,17 @@ ScallocGuard::ScallocGuard() {
     DistributedQueue::InitModule();
     scalloc::SpanPool::InitModule();
     scalloc::BlockPool::InitModule();
-    scalloc::SmallAllocator::InitModule();
+    
+    scalloc::small_allocator_allocator.Init(kPageSize, 64);
+    scalloc::SmallAllocator::InitModule(&scalloc::small_allocator_allocator);
+    
     scalloc::ThreadCache::InitModule();
 
+#ifdef HEAP_PROFILE
+    scalloc::profile_allocator.Init(kPageSize, 64);
+    scalloc::HeapProfiler::Init(&scalloc::profile_allocator);
+#endif // HEAP_PROFILE
+    
     free(malloc(1));
 
 #ifdef PROFILER_ON
@@ -87,7 +101,8 @@ void* malloc(const size_t size) {
   LOG(kTrace, "malloc: size: %lu", size);
   void* p;
   if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
-    p = ThreadCache::GetCache().Allocate(size);
+    p = ThreadCache::GetCache().Allocator()->Allocate(size);
+//    p = ThreadCache::GetCache().Allocate(size);
   } else {
     p = LargeAllocator::Alloc(size);
   }
@@ -104,8 +119,10 @@ void free(void* p) {
   }
   LOG(kTrace, "free: %p", p);
   if (LIKELY(SmallArena.Contains(p))) {
-    ThreadCache::GetCache().Free(p, reinterpret_cast<SpanHeader*>(
-        SpanHeader::GetFromObject(p)));
+//    ThreadCache::GetCache().Free(p, reinterpret_cast<SpanHeader*>(
+//        SpanHeader::GetFromObject(p)));
+    ThreadCache::GetCache().Allocator()->Free(
+        p, reinterpret_cast<SpanHeader*>(SpanHeader::GetFromObject(p)));
   } else {
     LargeAllocator::Free(reinterpret_cast<LargeObjectHeader*>(
         LargeObjectHeader::GetFromObject(p)));

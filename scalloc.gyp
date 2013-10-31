@@ -11,6 +11,7 @@
     ],
     'default_ldflags': [
     ],
+    'heap_profile%': 0,
     'log_level%': "kWarning",
     'span_reuse_threshold%': 80,
     'local_reuse_threshold%': 80,
@@ -70,7 +71,12 @@
           'defines': [
             'EAGER_MADVISE_THRESHOLD=<(eager_madvise_threshold)'
           ]
-        }]
+        }],
+        ['<(heap_profile)!=0', {
+          'defines': [
+            'HEAP_PROFILE'
+          ]
+        }],
       ],
       'sources': [
         'src/allocators/arena.cc',
@@ -89,6 +95,8 @@
         'src/distributed_queue.cc',
         'src/distributed_queue.h',
         'src/freelist.h',
+        'src/heap_profiler.cc',
+        'src/heap_profiler.h',
         'src/log.cc',
         'src/log.h',
         'src/override.h',

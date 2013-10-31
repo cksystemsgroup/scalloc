@@ -11,6 +11,7 @@
 #include "allocators/block_pool.h"
 #include "common.h"
 #include "block_header.h"
+#include "heap_profiler.h"
 #include "span_pool.h"
 #include "size_classes.h"
 
@@ -22,8 +23,9 @@ namespace scalloc {
 
 class SmallAllocator {
  public:
-  static void InitModule();
+  static void InitModule(TypedAllocator<SmallAllocator>* alloc);
   static bool Enabled();
+  static SmallAllocator* New();
 
   void Init(const uint64_t id);
   void* Allocate(const size_t size);
@@ -32,6 +34,7 @@ class SmallAllocator {
   void Destroy();
 
  private:
+  static TypedAllocator<SmallAllocator>* allocator;
   static bool enabled_;
 
   uint64_t id_;
@@ -66,6 +69,7 @@ inline void* SmallAllocator::Allocate(const size_t size) {
 #ifdef PROFILER_ON
     Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
+        //PROFILE_ALLOCATION2(result, size);
     hdr->in_use++;
     return result;
   }

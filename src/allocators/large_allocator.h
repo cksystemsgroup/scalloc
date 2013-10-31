@@ -44,7 +44,7 @@ inline void* LargeAllocator::Alloc(size_t size) {
   return reinterpret_cast<void*>(p + sizeof(*lbh));
 };
 
-inline void LargeAllocator::Free(LargeObjectHeader* lbh) {
+inline void LargeAllocator::Free(LargeObjectHeader* lbh) {  
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogDeallocation(lbh->size);
 #endif  // PROFILER_ON

@@ -10,10 +10,16 @@
 
 namespace scalloc {
 
+TypedAllocator<SmallAllocator>* SmallAllocator::allocator;
 bool SmallAllocator::enabled_;
 
-void SmallAllocator::InitModule() {
+void SmallAllocator::InitModule(TypedAllocator<SmallAllocator>* alloc) {
   enabled_ = true;
+  allocator = alloc;
+}
+
+SmallAllocator* SmallAllocator::New() {
+  return allocator->New();
 }
 
 void SmallAllocator::Init(const uint64_t id) {
