@@ -11,6 +11,7 @@
 /// An unlocked free list.
 class Freelist {
  public:
+  inline Freelist() {}
   void FromBlock(const void* start, const size_t size, size_t len);
   void AddRange(const void* start, const size_t size, size_t len);
 
