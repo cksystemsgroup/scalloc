@@ -56,12 +56,12 @@ class SpanHeader : public Header {
 
   // read-only properties
 
-  struct {
+  //struct {
   size_t size_class;
   size_t max_num_blocks;
   size_t remote_flist;
   size_t flist_aligned_blocksize_offset;
-  } cache_aligned;
+  //} cache_aligned;
 
   // mostly read properties
 
@@ -69,10 +69,10 @@ class SpanHeader : public Header {
 
   // thread-local read/write properties
 
-  struct {
+  //struct {
   uint64_t in_use;
   Freelist flist;
-  } cache_aligned;
+  //} cache_aligned;
 
   inline void Reset(const size_t size_class, const size_t remote_flist) {
     this->type = kSlab;
