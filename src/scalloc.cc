@@ -102,7 +102,6 @@ void* malloc(const size_t size) {
   void* p;
   if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
     p = ThreadCache::GetCache().Allocator()->Allocate(size);
-//    p = ThreadCache::GetCache().Allocate(size);
   } else {
     p = LargeAllocator::Alloc(size);
   }
@@ -119,8 +118,6 @@ void free(void* p) {
   }
   LOG(kTrace, "free: %p", p);
   if (LIKELY(SmallArena.Contains(p))) {
-//    ThreadCache::GetCache().Free(p, reinterpret_cast<SpanHeader*>(
-//        SpanHeader::GetFromObject(p)));
     ThreadCache::GetCache().Allocator()->Free(
         p, reinterpret_cast<SpanHeader*>(SpanHeader::GetFromObject(p)));
   } else {

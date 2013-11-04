@@ -4,11 +4,12 @@
 
 #include "system-alloc.h"
 
+#include <errno.h>
 #include <stdint.h>  // intptr_t and friends
 #include <sys/mman.h>  // mmap
 
 #include "assert.h"
-#include "common.h"
+#include "platform.h"
 #include "utils.h"
 
 namespace scalloc {
@@ -23,15 +24,19 @@ void* SystemAlloc_Mmap(size_t size, size_t* actual_size) {
 
   void* p = mmap(
       0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  if ((reinterpret_cast<uintptr_t>(p) % kPageSize) != 0) {
-    Fatal("mmap() did not returned system page size aligned memory");
+  if (reinterpret_cast<void*>(p) == MAP_FAILED) {
+    Fatal("mmap failed. size: %lu, errno: %lu\n", size, errno);
   }
+  ScallocAssert(reinterpret_cast<uintptr_t>(p) % kPageSize == 0);
   return p;
 }
 
+  
 void SystemFree_Mmap(void* p, const size_t actual_size) {
   if (munmap(p, actual_size) != 0) {
-    Fatal("munmap() failed");
+    if (reinterpret_cast<void*>(p) == MAP_FAILED) {
+      Fatal("munmap failed. p: %p, errno: %lu\n", p, errno);
+    }
   }
 }
 
