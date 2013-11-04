@@ -19,7 +19,7 @@ cache_aligned SpinLock refill_lock_(LINKER_INITIALIZED);
 
 void SpanPool::InitModule() {
   unsigned num_cores = utils::Cpus();
-  for (int i = 0; i < kNumClasses; ++i) {
+  for (unsigned i = 0; i < kNumClasses; ++i) {
     span_pool_.size_class_pool_[i].Init(num_cores);
   }
 }
