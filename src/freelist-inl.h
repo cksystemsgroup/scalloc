@@ -18,6 +18,7 @@ class Freelist {
   void* Pop();
   size_t Utilization();
   inline bool Empty() { return list_ == NULL; }
+  inline bool Full() { return len_ == cap_; }
   inline size_t Size() { return len_; }
 
  private:

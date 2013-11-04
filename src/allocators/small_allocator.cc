@@ -72,7 +72,7 @@ void SmallAllocator::Refill(const size_t sc) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogSizeclassRefill();
 #endif  // PROFILER_ON
-  LOG(kTrace, "[SlabAllocator] refilling size class: %lu, object size: %lu",
+  LOG(kTrace, "SmallAllocator: refilling size class: %lu, object size: %lu",
       sc, ClassToSize[sc]);
   bool reusable;
   uintptr_t block = reinterpret_cast<uintptr_t>

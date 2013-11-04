@@ -24,7 +24,7 @@ namespace scalloc {
 class SmallAllocator {
  public:
   static void InitModule(TypedAllocator<SmallAllocator>* alloc);
-  static bool Enabled();
+  static inline bool Enabled() { return enabled_; }
   static SmallAllocator* New();
 
   void Init(const uint64_t id);
@@ -34,48 +34,45 @@ class SmallAllocator {
   void Destroy();
 
  private:
+  void Refill(const size_t sc);
+  SpanHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
+  void* AllocateNoSlab(const size_t sc, const size_t size);
+
   static TypedAllocator<SmallAllocator>* allocator;
   static bool enabled_;
 
   uint64_t id_;
   SpanHeader* my_headers_[kNumClasses];
-
-  void Refill(const size_t sc);
-  SpanHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
-  void* AllocateNoSlab(const size_t sc, const size_t size);
-
   uint64_t me_active_;
   uint64_t me_inactive_;
 } cache_aligned;
 
-inline bool SmallAllocator::Enabled() {
-  return enabled_;
-}
 
 inline void SmallAllocator::SetActiveSlab(const size_t sc,
-                                                  const SpanHeader* hdr) {
+                                          const SpanHeader* hdr) {
   my_headers_[sc] = const_cast<SpanHeader*>(hdr);
 }
 
+
 inline void* SmallAllocator::Allocate(const size_t size) {
+  void* result;
   const size_t sc = SizeToClass(size);
   SpanHeader* hdr = my_headers_[sc];
-  void* result;
+
   if (UNLIKELY(hdr == NULL)) {
     return AllocateNoSlab(sc, size);
   }
 
-  if ((result = hdr->flist.Pop())) {
+  if ((result = hdr->flist.Pop()) != NULL) {
 #ifdef PROFILER_ON
     Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
-        //PROFILE_ALLOCATION2(result, size);
-    hdr->in_use++;
     return result;
   }
 
   return AllocateNoSlab(sc, size);
 }
+
 
 inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
   SpanHeader* cur_sc_hdr = my_headers_[hdr->size_class];
@@ -91,18 +88,15 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
           hdr->flist_aligned_blocksize_offset));
   
   if (hdr->aowner.raw == me_active_) {
-      // Local free for the currently used slab block.
-
+      // Local free for the currently used span.
 #ifdef PROFILER_ON
       Profiler::GetProfiler().LogDeallocation(sc);
 #endif  // PROFILER_ON
-
-      LOG(kTrace, "[SlabAllcoator] free in active local block at %p", p);
-      hdr->in_use--;
+      LOG(kTrace, "SmallAllocator: free in active local block at %p", p);
       hdr->flist.Push(p);
       if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
-        if (UNLIKELY(hdr->in_use == 0)) {
+        if (UNLIKELY(hdr->flist.Full())) {
           SpanPool::Instance().Put(hdr, sc, hdr->aowner.owner);
         } else {
           hdr->aowner.active = false;
@@ -110,14 +104,14 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       }
       return;
   } else if (hdr->aowner.raw == me_inactive_) {
+    // Local free in already globally available span.
     if (__sync_bool_compare_and_swap(
           &hdr->aowner.raw, me_inactive_, me_active_)) {
 #ifdef PROFILER_ON
       Profiler::GetProfiler().LogDeallocation(sc, false);
 #endif  // PROFILER_ON
-      LOG(kTrace, "[SlabAllcoator] free in retired local block at %p, "
-                  "sc: %lu, in_use: %lu", p, sc, hdr->in_use);
-      hdr->in_use--;
+      LOG(kTrace, "SmallAllocator: free in retired local block at %p, "
+                  "sc: %lu", p, sc);
       hdr->flist.Push(p);
 
       if (cur_sc_hdr->Utilization() > kLocalReuseThreshold) {
@@ -128,7 +122,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
         return;
       }
 
-      if (hdr->in_use == 0) {
+      if (hdr->flist.Full()) {
         SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
         return;
       }
@@ -141,7 +135,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogDeallocation(hdr->size_class, false, true);
 #endif  // PROFILER_ON
-  LOG(kTrace, "[SlabAllocator]: remote free for %p, owner: %lu, me: %lu",
+  LOG(kTrace, "SmallAllocator: remote free for %p, owner: %lu, me: %lu",
       p, hdr->aowner.owner, id_);
   BlockPool::Instance().Free(p, hdr->size_class, hdr->aowner.owner);
 }

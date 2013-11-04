@@ -60,7 +60,6 @@ class SpanHeader : public Header {
     this->type = kSlab;
     this->size_class = size_class;
     this->remote_flist = id;
-    this->in_use = 0;
     this->flist_aligned_blocksize_offset =
         (reinterpret_cast<uintptr_t>(this) + sizeof(SpanHeader))
             % scalloc::ClassToSize[size_class];
@@ -88,11 +87,8 @@ class SpanHeader : public Header {
   cache_aligned ActiveOwner aowner;
 
   // thread-local read/write properties
-  uint64_t in_use;
   Freelist flist;
-#define RW_SZ                               \
-  (sizeof(in_use) +                         \
-  sizeof(flist))
+#define RW_SZ (sizeof(flist))
   char pad2[CACHELINE_SIZE - (RW_SZ % CACHELINE_SIZE)];  // NOLINT
 #undef RW_SZ
 } cache_aligned;
