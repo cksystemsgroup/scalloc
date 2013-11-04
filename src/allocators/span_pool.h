@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -21,24 +21,21 @@ namespace scalloc {
 class SpanPool {
  public:
   static void InitModule();
-  static SpanPool& Instance();
+  static inline SpanPool& Instance() { return span_pool_; }
 
   void Refill(const size_t refill);
   void* Get(size_t sc, uint32_t tid, bool* reusable);
   void Put(void* p, size_t sc, uint32_t tid);
 
  private:
-  static SpanPool page_heap_ cache_aligned;
+  void* RefillOne();
+
+  static SpanPool span_pool_ cache_aligned;
   static const size_t kSpanPoolBackends = kNumClasses;
 
   DistributedQueue size_class_pool_[kNumClasses] cache_aligned;
-
-  void* RefillOne();
 };
 
-inline SpanPool& SpanPool::Instance() {
-  return page_heap_;
-}
 
 inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool] put: %p", p);
@@ -51,7 +48,7 @@ inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
             kVirtualSpanSize - kPageSize,
             MADV_DONTNEED);
   }
-#endif  // EAGER_MADVISE_ON
+#endif  // EAGER_MADVISE
 
   size_class_pool_[sc].EnqueueAt(p, tid % utils::Cpus());
 
@@ -61,6 +58,7 @@ inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
   GlobalProfiler::Instance().LogSpanPoolPut(sc);
 #endif  // PROFILER_ON
 }
+
 
 inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   LOG(kTrace, "[SpanPool] get request");
@@ -101,7 +99,7 @@ inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
 #else
   if ((i > sc) &&
       (ClassToSpanSize[i] != ClassToSpanSize[sc])) {
-    LOG(kTrace, "[SpanPool] madvise (eager): %p, class :%lu, spansize: %lu",
+    LOG(kTrace, "[SpanPool] madvise: %p, class :%lu, spansize: %lu",
         reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
 #endif  // EAGER_MADVISE
     madvise(reinterpret_cast<void*>(
@@ -112,7 +110,6 @@ inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
 #ifdef PROFILER_ON
     GlobalProfiler::Instance().LogSpanShrink(sc);
 #endif  // PROFILER_ON
-
   }
 
 #ifdef EAGER_MADVISE

@@ -31,7 +31,7 @@ void* SystemAlloc_Mmap(size_t size, size_t* actual_size) {
   return p;
 }
 
-  
+
 void SystemFree_Mmap(void* p, const size_t actual_size) {
   if (munmap(p, actual_size) != 0) {
     if (reinterpret_cast<void*>(p) == MAP_FAILED) {

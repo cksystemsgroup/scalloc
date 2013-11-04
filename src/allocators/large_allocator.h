@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -25,6 +25,7 @@ class LargeAllocator {
   static bool Owns(const void* p);
 };
 
+
 inline void* LargeAllocator::Alloc(size_t size) {
   LOG(kTrace, "[LargeAllocator] request size: %lu", size);
   size = utils::PadSize(size + sizeof(LargeObjectHeader), kPageSize);
@@ -44,7 +45,8 @@ inline void* LargeAllocator::Alloc(size_t size) {
   return reinterpret_cast<void*>(p + sizeof(*lbh));
 };
 
-inline void LargeAllocator::Free(LargeObjectHeader* lbh) {  
+
+inline void LargeAllocator::Free(LargeObjectHeader* lbh) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogDeallocation(lbh->size);
 #endif  // PROFILER_ON
@@ -52,6 +54,7 @@ inline void LargeAllocator::Free(LargeObjectHeader* lbh) {
       reinterpret_cast<void*>(lbh), lbh->size);
   scalloc::SystemFree_Mmap(reinterpret_cast<void*>(lbh), lbh->size);
 }
+
 
 inline bool LargeAllocator::Owns(const void* p) {
   LargeObjectHeader* lbh = reinterpret_cast<LargeObjectHeader*>(

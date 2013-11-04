@@ -7,7 +7,6 @@
 
 #include <pthread.h>
 
-//#include "allocators/small_allocator.h"
 #include "block_header.h"
 #include "common.h"
 
@@ -17,7 +16,7 @@ namespace scalloc {
 class HeapProfiler;
 #endif  // HEAP_PROFILE
 class SmallAllocator;
-  
+
 // A threadlocal cache that may hold any allocator.  We use __thread as fast
 // path, but still implement a pthread_{get|set}specific version, since we need
 // a finalizer for threads that terminate and support platforms which do not
@@ -27,8 +26,6 @@ class ThreadCache {
   static void InitModule();
   static ThreadCache& GetCache();
 
-//void* Allocate(const size_t size);
-//void Free(void* ptr, Header* hdr);
 #ifdef HEAP_PROFILE
   inline HeapProfiler* Profiler() { return profiler_; }
 #endif  // HEAP_PROFILE
@@ -47,8 +44,7 @@ class ThreadCache {
   static bool module_init_;
   static ThreadCache* thread_caches_;
   static pthread_key_t cache_key_;
-  
-//  SmallAllocator allocator_;
+
   SmallAllocator* alloc_;
   bool in_setspecific_;
   pthread_t owner_;
@@ -58,12 +54,14 @@ class ThreadCache {
 #endif  // HEAP_PROFILE
 } cache_aligned;
 
+
 inline ThreadCache* ThreadCache::RawGetCache() {
 #ifdef HAVE_TLS
   return tl_cache_;
 #endif  // HAVE_TLS
   return static_cast<ThreadCache*>(pthread_getspecific(cache_key_));
 }
+
 
 inline ThreadCache& ThreadCache::GetCache() {
   ThreadCache* cache = RawGetCache();
@@ -77,14 +75,6 @@ inline ThreadCache& ThreadCache::GetCache() {
   ScallocAssert(cache != NULL);
   return *cache;
 }
-
-//inline void* ThreadCache::Allocate(const size_t size) {
-//  return allocator_.Allocate(size);
-//}
-//
-//inline void ThreadCache::Free(void* p, Header* hdr) {
-//  allocator_.Free(p, reinterpret_cast<SpanHeader*>(hdr));
-//}
 
 }  // namespace scalloc
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -25,9 +25,8 @@ class SmallAllocator {
  public:
   static void InitModule(TypedAllocator<SmallAllocator>* alloc);
   static inline bool Enabled() { return enabled_; }
-  static SmallAllocator* New();
+  static SmallAllocator* New(const uint64_t id);
 
-  void Init(const uint64_t id);
   void* Allocate(const size_t size);
   void Free(void* p, SpanHeader* hdr);
   void SetActiveSlab(const size_t sc, const SpanHeader* hdr);
@@ -77,7 +76,7 @@ inline void* SmallAllocator::Allocate(const size_t size) {
 inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
   SpanHeader* cur_sc_hdr = my_headers_[hdr->size_class];
   const size_t sc = hdr->size_class;
-  
+
   // p may be an address returned by posix_memalign(). We need to fix this.
   // |---SpanHeader---|---block---|---block---|---...---|
   // p may be anywhere in a block (because of memalign), hence we need to map it
@@ -86,13 +85,13 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       reinterpret_cast<uintptr_t>(p) -
       ((reinterpret_cast<uintptr_t>(p) % ClassToSize[sc]) -
           hdr->flist_aligned_blocksize_offset));
-  
+
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used span.
 #ifdef PROFILER_ON
       Profiler::GetProfiler().LogDeallocation(sc);
 #endif  // PROFILER_ON
-      LOG(kTrace, "SmallAllocator: free in active local block at %p", p);
+      LOG(kTrace, "[SmallAllocator] free in active local block at %p", p);
       hdr->flist.Push(p);
       if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
@@ -110,7 +109,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
 #ifdef PROFILER_ON
       Profiler::GetProfiler().LogDeallocation(sc, false);
 #endif  // PROFILER_ON
-      LOG(kTrace, "SmallAllocator: free in retired local block at %p, "
+      LOG(kTrace, "[SmallAllocator] free in retired local block at %p, "
                   "sc: %lu", p, sc);
       hdr->flist.Push(p);
 
@@ -135,7 +134,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogDeallocation(hdr->size_class, false, true);
 #endif  // PROFILER_ON
-  LOG(kTrace, "SmallAllocator: remote free for %p, owner: %lu, me: %lu",
+  LOG(kTrace, "[SmallAllocator] remote free for %p, owner: %lu, me: %lu",
       p, hdr->aowner.owner, id_);
   BlockPool::Instance().Free(p, hdr->size_class, hdr->aowner.owner);
 }

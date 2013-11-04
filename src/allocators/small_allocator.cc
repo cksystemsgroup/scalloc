@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -13,23 +13,24 @@ namespace scalloc {
 TypedAllocator<SmallAllocator>* SmallAllocator::allocator;
 bool SmallAllocator::enabled_;
 
+
 void SmallAllocator::InitModule(TypedAllocator<SmallAllocator>* alloc) {
   enabled_ = true;
   allocator = alloc;
 }
 
-SmallAllocator* SmallAllocator::New() {
-  return allocator->New();
+
+SmallAllocator* SmallAllocator::New(const uint64_t id) {
+  SmallAllocator* a = allocator->New();
+  a->id_ = id;
+  ActiveOwner dummy;
+  dummy.Reset(true, id);
+  a->me_active_ = dummy.raw;
+  dummy.Reset(false, id);
+  a->me_inactive_ = dummy.raw;
+  return a;
 }
 
-void SmallAllocator::Init(const uint64_t id) {
-  id_ = id;
-  ActiveOwner dummy;
-  dummy.Reset(true, id_);
-  me_active_ = dummy.raw;
-  dummy.Reset(false, id_);
-  me_inactive_ = dummy.raw;
-}
 
 void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
   // Size class 0 represents an object of size 0, which results in malloc()
@@ -42,7 +43,7 @@ void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
 #ifdef PROFILER_ON
     Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
-    // Only try to steal we had a slab at least once.
+    // Only try to steal we had a span at least once.
     SpanHeader* hdr;
     void* p = BlockPool::Instance().Allocate(sc, id_, id_, &hdr);
     if (p != NULL) {
@@ -68,18 +69,17 @@ void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
   return Allocate(size);
 }
 
+
 void SmallAllocator::Refill(const size_t sc) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogSizeclassRefill();
 #endif  // PROFILER_ON
-  LOG(kTrace, "SmallAllocator: refilling size class: %lu, object size: %lu",
+  LOG(kTrace, "[SmallAllocator] refilling size class: %lu, object size: %lu",
       sc, ClassToSize[sc]);
   bool reusable;
   uintptr_t block = reinterpret_cast<uintptr_t>
       (SpanPool::Instance().Get(sc, id_, &reusable));
-  if (UNLIKELY(block == 0)) {
-    Fatal("SpanPool out of memory");
-  }
+  ScallocAssert(block != 0);
 
   SpanHeader* hdr = reinterpret_cast<SpanHeader*>(block);
   hdr->Init(sc, id_);
@@ -93,6 +93,7 @@ void SmallAllocator::Refill(const size_t sc) {
 
   SetActiveSlab(sc, hdr);
 }
+
 
 void SmallAllocator::Destroy() {
   // Destroying basically means giving up all active spans.  We can only give up

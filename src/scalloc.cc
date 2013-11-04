@@ -30,7 +30,6 @@
 namespace scalloc {
 
 cache_aligned Arena InternalArena;
-
 cache_aligned Arena SmallArena;
 
 cache_aligned const uint64_t ClassToObjects[] = {
@@ -55,7 +54,6 @@ SIZE_CLASSES
 cache_aligned TypedAllocator<HeapProfiler> profile_allocator;
 #endif  // HEAP_PROFILE
 cache_aligned TypedAllocator<SmallAllocator> small_allocator_allocator;
-  
 }  // namespace scalloc
 
 static int scallocguard_refcount = 0;
@@ -68,17 +66,17 @@ ScallocGuard::ScallocGuard() {
     DistributedQueue::InitModule();
     scalloc::SpanPool::InitModule();
     scalloc::BlockPool::InitModule();
-    
+
     scalloc::small_allocator_allocator.Init(kPageSize, 64);
     scalloc::SmallAllocator::InitModule(&scalloc::small_allocator_allocator);
-    
+
     scalloc::ThreadCache::InitModule();
 
 #ifdef HEAP_PROFILE
     scalloc::profile_allocator.Init(kPageSize, 64);
     scalloc::HeapProfiler::Init(&scalloc::profile_allocator);
-#endif // HEAP_PROFILE
-    
+#endif  // HEAP_PROFILE
+
     free(malloc(1));
 
 #ifdef PROFILER_ON
@@ -166,25 +164,26 @@ void* realloc(void* ptr, size_t size) {
   return new_ptr;
 }
 
+
 int posix_memalign(void** ptr, size_t align, size_t size) {
   LOG(kTrace, "posix_memalign: align: %lu, size: %lu", align, size);
   if (UNLIKELY(size == 0)) {                    // Return free-able pointer if
     *ptr = NULL;                                // size == 0.
     return 0;
   }
-  
+
   const size_t size_needed = align + size;
-  
+
   if (UNLIKELY(!utils::IsPowerOfTwo(align)) ||  // Power of 2 requirement.
       size_needed < size) {                     // Overflow check.
     return EINVAL;
   }
-  
+
   uintptr_t start = reinterpret_cast<uintptr_t>(malloc(size_needed));
   if (UNLIKELY(start == 0)) {
     return ENOMEM;
   }
-  
+
   if (SmallArena.Contains(reinterpret_cast<void*>(start))) {
     start += align - (start % align);
     ScallocAssert((start % align) == 0);

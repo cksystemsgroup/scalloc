@@ -46,12 +46,10 @@ void ThreadCache::InitModule() {
 ThreadCache* ThreadCache::New(pthread_t owner) {
   ThreadCache* cache = g_threadcache_alloc.New();
   const uint64_t id = __sync_fetch_and_add(&g_thread_id, 1);
-  cache->alloc_ = SmallAllocator::New();
-  cache->Allocator()->Init(id);
+  cache->alloc_ = SmallAllocator::New(id);
 #ifdef HEAP_PROFILE
   cache->profiler_ = HeapProfiler::New();
 #endif  // HEAP_PROFILE
-  //cache->allocator_.Init(id);
   cache->owner_ = owner;
   cache->next_ = thread_caches_;
   thread_caches_ = cache;

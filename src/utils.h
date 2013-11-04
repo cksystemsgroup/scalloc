@@ -10,9 +10,11 @@
 namespace scalloc {
 namespace utils {
 
+
 inline size_t PadSize(size_t size, size_t multiple) {
   return (size + multiple - 1) / multiple * multiple;
 }
+
 
 #define LT(n) n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n
 static const char log_table[256] = {
@@ -20,6 +22,7 @@ static const char log_table[256] = {
   LT(4), LT(5), LT(5), LT(6), LT(6), LT(6), LT(6),
   LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7)
 };
+
 
 // base-2 logarithm of 32-bit integers
 inline int Log2(size_t v) {
@@ -31,10 +34,12 @@ inline int Log2(size_t v) {
   }
   return r;
 }
-  
+
+
 inline bool IsPowerOfTwo(size_t num) {
   return (num != 0) && ((num & (num - 1)) == 0);
 }
+
 
 size_t Cpus();
 
