@@ -20,14 +20,6 @@ enum BlockType {
 
 
 struct ActiveOwner {
-  union {
-    struct {
-      bool active : 1;
-      uint64_t owner : 63;
-    };
-    uint64_t raw;
-  };
-
   inline ActiveOwner() {}
 
   inline ActiveOwner(const bool active, const uint64_t owner) {
@@ -38,12 +30,22 @@ struct ActiveOwner {
     this->active = active;
     this->owner = owner;
   }
+
+  union {
+    struct {
+      bool active : 1;
+      uint64_t owner : 63;
+    };
+    uint64_t raw;
+  };
 };
 
 
 class Header {
  public:
   BlockType type;
+
+  DISALLOW_ALLOCATION();
 };
 
 
@@ -54,40 +56,45 @@ class SpanHeader : public Header {
         (reinterpret_cast<uintptr_t>(p) & kVirtualSpanMask);
   }
 
-  // read-only properties
-
-  //struct {
-  size_t size_class;
-  size_t max_num_blocks;
-  size_t remote_flist;
-  size_t flist_aligned_blocksize_offset;
-  //} cache_aligned;
-
-  // mostly read properties
-
-  cache_aligned ActiveOwner aowner;
-
-  // thread-local read/write properties
-
-  //struct {
-  uint64_t in_use;
-  Freelist flist;
-  //} cache_aligned;
-
-  inline void Reset(const size_t size_class, const size_t remote_flist) {
+  inline void Init(const size_t size_class, const size_t id) {
     this->type = kSlab;
     this->size_class = size_class;
-    this->remote_flist = remote_flist;
+    this->remote_flist = id;
     this->in_use = 0;
     this->flist_aligned_blocksize_offset =
         (reinterpret_cast<uintptr_t>(this) + sizeof(SpanHeader))
             % scalloc::ClassToSize[size_class];
+    this->aowner.owner = id;
+    this->aowner.active = true;
   }
 
   // The utilization of the span in percent.
   inline size_t Utilization() {
-    return 100 - ((this->flist.Size() * 100) / this->max_num_blocks);
+    return flist.Utilization();
   }
+
+  // read-only properties
+  size_t size_class;
+  size_t remote_flist;
+  size_t flist_aligned_blocksize_offset;
+#define READ_SZ                               \
+  (sizeof(size_class) +                       \
+  sizeof(remote_flist) +                      \
+  sizeof(flist_aligned_blocksize_offset))
+  char pad1[CACHELINE_SIZE - (READ_SZ % CACHELINE_SIZE)];  // NOLINT
+#undef READ_SZ
+
+  // mostly read properties
+  cache_aligned ActiveOwner aowner;
+
+  // thread-local read/write properties
+  uint64_t in_use;
+  Freelist flist;
+#define RW_SZ                               \
+  (sizeof(in_use) +                         \
+  sizeof(flist))
+  char pad2[CACHELINE_SIZE - (RW_SZ % CACHELINE_SIZE)];  // NOLINT
+#undef RW_SZ
 } cache_aligned;
 
 
@@ -96,31 +103,38 @@ class LargeObjectHeader : public Header {
   static inline LargeObjectHeader* GetFromObject(void* p) {
     uintptr_t ptr = reinterpret_cast<uintptr_t>(p);
     uintptr_t page_ptr = ptr & ~(kPageSize - 1);
-    
+
     if (UNLIKELY(ptr == page_ptr)) {
+      // We have a large object that is page aligned. This means that it was
+      // aligned and that we can find a valid header in the page before.
       page_ptr -= kPageSize;
       if (reinterpret_cast<LargeObjectHeader*>(page_ptr)->fwd != NULL) {
+        // Because of alignment, we may actually have to follow a forward
+        // pointer to get to the actual header.
         page_ptr = reinterpret_cast<uintptr_t>(
             reinterpret_cast<LargeObjectHeader*>(page_ptr)->fwd);
       }
     }
-    
+
+#ifdef DEBUG
     Header* bh = reinterpret_cast<Header*>(page_ptr);
     if (UNLIKELY(bh->type != kLargeObject)) {
-      Fatal("Calling LargeObjectHeader::GetFromObject on kSlab type. "
-            "type: %d, ptr: %p, page_ptr: %p",
+      Fatal("Invalid large object header. "
+            "type: %d, ptr: %p, page ptr: %p\n",
             bh->type, p, reinterpret_cast<void*>(page_ptr));
     }
-    return reinterpret_cast<LargeObjectHeader*>(bh);
+#endif
+    return reinterpret_cast<LargeObjectHeader*>(page_ptr);
   }
-  size_t size;
-  LargeObjectHeader* fwd;
 
-  inline void Reset(size_t size) {
+  inline void Reset(size_t size, LargeObjectHeader* fwd = NULL) {
     this->type = kLargeObject;
     this->size = size;
-    this->fwd = NULL;
+    this->fwd = fwd;
   }
+
+  size_t size;
+  LargeObjectHeader* fwd;
 } cache_aligned;
 
 #endif  // SCALLOC_BLOCK_HEADER_H_

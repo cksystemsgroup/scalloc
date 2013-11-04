@@ -10,6 +10,7 @@
 #define UNLIKELY(x)   __builtin_expect((x), 0)
 #define LIKELY(x)     __builtin_expect((x), 1)
 
+#define CACHELINE_SIZE 64
 #define cache_aligned __attribute__((aligned(64)))
 
 #define HAVE_TLS 1

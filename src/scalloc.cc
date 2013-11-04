@@ -195,9 +195,8 @@ int posix_memalign(void** ptr, size_t align, size_t size) {
     if ((start % kPageSize) == 0) {
       uintptr_t new_hdr_adr = start - kPageSize;
       if (new_hdr_adr != reinterpret_cast<uintptr_t>(original_header)) {
-        reinterpret_cast<LargeObjectHeader*>(new_hdr_adr)->Reset(0);
-        reinterpret_cast<LargeObjectHeader*>(new_hdr_adr)->fwd =
-        original_header;
+        reinterpret_cast<LargeObjectHeader*>(new_hdr_adr)->Reset(
+            0, original_header);
       }
     }
   }

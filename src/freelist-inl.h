@@ -16,10 +16,12 @@ class Freelist {
 
   void Push(void* p);
   void* Pop();
+  size_t Utilization();
   inline bool Empty() { return list_ == NULL; }
   inline size_t Size() { return len_; }
 
  private:
+  size_t cap_;
   size_t len_;
   void* list_;
 
@@ -37,6 +39,7 @@ inline void Freelist::InitRange(const void* start,
                                 const size_t size,
                                 size_t len) {
   len_ = len;
+  cap_ = len;
   list_ = NULL;
   uintptr_t start_ptr = reinterpret_cast<uintptr_t>(start);
 #ifdef DEBUG
@@ -76,5 +79,9 @@ inline void* Freelist::Pop() {
   return result;
 }
 
+
+inline size_t Freelist::Utilization() {
+  return 100 - ((len_ * 100) / cap_);
+}
 
 #endif  // SCALLOC_FREELIST_H_

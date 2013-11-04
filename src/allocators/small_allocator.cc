@@ -80,19 +80,15 @@ void SmallAllocator::Refill(const size_t sc) {
   if (UNLIKELY(block == 0)) {
     Fatal("SpanPool out of memory");
   }
-  SpanHeader* hdr;
-  hdr = reinterpret_cast<SpanHeader*>(block);
-  hdr->Reset(sc, id_);
-  hdr->aowner.owner = id_;
-  hdr->aowner.active = true;
-  hdr->max_num_blocks = ClassToObjects[sc];
 
+  SpanHeader* hdr = reinterpret_cast<SpanHeader*>(block);
+  hdr->Init(sc, id_);
   if (!reusable) {
     block += sizeof(SpanHeader);
     size_t block_size = ClassToSize[sc];
     hdr->flist.InitRange(reinterpret_cast<void*>(block),
                          block_size,
-                         hdr->max_num_blocks);
+                         ClassToObjects[sc]);
   }
 
   SetActiveSlab(sc, hdr);
