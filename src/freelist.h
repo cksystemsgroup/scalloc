@@ -12,8 +12,7 @@
 class Freelist {
  public:
   inline Freelist() {}
-  void FromBlock(const void* start, const size_t size, size_t len);
-  void AddRange(const void* start, const size_t size, size_t len);
+  void InitRange(const void* start, const size_t size, size_t len);
 
   void Push(void* p);
   void* Pop();
@@ -34,7 +33,7 @@ class Freelist {
 };
 
 
-inline void Freelist::FromBlock(const void* start,
+inline void Freelist::InitRange(const void* start,
                                 const size_t size,
                                 size_t len) {
   len_ = 0;
@@ -43,25 +42,6 @@ inline void Freelist::FromBlock(const void* start,
 #ifdef FREELIST_CHECK_BOUNDS
   lower_ = start_ptr;
   upper_ = start_ptr + size *len;
-#endif  // FREELIST_CHECK_BOUNDS
-  for (; len > 0; len--) {
-    Push(reinterpret_cast<void*>(start_ptr));
-    start_ptr += size;
-  }
-}
-
-
-inline void Freelist::AddRange(const void* start,
-                               const size_t size,
-                               size_t len) {
-  uintptr_t start_ptr = reinterpret_cast<uintptr_t>(start);
-#ifdef FREELIST_CHECK_BOUNDS
-  if (start_ptr < lower_) {
-    lower_ = start_ptr;
-  }
-  if ((start_ptr + size * len) > upper_) {
-    upper_ = start_ptr + size * len;
-  }
 #endif  // FREELIST_CHECK_BOUNDS
   for (; len > 0; len--) {
     Push(reinterpret_cast<void*>(start_ptr));
