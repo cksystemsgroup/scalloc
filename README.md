@@ -51,6 +51,16 @@ Then, generate a build environment
 
     build/gyp/gyp --depth=. scalloc.gyp
 
+The build support some configure time parameters, such as 
+
+* span_reuse_threshold: Treshold for stealing spans from other threads. (default: 80)
+* local_reuse_threshold: Threshold for reusing local spans. (default: 80)
+* log_level: One of kTrace, kWarning, kFatal, ... (default: kWarning)
+* small_space: Size of small allocator space.
+* eager_madvise_threshold: Threshold for eager madvising on returning spans.
+
+Variables can be set with `-D variable=value` on the `gyp` command.
+
 ### Build on Linux
 
     BUILDTYPE=Release make
