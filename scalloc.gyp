@@ -94,7 +94,7 @@
         'src/block_header.h',
         'src/distributed_queue.cc',
         'src/distributed_queue.h',
-        'src/freelist.h',
+        'src/freelist-inl.h',
         'src/heap_profiler.cc',
         'src/heap_profiler.h',
         'src/log.cc',

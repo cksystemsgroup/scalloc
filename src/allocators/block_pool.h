@@ -11,7 +11,6 @@
 #include "block_header.h"
 #include "common.h"
 #include "distributed_queue.h"
-#include "freelist.h"
 #include "size_classes.h"
 #include "span_pool.h"
 #include "utils.h"

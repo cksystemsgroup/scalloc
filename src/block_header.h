@@ -7,7 +7,7 @@
 
 #include "assert.h"
 #include "common.h"
-#include "freelist.h"
+#include "freelist-inl.h"
 #include "log.h"
 #include "size_classes.h"
 

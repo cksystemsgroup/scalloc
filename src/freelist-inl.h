@@ -23,10 +23,10 @@ class Freelist {
   size_t len_;
   void* list_;
 
-#ifdef FREELIST_CHECK_BOUNDS
+#ifdef DEBUG
   uintptr_t lower_;
   uintptr_t upper_;
-#endif  // FREELIST_CHECK_BOUNDS
+#endif  // DEBUG
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Freelist);
@@ -36,25 +36,27 @@ class Freelist {
 inline void Freelist::InitRange(const void* start,
                                 const size_t size,
                                 size_t len) {
-  len_ = 0;
+  len_ = len;
   list_ = NULL;
   uintptr_t start_ptr = reinterpret_cast<uintptr_t>(start);
-#ifdef FREELIST_CHECK_BOUNDS
+#ifdef DEBUG
   lower_ = start_ptr;
   upper_ = start_ptr + size *len;
-#endif  // FREELIST_CHECK_BOUNDS
+#endif  // DEBUG
   for (; len > 0; len--) {
-    Push(reinterpret_cast<void*>(start_ptr));
+    // Inlined push.
+    *(reinterpret_cast<void**>(start_ptr)) = list_;
+    list_ = reinterpret_cast<void*>(start_ptr);
     start_ptr += size;
   }
 }
 
 
 inline void Freelist::Push(void* p) {
-#ifdef FREELIST_CHECK_BOUNDS
+#ifdef DEBUG
   ScallocAssert((reinterpret_cast<uintptr_t>(p) >= lower_) &&
                 (reinterpret_cast<uintptr_t>(p) < upper_));
-#endif  // FREELIST_CHECK_BOUNDS
+#endif  // DEBUG
   *(reinterpret_cast<void**>(p)) = list_;
   list_ = p;
   len_++;
@@ -64,10 +66,10 @@ inline void Freelist::Push(void* p) {
 inline void* Freelist::Pop() {
   void* result = list_;
   if (result != NULL) {
-#ifdef FREELIST_CHECK_BOUNDS
+#ifdef DEBUG
     ScallocAssert((reinterpret_cast<uintptr_t>(result) >= lower_) &&
                   (reinterpret_cast<uintptr_t>(result) < upper_));
-#endif  // FREELIST_CHECK_BOUNDS
+#endif  // DEBUG
     list_ = *(reinterpret_cast<void**>(list_));
     len_--;
   }
