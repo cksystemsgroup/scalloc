@@ -51,9 +51,9 @@ Then, generate a build environment
 
     build/gyp/gyp --depth=. scalloc.gyp
 
-The build support some configure time parameters, such as 
+The build supports some configure time parameters:
 
-* span_reuse_threshold: Treshold for stealing spans from other threads. (default: 80)
+* san_reuse_threshold: Treshold for stealing spans from other threads. (default: 80)
 * local_reuse_threshold: Threshold for reusing local spans. (default: 80)
 * log_level: One of kTrace, kWarning, kFatal, ... (default: kWarning)
 * small_space: Size of small allocator space.
