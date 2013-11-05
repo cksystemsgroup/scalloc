@@ -12,12 +12,12 @@
 
 namespace scalloc {
 
-SpanPool SpanPool::span_pool_ cache_aligned;
+cache_aligned SpanPool SpanPool::span_pool_;
 cache_aligned size_t global_refill;
 cache_aligned SpinLock refill_lock_(LINKER_INITIALIZED);
 
 
-void SpanPool::InitModule() {
+void SpanPool::Init() {
   unsigned num_cores = utils::Cpus();
   for (unsigned i = 0; i < kNumClasses; ++i) {
     span_pool_.size_class_pool_[i].Init(num_cores);

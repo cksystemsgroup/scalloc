@@ -14,10 +14,21 @@
 #include "stack-inl.h"
 #include "typed_allocator.h"
 
+namespace scalloc {
+
 class DistributedQueue {
  public:
-  // Initialize the DQ module in a thread-safe way.
-  static void InitModule();
+  typedef Stack Backend;
+  
+  // Upper bound on DQ backends (and thus also State records).
+  static const size_t kMaxBackends = 80;
+  
+  struct State {
+    uint64_t backend_states[kMaxBackends];
+  };
+
+  static void Init(TypedAllocator<State>* sate_alloc,
+                   TypedAllocator<Backend>* backend_alloc);
 
   // Initializer method instead of constructor to enable global use (before
   // main). Note: NOT thread-safe!
@@ -30,21 +41,11 @@ class DistributedQueue {
   void* DequeueAt(size_t start);
 
  private:
-  // Upper bound on DQ backends (and thus also State records).
-  static const size_t kMaxBackends = 80;
+  State* NewState();
+  State* GetState();
 
-  typedef Stack Backend;
-
-  struct State {
-    uint64_t backend_states[kMaxBackends];
-  };
-
-
-  // Allocator used to get backend stacks.
-  static scalloc::TypedAllocator<Backend> backend_allocator_;
-
-  // Allocator used to get a State instance.
-  static scalloc::TypedAllocator<State> state_allocator_;
+  static scalloc::TypedAllocator<Backend>* backend_allocator_;
+  static scalloc::TypedAllocator<State>* state_allocator_;
 
 #ifdef HAVE_TLS
   // State object used to record backend states by each thread in the emptiness
@@ -59,10 +60,6 @@ class DistributedQueue {
 
   // The actual DQ backends.
   Backend* backends_[kMaxBackends];
-
-  // Create a new threadlocal state.
-  State* NewState();
-  State* GetState();
 };
 
 
@@ -71,18 +68,22 @@ inline void DistributedQueue::Enqueue(void* p) {
   EnqueueAt(p, start);
 }
 
+
 inline void DistributedQueue::EnqueueAt(void* p, size_t start) {
   backends_[start]->Put(p);
 }
+
 
 inline void* DistributedQueue::Dequeue() {
   size_t start = static_cast<size_t>(hwrand()) % p_;
   return DequeueAt(start);
 }
 
+
 inline void* DistributedQueue::DequeueOnlyAt(size_t backend_id) {
   return backends_[backend_id]->Pop();
 }
+
 
 inline void* DistributedQueue::DequeueAt(size_t start) {
   void* result;
@@ -110,5 +111,7 @@ inline void* DistributedQueue::DequeueAt(size_t start) {
     return NULL;
   }
 }
+
+}  // namespace scalloc
 
 #endif  // SCALLOC_DISTRIBUTED_QUEUE_H_

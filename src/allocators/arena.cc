@@ -3,6 +3,7 @@
 // by a BSD license that can be found in the LICENSE file.
 
 #include "allocators/arena.h"
+
 #include "system-alloc.h"
 
 namespace scalloc {

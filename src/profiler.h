@@ -5,23 +5,20 @@
 #ifndef SCALLOC_PROFILER_H_
 #define SCALLOC_PROFILER_H_
 
-#define __STDC_FORMAT_MACROS
-
-#include <inttypes.h>
 #include <pthread.h>
 #include <stddef.h>  // size_t
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
+#include <cinttypes>
+
 #include "assert.h"
 #include "common.h"
 #include "log.h"
 #include "random.h"
-//#include "size_map.h"
 #include "size_classes.h"
 #include "spinlock-inl.h"
-
 
 #ifdef PROFILE
 #define PROFILE_ALLOCATION(size) \

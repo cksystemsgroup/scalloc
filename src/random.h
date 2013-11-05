@@ -13,6 +13,7 @@ inline uint64_t rdtsc(void) {
   return ((uint64_t) lo) | (((uint64_t) hi) << 32);
 }
 
+
 inline uint64_t hwrand() {
   return (rdtsc() >> 6);
 }

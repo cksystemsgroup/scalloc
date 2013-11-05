@@ -14,7 +14,7 @@ TypedAllocator<SmallAllocator>* SmallAllocator::allocator;
 bool SmallAllocator::enabled_;
 
 
-void SmallAllocator::InitModule(TypedAllocator<SmallAllocator>* alloc) {
+void SmallAllocator::Init(TypedAllocator<SmallAllocator>* alloc) {
   enabled_ = true;
   allocator = alloc;
 }

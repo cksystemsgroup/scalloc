@@ -23,7 +23,7 @@ namespace scalloc {
 
 class SmallAllocator {
  public:
-  static void InitModule(TypedAllocator<SmallAllocator>* alloc);
+  static void Init(TypedAllocator<SmallAllocator>* alloc);
   static inline bool Enabled() { return enabled_; }
   static SmallAllocator* New(const uint64_t id);
 

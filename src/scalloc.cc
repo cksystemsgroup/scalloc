@@ -54,6 +54,9 @@ SIZE_CLASSES
 cache_aligned TypedAllocator<HeapProfiler> profile_allocator;
 #endif  // HEAP_PROFILE
 cache_aligned TypedAllocator<SmallAllocator> small_allocator_allocator;
+cache_aligned TypedAllocator<DistributedQueue::State> dq_state_allocator;
+cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
+
 }  // namespace scalloc
 
 static int scallocguard_refcount = 0;
@@ -63,14 +66,18 @@ ScallocGuard::ScallocGuard() {
 
     scalloc::InternalArena.Init(kInternalSpace);
     scalloc::SmallArena.Init(kSmallSpace);
-    DistributedQueue::InitModule();
-    scalloc::SpanPool::InitModule();
-    scalloc::BlockPool::InitModule();
+
+    scalloc::dq_state_allocator.Init(kPageSize, 64);
+    scalloc::dq_backend_allocator.Init(kPageSize, 64);
+    scalloc::DistributedQueue::Init(&scalloc::dq_state_allocator,
+                                    &scalloc::dq_backend_allocator);
+    scalloc::SpanPool::Init();
+    scalloc::BlockPool::Init();
 
     scalloc::small_allocator_allocator.Init(kPageSize, 64);
-    scalloc::SmallAllocator::InitModule(&scalloc::small_allocator_allocator);
+    scalloc::SmallAllocator::Init(&scalloc::small_allocator_allocator);
 
-    scalloc::ThreadCache::InitModule();
+    scalloc::ThreadCache::Init();
 
 #ifdef HEAP_PROFILE
     scalloc::profile_allocator.Init(kPageSize, 64);
@@ -110,6 +117,7 @@ void* malloc(const size_t size) {
   return p;
 }
 
+
 void free(void* p) {
   if (UNLIKELY(p == NULL)) {
     return;
@@ -125,6 +133,7 @@ void free(void* p) {
   return;
 }
 
+
 void* calloc(size_t nmemb, size_t size) {
   const size_t malloc_size = nmemb * size;
   if (size != 0 && (malloc_size / size) != nmemb) {
@@ -136,6 +145,7 @@ void* calloc(size_t nmemb, size_t size) {
   }
   return result;
 }
+
 
 void* realloc(void* ptr, size_t size) {
   if (ptr == NULL) {
@@ -203,6 +213,7 @@ int posix_memalign(void** ptr, size_t align, size_t size) {
   return 0;
 }
 
+
 void* memalign(size_t __alignment, size_t __size) {
   void* mem;
   if (posix_memalign(&mem, __alignment, __size)) {
@@ -211,19 +222,24 @@ void* memalign(size_t __alignment, size_t __size) {
   return mem;
 }
 
+
 void* valloc(size_t __size) {
   return memalign(kPageSize, __size);
 }
+
 
 void* pvalloc(size_t __size) {
   return memalign(kPageSize, utils::PadSize(__size, kPageSize));
 }
 
+
 void malloc_stats(void) {}
+
 
 int mallopt(int cmd, int value) {
   return 0;
 }
+
 
 bool Ours(const void* p) {
   return SmallArena.Contains(const_cast<void*>(p)) || LargeAllocator::Owns(p);

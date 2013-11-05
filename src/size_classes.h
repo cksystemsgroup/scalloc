@@ -5,6 +5,9 @@
 #ifndef SCALLOC_SIZE_CLASSES_H_
 #define SCALLOC_SIZE_CLASSES_H_
 
+#include <cinttypes>
+#include <cstdio>
+
 #include "assert.h"
 #include "common.h"
 #include "utils.h"
@@ -36,6 +39,17 @@ inline size_t SizeToBlockSize(const size_t size) {
   }
   UNREACHABLE();
   return 0;
+}
+
+inline void PrintSizeclasses() {
+  printf("Sizeclass summary\n");
+  for(size_t i = 0; i < kNumClasses; i++) {
+    printf("\t[%lu] "
+           "size: %" PRIu64 ", "
+           "objects: %" PRIu64 ", "
+           "realspan size: %" PRIu64 "\n",
+           i, ClassToSize[i], ClassToObjects[i], ClassToSpanSize[i]);
+  }
 }
 
 

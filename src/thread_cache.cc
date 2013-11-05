@@ -25,7 +25,7 @@ pthread_key_t ThreadCache::cache_key_;
 __thread TLS_MODE ThreadCache* ThreadCache::tl_cache_;
 #endif  // HAVE_TLS
 
-void ThreadCache::InitModule() {
+void ThreadCache::Init() {
   LockScope(g_threadcache_lock);
 
   if (!module_init_) {

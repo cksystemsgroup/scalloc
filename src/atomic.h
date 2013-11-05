@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -14,6 +14,8 @@
 template<typename ValueType, typename TagType, int TagWidth = 4>
 class TaggedValue {
  public:
+  typedef uint64_t RawType;
+
   inline TaggedValue() : raw(0) {}
   inline TaggedValue(ValueType atomic, TagType tag) {
     Pack(atomic, tag);
@@ -22,8 +24,6 @@ class TaggedValue {
   void Pack(ValueType atomic, TagType tag);
   ValueType Value() const;
   TagType Tag() const;
-
-  typedef uint64_t RawType;
 
   RawType raw;
 
@@ -37,6 +37,7 @@ class TaggedValue {
   DISALLOW_COPY_AND_ASSIGN(TaggedValue);
 };
 
+
 template<typename ValueType, typename TagType, int TagWidth>
 inline void TaggedValue<ValueType, TagType, TagWidth>::Pack(ValueType atomic,
                                                             TagType tag) {
@@ -45,10 +46,12 @@ inline void TaggedValue<ValueType, TagType, TagWidth>::Pack(ValueType atomic,
   raw |= (((RawType)(tag) << (kWidth - kTagWidth)) & kTagMask);
 }
 
+
 template<typename ValueType, typename TagType, int TagWidth>
 inline ValueType TaggedValue<ValueType, TagType, TagWidth>::Value() const {
   return (ValueType)((raw & kValueMask) << kTagWidth);
 }
+
 
 template<typename ValueType, typename TagType, int TagWidth>
 inline TagType TaggedValue<ValueType, TagType, TagWidth>::Tag() const {

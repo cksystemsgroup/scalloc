@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -19,10 +19,9 @@ namespace scalloc {
 
 class BlockPool {
  public:
-  static void InitModule();
-  static BlockPool& Instance();
+  static void Init();
+  static BlockPool& Instance() { return block_pool_; }
 
-  void Init();
   void Free(void* p, const size_t sc, const size_t dq_id);
   void* Allocate(const size_t sc,
                  const size_t dq_id,
@@ -30,13 +29,10 @@ class BlockPool {
                  SpanHeader** block);
 
  private:
+  static BlockPool block_pool_ cache_aligned;
   DistributedQueue dqs_[kNumClasses] cache_aligned;
 } cache_aligned;
 
-inline BlockPool& BlockPool::Instance() {
-  static BlockPool singleton;
-  return singleton;
-}
 
 inline void BlockPool::Free(void* p,
                             const size_t sc,

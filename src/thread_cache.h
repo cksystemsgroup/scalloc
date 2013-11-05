@@ -23,7 +23,7 @@ class SmallAllocator;
 // have __thread, or implement it with malloc().
 class ThreadCache {
  public:
-  static void InitModule();
+  static void Init();
   static ThreadCache& GetCache();
 
 #ifdef HEAP_PROFILE
@@ -69,7 +69,7 @@ inline ThreadCache& ThreadCache::GetCache() {
     return *cache;
   }
   if (!module_init_) {
-    InitModule();
+    Init();
   }
   cache = NewIfNecessary();
   ScallocAssert(cache != NULL);
