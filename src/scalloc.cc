@@ -210,6 +210,7 @@ int posix_memalign(void** ptr, size_t align, size_t size) {
     }
   }
   *ptr = reinterpret_cast<void*>(start);
+  LOG(kTrace, "posix_memalign: returning %p", start);
   return 0;
 }
 

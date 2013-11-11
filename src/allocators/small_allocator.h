@@ -81,10 +81,10 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
   // |---SpanHeader---|---block---|---block---|---...---|
   // p may be anywhere in a block (because of memalign), hence we need to map it
   // back to its block starting address.
+  const uintptr_t blocksize_fixed_p =
+      reinterpret_cast<uintptr_t>(p) - hdr->flist_aligned_blocksize_offset;
   p = reinterpret_cast<void*>(
-      reinterpret_cast<uintptr_t>(p) -
-      ((reinterpret_cast<uintptr_t>(p) % ClassToSize[sc]) -
-          hdr->flist_aligned_blocksize_offset));
+      reinterpret_cast<uintptr_t>(p) - (blocksize_fixed_p % ClassToSize[sc]));
 
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used span.
