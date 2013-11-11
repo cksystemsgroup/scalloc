@@ -40,6 +40,7 @@ inline void* Arena::Allocate(const size_t size) {
   if (reinterpret_cast<uintptr_t>(p) > (start_ + size_)) {
     Fatal("arena: oom");
   }
+  LOG(kTrace, "[Arena] allocate: %lu", size);
   return p;
 }
 
