@@ -24,6 +24,8 @@ extern "C" {
   void* realloc(void* ptr, size_t size) __THROW     ALIAS(scalloc_realloc);
   void* memalign(size_t __alignment, size_t __size) __THROW
       ALIAS(scalloc_memalign);
+  void* aligned_alloc(size_t alignment, size_t size) __THROW
+      ALIAS(scalloc_aligned_alloc);
   int posix_memalign(void** ptr, size_t align, size_t size) __THROW
       ALIAS(scalloc_posix_memalign);
   void* valloc(size_t __size) __THROW               ALIAS(scalloc_valloc);

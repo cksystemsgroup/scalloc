@@ -13,6 +13,7 @@ namespace scalloc {
   void* calloc(size_t nmemb, size_t size);
   void* realloc(void* ptr, size_t size);
   void* memalign(size_t __alignment, size_t __size);
+  void* aligned_alloc(size_t alignment, size_t size);
   int posix_memalign(void** ptr, size_t align, size_t size);
   void* valloc(size_t __size);
   void* pvalloc(size_t __size);

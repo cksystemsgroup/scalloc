@@ -224,6 +224,17 @@ void* memalign(size_t __alignment, size_t __size) {
 }
 
 
+void* aligned_alloc(size_t alignment, size_t size) {
+  // The function aligned_alloc() is the same as memalign(), except for the
+  // added restriction that size should be a multiple of alignment.
+  if (size % alignment != 0) {
+    errno = EINVAL;
+    return NULL;
+  }
+  return memalign(alignment, size);
+}
+
+
 void* valloc(size_t __size) {
   return memalign(kPageSize, __size);
 }
@@ -271,6 +282,10 @@ void* scalloc_realloc(void* ptr, size_t size) __THROW {
 
 void* scalloc_memalign(size_t __alignment, size_t __size) __THROW {
   return scalloc::memalign(__alignment, __size);
+}
+
+void* scalloc_aligned_alloc(size_t alignment, size_t size) __THROW {
+  return scalloc::aligned_alloc(alignment, size);
 }
 
 int scalloc_posix_memalign(void** ptr, size_t align, size_t size) __THROW {
