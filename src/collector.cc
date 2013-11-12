@@ -6,47 +6,36 @@
 
 #include <pthread.h>
 
+#include "block_header.h"
 #include "span_pool.h"
 
 namespace scalloc {
 
 cache_aligned Collector Collector::collector_;
-cache_aligned Stack Collector::work_queue_;
+cache_aligned DistributedQueue Collector::work_queue_;
 cache_aligned TypedAllocator<Collector::Operation>* Collector::op_allocator_;
 
 
 void Collector::Init(TypedAllocator<Operation>* op_alloc){
   op_allocator_ = op_alloc;
-  work_queue_.Init();
+  work_queue_.Init(80);
   pthread_t pid;
   pthread_create(&pid, NULL, Collector::Collect, NULL);
 }
 
 
-void Collector::Put(void* p, size_t sc, uint32_t tid) {
-  Operation* op = op_allocator_->New();
-  op->type = Operation::kPut;
-  op->p = p;
-  op->sc = sc;
-  op->tid = tid;
-  work_queue_.Put(PTR(op));
+void Collector::Put(void* p) {
+  work_queue_.Enqueue(p);
 }
   
 
 void* Collector::Collect(void* data) {
-  Operation* work = NULL;
+  SpanHeader* work = NULL;
   while (true) {
-    work = reinterpret_cast<Operation*>(work_queue_.Pop());
+    work = reinterpret_cast<SpanHeader*>(work_queue_.Dequeue());
     if (work != NULL) {
-      
-      if (work->type == Operation::kPut) {
-        SpanPool::Instance().Put(work->p, work->sc, work->tid);
-      }
-      
-      op_allocator_->Delete(work);
-    } else {
-      sleep(1);
-    }
+      SpanPool::Instance().Put(PTR(work), work->size_class, work->aowner.owner);
+    } 
   }
   return NULL;
 }

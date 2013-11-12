@@ -98,7 +98,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
           (hdr->Utilization() < kSpanReuseThreshold)) {
         if (UNLIKELY(hdr->flist.Full())) {
           //SpanPool::Instance().Put(hdr, sc, hdr->aowner.owner);
-          Collector::Put(hdr, sc, hdr->aowner.owner);
+          Collector::Put(hdr);
         } else {
           hdr->aowner.active = false;
         }
@@ -125,7 +125,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
 
       if (hdr->flist.Full()) {
         //SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
-        Collector::Put(hdr, hdr->size_class, hdr->aowner.owner);
+        Collector::Put(hdr);
         return;
       }
 

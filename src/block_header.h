@@ -43,6 +43,7 @@ struct ActiveOwner {
 
 class Header {
  public:
+  void* __RESERVED_FOR_LINK_POINTERS;
   BlockType type;
 
   DISALLOW_ALLOCATION();

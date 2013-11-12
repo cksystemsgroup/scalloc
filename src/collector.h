@@ -5,7 +5,7 @@
 #ifndef SCALLOC_COLLECTOR_H_
 #define SCALLOC_COLLECTOR_H_
 
-#include "stack-inl.h"
+#include "distributed_queue.h"
 #include "typed_allocator.h"
 
 namespace scalloc {
@@ -24,14 +24,14 @@ class Collector {
   };
   
   static void Init(TypedAllocator<Operation>* op_alloc);
-  static void Put(void* p, size_t sc, uint32_t tid);
+  static void Put(void* p);
 
  private:
   static void* Collect(void* data);
 
   static TypedAllocator<Operation>* op_allocator_;
   static Collector collector_;
-  static Stack work_queue_;
+  static DistributedQueue work_queue_;
 };
   
 }  // namespace scalloc
