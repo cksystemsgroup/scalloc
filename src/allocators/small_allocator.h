@@ -9,6 +9,7 @@
 
 #include "allocators/arena.h"
 #include "allocators/block_pool.h"
+#include "collector.h"
 #include "common.h"
 #include "block_header.h"
 #include "heap_profiler.h"
@@ -96,7 +97,8 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
         if (UNLIKELY(hdr->flist.Full())) {
-          SpanPool::Instance().Put(hdr, sc, hdr->aowner.owner);
+          //SpanPool::Instance().Put(hdr, sc, hdr->aowner.owner);
+          Collector::Put(hdr, sc, hdr->aowner.owner);
         } else {
           hdr->aowner.active = false;
         }
@@ -122,7 +124,8 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       }
 
       if (hdr->flist.Full()) {
-        SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
+        //SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
+        Collector::Put(hdr, hdr->size_class, hdr->aowner.owner);
         return;
       }
 

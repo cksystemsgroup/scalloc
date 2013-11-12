@@ -40,4 +40,6 @@ inline void MemoryBarrier() {
   __asm__ __volatile__("mfence" : : : "memory");
 }
 
+#define PTR(p) reinterpret_cast<void*>((p))
+
 #endif  // SCALLOC_PLATFORM_H_
