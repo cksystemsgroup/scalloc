@@ -166,7 +166,7 @@ class SpanHeader : public Header {
            FIELD_OFFSET(__pad3) + sizeof(__pad3)
            );
   }
-} __attribute__((packed));
+};
 
 
 class LargeObjectHeader : public Header {
