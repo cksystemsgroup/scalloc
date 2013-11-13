@@ -90,10 +90,12 @@ inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
     return RefillOne();
   }
 
+  i = static_cast<size_t>(index);
+
 #ifdef EAGER_MADVISE
   if ((i > sc) &&
       (ClassToSpanSize[i] != ClassToSpanSize[sc]) &&
-      (ClassToSpanSize[sc] < kEagerMadviseThreshold)) {
+      (ClassToSpanSize[sc] <= kEagerMadviseThreshold)) {
     LOG(kTrace, "[SpanPool] madvise (eager): %p, class :%lu, spansize: %lu",
         reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
 #else
@@ -114,7 +116,7 @@ inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
 
 #ifdef EAGER_MADVISE
   if ((i == sc) &&
-      (ClassToSpanSize[sc] < kEagerMadviseThreshold)) {
+      (ClassToSpanSize[sc] <= kEagerMadviseThreshold)) {
 #else
   if (i == sc) {
 #endif  // EAGER_MADVISE
