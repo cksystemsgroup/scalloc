@@ -13,8 +13,6 @@
 namespace scalloc {
 
 cache_aligned SpanPool SpanPool::span_pool_;
-cache_aligned size_t global_refill;
-cache_aligned SpinLock refill_lock_(LINKER_INITIALIZED);
 
 
 void SpanPool::Init() {

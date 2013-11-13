@@ -24,7 +24,6 @@ class SpanPool {
   static void Init();
   static inline SpanPool& Instance() { return span_pool_; }
 
-  void Refill(const size_t refill);
   SpanHeader* Get(size_t sc, uint32_t tid, bool* reusable);
   void Put(SpanHeader* p, size_t sc, uint32_t tid);
 
@@ -32,7 +31,6 @@ class SpanPool {
   void* RefillOne();
 
   static SpanPool span_pool_;
-  static const size_t kSpanPoolBackends = kNumClasses;
 
   DistributedQueue size_class_pool_[kNumClasses] cache_aligned;
 };
