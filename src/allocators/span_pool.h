@@ -7,6 +7,7 @@
 
 #include <sys/mman.h>  // madvise
 
+#include "block_header.h"
 #include "common.h"
 #include "distributed_queue.h"
 #include "size_classes.h"
@@ -24,8 +25,8 @@ class SpanPool {
   static inline SpanPool& Instance() { return span_pool_; }
 
   void Refill(const size_t refill);
-  void* Get(size_t sc, uint32_t tid, bool* reusable);
-  void Put(void* p, size_t sc, uint32_t tid);
+  SpanHeader* Get(size_t sc, uint32_t tid, bool* reusable);
+  void Put(SpanHeader* p, size_t sc, uint32_t tid);
 
  private:
   void* RefillOne();
@@ -37,7 +38,7 @@ class SpanPool {
 };
 
 
-inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
+inline void SpanPool::Put(SpanHeader* p, size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool] put: %p", p);
 
 #ifdef EAGER_MADVISE
@@ -60,7 +61,7 @@ inline void SpanPool::Put(void* p, size_t sc, uint32_t tid) {
 }
 
 
-inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
+inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   LOG(kTrace, "[SpanPool] get request");
 
 #ifdef PROFILER_ON
@@ -87,7 +88,7 @@ inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   }
 
   if (UNLIKELY(result == NULL)) {
-    return RefillOne();
+    return reinterpret_cast<SpanHeader*>(RefillOne());
   }
 
   i = static_cast<size_t>(index);
@@ -124,7 +125,7 @@ inline void* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   }
 
   LOG(kTrace, "[SpanPool] get: %p", result);
-  return result;
+  return reinterpret_cast<SpanHeader*>(result);
 }
 
 }  // namespace scalloc

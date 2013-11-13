@@ -7,12 +7,15 @@
 
 #include "assert.h"
 #include "common.h"
+#include "size_classes.h"
+
+namespace scalloc {
 
 /// An unlocked free list.
 class Freelist {
  public:
   inline Freelist() {}
-  void InitRange(const void* start, const size_t size, size_t len);
+  void Init(const void* start, const size_t size_class);
 
   void Push(void* p);
   void* Pop();
@@ -36,19 +39,19 @@ class Freelist {
 };
 
 
-inline void Freelist::InitRange(const void* start,
-                                const size_t size,
-                                size_t len) {
-  len_ = len;
-  cap_ = len;
+inline void Freelist::Init(const void* start,
+                           const size_t size_class) {
+  len_ = ClassToObjects[size_class];
+  cap_ = ClassToObjects[size_class];
   list_ = NULL;
   uintptr_t start_ptr = reinterpret_cast<uintptr_t>(start);
+  const size_t size = ClassToSize[size_class];
 #ifdef DEBUG
   lower_ = start_ptr;
-  upper_ = start_ptr + size *len;
+  upper_ = start_ptr + size * ClassToObjects[size_class];
 #endif  // DEBUG
-  for (; len > 0; len--) {
-    // Inlined push.
+  for (size_t len = len_; len > 0; len--) {
+    // Inlined Freelist::Push.
     *(reinterpret_cast<void**>(start_ptr)) = list_;
     list_ = reinterpret_cast<void*>(start_ptr);
     start_ptr += size;
@@ -84,5 +87,7 @@ inline void* Freelist::Pop() {
 inline size_t Freelist::Utilization() {
   return 100 - ((len_ * 100) / cap_);
 }
+
+}  // namespace scalloc
 
 #endif  // SCALLOC_FREELIST_H_

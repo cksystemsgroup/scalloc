@@ -32,7 +32,7 @@ void* Collector::Collect(void* data) {
   while (true) {
     work = reinterpret_cast<SpanHeader*>(work_queue_.Dequeue());
     if (work != NULL) {
-      SpanPool::Instance().Put(PTR(work), work->size_class, work->aowner.owner);
+      SpanPool::Instance().Put(work, work->size_class, work->aowner.owner);
     } 
   }
   return NULL;

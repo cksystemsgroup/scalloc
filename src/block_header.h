@@ -57,7 +57,7 @@ class SpanHeader : public Header {
         (reinterpret_cast<uintptr_t>(p) & kVirtualSpanMask);
   }
 
-  inline void Init(const size_t size_class, const size_t id) {
+  inline void Init(const size_t size_class, const size_t id, bool reusable) {
     this->type = kSlab;
     this->size_class = size_class;
     this->remote_flist = id;
@@ -66,6 +66,11 @@ class SpanHeader : public Header {
             % scalloc::ClassToSize[size_class];
     this->aowner.owner = id;
     this->aowner.active = true;
+    if (!reusable) {
+      this->flist.Init(
+          PTR(reinterpret_cast<uintptr_t>(this) + sizeof(SpanHeader)),
+          size_class);
+    }
   }
 
   // The utilization of the span in percent.
@@ -88,7 +93,7 @@ class SpanHeader : public Header {
   cache_aligned ActiveOwner aowner;
 
   // thread-local read/write properties
-  Freelist flist;
+  scalloc::Freelist flist;
 #define RW_SZ (sizeof(flist))
   char pad2[CACHELINE_SIZE - (RW_SZ % CACHELINE_SIZE)];  // NOLINT
 #undef RW_SZ

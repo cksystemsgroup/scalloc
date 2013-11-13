@@ -77,20 +77,9 @@ void SmallAllocator::Refill(const size_t sc) {
   LOG(kTrace, "[SmallAllocator] refilling size class: %lu, object size: %lu",
       sc, ClassToSize[sc]);
   bool reusable;
-  uintptr_t block = reinterpret_cast<uintptr_t>
-      (SpanPool::Instance().Get(sc, id_, &reusable));
-  ScallocAssert(block != 0);
-
-  SpanHeader* hdr = reinterpret_cast<SpanHeader*>(block);
-  hdr->Init(sc, id_);
-  if (!reusable) {
-    block += sizeof(SpanHeader);
-    size_t block_size = ClassToSize[sc];
-    hdr->flist.InitRange(reinterpret_cast<void*>(block),
-                         block_size,
-                         ClassToObjects[sc]);
-  }
-
+  SpanHeader* hdr = SpanPool::Instance().Get(sc, id_, &reusable);
+  ScallocAssert(hdr != 0);
+  hdr->Init(sc, id_, reusable);
   SetActiveSlab(sc, hdr);
 }
 
