@@ -13,11 +13,9 @@ namespace scalloc {
 
 cache_aligned Collector Collector::collector_;
 cache_aligned DistributedQueue Collector::work_queue_;
-cache_aligned TypedAllocator<Collector::Operation>* Collector::op_allocator_;
 
 
-void Collector::Init(TypedAllocator<Operation>* op_alloc){
-  op_allocator_ = op_alloc;
+void Collector::Init(){
   work_queue_.Init(80);
   pthread_t pid;
   pthread_create(&pid, NULL, Collector::Collect, NULL);
@@ -27,7 +25,7 @@ void Collector::Init(TypedAllocator<Operation>* op_alloc){
 void Collector::Put(void* p) {
   work_queue_.Enqueue(p);
 }
-  
+
 
 void* Collector::Collect(void* data) {
   SpanHeader* work = NULL;

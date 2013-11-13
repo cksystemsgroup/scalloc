@@ -23,7 +23,7 @@ class Collector {
     uint32_t tid;
   };
   
-  static void Init(TypedAllocator<Operation>* op_alloc);
+  static void Init();
   static void Put(void* p);
 
  private:

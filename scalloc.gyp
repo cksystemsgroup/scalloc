@@ -17,6 +17,7 @@
     'local_reuse_threshold%': 80,
     'small_space%': -1,
     'eager_madvise_threshold%': -1,
+    'madvise_strategy%': "same-thread",
   },
   'target_defaults': {
     'product_dir': "out/<(CONFIGURATION_NAME)",
@@ -70,6 +71,15 @@
         ['<(eager_madvise_threshold)!=-1', {
           'defines': [
             'EAGER_MADVISE_THRESHOLD=<(eager_madvise_threshold)'
+          ]
+        }],
+        ['"<(madvise_strategy)"=="same-thread"', {
+          'defines': [
+            'MADVISE_SAME_THREAD'
+          ]
+        }, {
+          'defines': [
+            'MADVISE_SEPARATE_THREAD'
           ]
         }],
         ['<(heap_profile)!=0', {

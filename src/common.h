@@ -43,6 +43,9 @@ const size_t kLocalReuseThreshold = LOCAL_REUSE_THRESHOLD;
 #ifdef EAGER_MADVISE_THRESHOLD
 #define EAGER_MADVISE 1
 const size_t kEagerMadviseThreshold = EAGER_MADVISE_THRESHOLD;
+#ifdef MADVISE_SEPARATE_THREAD
+#define COLLECTOR 1
+#endif  // MADVISE_SEPARATE_THREAD
 #endif  // EAGER_MADVISE_THRESHOLD
 
 #endif  // SCALLOC_COMMON_H_

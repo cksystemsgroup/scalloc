@@ -57,8 +57,6 @@ cache_aligned TypedAllocator<HeapProfiler> profile_allocator;
 cache_aligned TypedAllocator<SmallAllocator> small_allocator_allocator;
 cache_aligned TypedAllocator<DistributedQueue::State> dq_state_allocator;
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
-cache_aligned TypedAllocator<Collector::Operation> op_allocator;
-
 
 }  // namespace scalloc
 
@@ -77,8 +75,9 @@ ScallocGuard::ScallocGuard() {
     scalloc::SpanPool::Init();
     scalloc::BlockPool::Init();
 
-    scalloc::op_allocator.Init(kPageSize, 64);
-    scalloc::Collector::Init(&scalloc::op_allocator);
+#ifdef COLLECTOR
+    scalloc::Collector::Init();
+#endif  // COLLECTOR
     
     scalloc::small_allocator_allocator.Init(kPageSize, 64);
     scalloc::SmallAllocator::Init(&scalloc::small_allocator_allocator);
