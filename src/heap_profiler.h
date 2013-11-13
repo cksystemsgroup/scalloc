@@ -15,20 +15,19 @@ namespace scalloc {
 #else  // HEAP_PROFILE
 
 struct ProfileData {
-
 };
-  
+
 class HeapProfiler {
  public:
   static void Init(TypedAllocator<HeapProfiler>* alloc);
   static HeapProfiler* Get();
   static HeapProfiler* New();
-  
+
   void LogAllocation(void* ptr, size_t size);
-  
+
  private:
   static TypedAllocator<HeapProfiler>* allocator;
-  
+
   ProfileData data_;
 };
 
@@ -49,7 +48,7 @@ inline void HeapProfiler::LogAllocation(void *ptr, size_t size) {
 }
 
 #endif  // HEAP_PROFILE
-  
+
 }  // namespace scalloc
 
 #endif  // SCALLOC_HEAP_PROFILER_H_

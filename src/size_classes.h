@@ -43,7 +43,7 @@ inline size_t SizeToBlockSize(const size_t size) {
 
 inline void PrintSizeclasses() {
   printf("Sizeclass summary\n");
-  for(size_t i = 0; i < kNumClasses; i++) {
+  for (size_t i = 0; i < kNumClasses; i++) {
     printf("\t[%lu] "
            "size: %" PRIu64 ", "
            "objects: %" PRIu64 ", "

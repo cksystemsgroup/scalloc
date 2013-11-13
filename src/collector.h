@@ -16,13 +16,13 @@ class Collector {
     enum Type {
       kPut,
     };
-    
+
     Type type;
     void* p;
     size_t sc;
     uint32_t tid;
   };
-  
+
   static void Init();
   static void Put(void* p);
 
@@ -33,7 +33,7 @@ class Collector {
   static Collector collector_;
   static DistributedQueue work_queue_;
 };
-  
+
 }  // namespace scalloc
 
 #endif  // SCALLOC_COLLECTOR_H_

@@ -19,10 +19,10 @@ namespace scalloc {
 class DistributedQueue {
  public:
   typedef Stack Backend;
-  
+
   // Upper bound on DQ backends (and thus also State records).
   static const size_t kMaxBackends = 80;
-  
+
   struct State {
     uint64_t backend_states[kMaxBackends];
   };
@@ -30,10 +30,8 @@ class DistributedQueue {
   static void Init(TypedAllocator<State>* sate_alloc,
                    TypedAllocator<Backend>* backend_alloc);
 
-  // Initializer method instead of constructor to enable global use (before
-  // main). Note: NOT thread-safe!
-  void Init(size_t p);
 
+  void Init(size_t p);
   void Enqueue(void* p);
   void EnqueueAt(void* p, size_t start);
   void* Dequeue();
