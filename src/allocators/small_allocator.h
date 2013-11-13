@@ -11,7 +11,7 @@
 #include "allocators/block_pool.h"
 #include "collector.h"
 #include "common.h"
-#include "block_header.h"
+#include "headers.h"
 #include "heap_profiler.h"
 #include "span_pool.h"
 #include "size_classes.h"
@@ -75,7 +75,7 @@ inline void* SmallAllocator::Allocate(const size_t size) {
 
 
 inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
-  SpanHeader* cur_sc_hdr = my_headers_[hdr->size_class];
+  SpanHeader* const cur_sc_hdr = my_headers_[hdr->size_class];
   const size_t sc = hdr->size_class;
 
   // p may be an address returned by posix_memalign(). We need to fix this.

@@ -7,9 +7,9 @@
 
 #include <sys/mman.h>  // madvise
 
-#include "block_header.h"
 #include "common.h"
 #include "distributed_queue.h"
+#include "headers.h"
 #include "size_classes.h"
 #include "utils.h"
 

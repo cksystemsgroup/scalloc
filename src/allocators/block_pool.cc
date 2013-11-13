@@ -4,8 +4,8 @@
 
 #include "allocators/block_pool.h"
 
-#include "block_header.h"
 #include "distributed_queue.h"
+#include "headers.h"
 
 namespace scalloc {
 

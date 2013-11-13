@@ -6,7 +6,7 @@
 
 #include <pthread.h>
 
-#include "block_header.h"
+#include "headers.h"
 #include "span_pool.h"
 
 namespace scalloc {
