@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 
+#include "assert.h"
 #include "allocators/arena.h"
 #include "allocators/block_pool.h"
 #include "collector.h"
@@ -45,6 +46,9 @@ class SmallAllocator {
   SpanHeader* my_headers_[kNumClasses];
   uint64_t me_active_;
   uint64_t me_inactive_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(SmallAllocator);
 } cache_aligned;
 
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 
+#include "assert.h"
 #include "common.h"
 #include "distributed_queue.h"
 #include "headers.h"
@@ -22,12 +23,16 @@ class BlockPool {
   static void Init();
   static BlockPool& Instance() { return block_pool_; }
 
+  inline BlockPool() {}
   void Free(void* p, const size_t sc, const size_t tid);
   void* Allocate(const size_t sc, const size_t tid, SpanHeader** block);
 
  private:
   static BlockPool block_pool_ cache_aligned;
   DistributedQueue dqs_[kNumClasses] cache_aligned;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(BlockPool);
 } cache_aligned;
 
 

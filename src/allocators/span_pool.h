@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@
 
 #include <sys/mman.h>  // madvise
 
+#include "assert.h"
 #include "common.h"
 #include "distributed_queue.h"
 #include "headers.h"
@@ -24,6 +25,7 @@ class SpanPool {
   static void Init();
   static inline SpanPool& Instance() { return span_pool_; }
 
+  inline SpanPool() {}
   SpanHeader* Get(size_t sc, uint32_t tid, bool* reusable);
   void Put(SpanHeader* p, size_t sc, uint32_t tid);
 
@@ -33,6 +35,9 @@ class SpanPool {
   static SpanPool span_pool_;
 
   DistributedQueue size_class_pool_[kNumClasses] cache_aligned;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(SpanPool);
 };
 
 
@@ -79,7 +84,7 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
     if (index < 0) {
       index += kNumClasses;
     }
-    result = size_class_pool_[index].DequeueAt(qindex);
+    result = size_class_pool_[index].DequeueStartAt(qindex);
     if (result != NULL) {
       break;
     }

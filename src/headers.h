@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -66,13 +66,15 @@ class SpanHeader : public Header {
   }
 
   static inline void PrintHeaderLayout() {
-    SpanHeader dummy;
-    dummy.PrintLayout();
+    void* a;
+    SpanHeader* dummy = reinterpret_cast<SpanHeader*>(&a);
+    dummy->PrintLayout();
   }
 
   static inline void CheckFieldAlignments() {
-    SpanHeader dummy;
-    dummy.CheckAlignments();
+    void* a;
+    SpanHeader* dummy = reinterpret_cast<SpanHeader*>(&a);
+    dummy->CheckAlignments();
   }
 
   inline void Init(const size_t size_class, const size_t id, bool reusable) {
@@ -166,6 +168,9 @@ class SpanHeader : public Header {
            FIELD_OFFSET(__pad3) + sizeof(__pad3)
            );
   }
+  
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(SpanHeader);
 };
 
 

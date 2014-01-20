@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -135,11 +135,9 @@ void free(void* p) {
   }
   LOG(kTrace, "free: %p", p);
   if (LIKELY(SmallArena.Contains(p))) {
-    ThreadCache::GetCache().Allocator()->Free(
-        p, reinterpret_cast<SpanHeader*>(SpanHeader::GetFromObject(p)));
+    ThreadCache::GetCache().Allocator()->Free(p, SpanHeader::GetFromObject(p));
   } else {
-    LargeAllocator::Free(reinterpret_cast<LargeObjectHeader*>(
-        LargeObjectHeader::GetFromObject(p)));
+    LargeAllocator::Free(LargeObjectHeader::GetFromObject(p));
   }
   return;
 }
@@ -165,13 +163,10 @@ void* realloc(void* ptr, size_t size) {
   void* new_ptr;
   size_t old_size;
   if (scalloc::SmallArena.Contains(ptr)) {
-    old_size = ClassToSize[reinterpret_cast<SpanHeader*>(
-        SpanHeader::GetFromObject(ptr))->size_class];
+    old_size = ClassToSize[SpanHeader::GetFromObject(ptr)->size_class];
   } else {
     old_size =
-        reinterpret_cast<LargeObjectHeader*>(
-            LargeObjectHeader::GetFromObject(ptr))->size
-        - sizeof(LargeObjectHeader);
+        LargeObjectHeader::GetFromObject(ptr)->size - sizeof(LargeObjectHeader);
   }
   if (size <= old_size) {
     return ptr;

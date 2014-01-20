@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -7,6 +7,7 @@
 
 #include <cstddef>
 
+#include "assert.h"
 #include "common.h"
 #include "headers.h"
 #include "system-alloc.h"
@@ -23,6 +24,9 @@ class LargeAllocator {
   static void* Alloc(size_t size);
   static void Free(LargeObjectHeader* lbh);
   static bool Owns(const void* p);
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(LargeAllocator);
 };
 
 

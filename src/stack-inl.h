@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -37,6 +37,7 @@ class Stack {
  private:
   std::atomic<TaggedValue<void*, uint64_t>::RawType> top_;
 
+  DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Stack);
 };
 

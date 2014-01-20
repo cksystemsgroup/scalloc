@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -23,7 +23,7 @@ void* BlockPool::Allocate(const size_t sc,
                           const size_t tid,
                           SpanHeader** block) {
   *block = NULL;
-  void* p = dqs_[sc].DequeueAt(tid % utils::Cpus());
+  void* p = dqs_[sc].DequeueStartAt(tid % utils::Cpus());
 
   if (p != NULL) {
     // We found an object, let's try to steal the whole block.

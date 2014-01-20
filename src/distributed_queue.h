@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -30,13 +30,13 @@ class DistributedQueue {
   static void Init(TypedAllocator<State>* sate_alloc,
                    TypedAllocator<Backend>* backend_alloc);
 
-
+  inline DistributedQueue() {}
   void Init(size_t p);
   void Enqueue(void* p);
-  void EnqueueAt(void* p, size_t start);
+  void EnqueueAt(void* p, const size_t backend_id);
   void* Dequeue();
-  void* DequeueOnlyAt(size_t backend_id);
-  void* DequeueAt(size_t start);
+  void* DequeueOnlyAt(const size_t backend_id);
+  void* DequeueStartAt(const size_t first_backend_id);
 
  private:
   State* NewState();
@@ -58,6 +58,9 @@ class DistributedQueue {
 
   // The actual DQ backends.
   Backend* backends_[kMaxBackends];
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(DistributedQueue);
 };
 
 
@@ -67,24 +70,25 @@ inline void DistributedQueue::Enqueue(void* p) {
 }
 
 
-inline void DistributedQueue::EnqueueAt(void* p, size_t start) {
-  backends_[start]->Put(p);
+inline void DistributedQueue::EnqueueAt(void* p, const size_t backend_id) {
+  backends_[backend_id]->Put(p);
 }
 
 
 inline void* DistributedQueue::Dequeue() {
   size_t start = static_cast<size_t>(hwrand()) % p_;
-  return DequeueAt(start);
+  return DequeueStartAt(start);
 }
 
 
-inline void* DistributedQueue::DequeueOnlyAt(size_t backend_id) {
+inline void* DistributedQueue::DequeueOnlyAt(const size_t backend_id) {
   return backends_[backend_id]->Pop();
 }
 
 
-inline void* DistributedQueue::DequeueAt(size_t start) {
+inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
   void* result;
+  size_t start = first_backend_id;
   State* state = GetState();
   if (state == NULL) {
     state = NewState();

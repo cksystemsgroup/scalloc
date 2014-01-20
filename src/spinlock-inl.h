@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -6,6 +6,8 @@
 #define SCALLOC_SPINLOCK_H_
 
 #include <stdint.h>
+
+#include "assert.h"
 
 enum LinkerInitialized {
   LINKER_INITIALIZED
@@ -34,6 +36,9 @@ class SpinLock {
   enum { kSpinLockHeld = 1 };
 
   volatile uint64_t lockword_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(SpinLock);
 };
 
 #define LockScope(lock)                                                        \
@@ -52,6 +57,9 @@ class SpinLockHolder {
 
  private:
   SpinLock* lock_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(SpinLockHolder);
 };
 
 #endif  // SCALLOC_SPINLOCK_H_
