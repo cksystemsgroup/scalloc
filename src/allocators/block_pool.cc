@@ -20,18 +20,17 @@ void BlockPool::Init() {
 
 
 void* BlockPool::Allocate(const size_t sc,
-                              const size_t dq_id,
-                              const size_t tid,
-                              SpanHeader** block) {
-  void* p = dqs_[sc].DequeueAt(dq_id % utils::Cpus());
+                          const size_t tid,
+                          SpanHeader** block) {
   *block = NULL;
+  void* p = dqs_[sc].DequeueAt(tid % utils::Cpus());
 
   if (p != NULL) {
     // We found an object, let's try to steal the whole block.
-    SpanHeader* hdr = reinterpret_cast<SpanHeader*>(
-        SpanHeader::GetFromObject(p));
-    ActiveOwner would_steal(false, hdr->aowner.owner);
-    ActiveOwner my(true, tid);
+    SpanHeader* hdr = SpanHeader::GetFromObject(p);
+    ScallocAssert(hdr != NULL);
+    const ActiveOwner would_steal(false, hdr->aowner.owner);
+    const ActiveOwner my(true, tid);
     if (!hdr->aowner.active &&
         __sync_bool_compare_and_swap(&hdr->aowner.raw,
                                      would_steal.raw,

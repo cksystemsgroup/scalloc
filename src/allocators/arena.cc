@@ -8,13 +8,14 @@
 
 namespace scalloc {
 
-void Arena::Init(size_t size) {
+void Arena::Init(const size_t size) {
+  // Allocates an arena of size bytes also aligning the arena to size.
   size_ = size;
-  size = size * 2 - kPageSize;
-  uintptr_t p = reinterpret_cast<uintptr_t>(SystemAlloc_Mmap(size, NULL));
-  p += size_ - (p % size_);
-  start_ = p;
-  cur_.store(p);
+  start_ = reinterpret_cast<uintptr_t>(SystemAlloc_Mmap(
+               2 * size_ - kPageSize, NULL));
+  // Align the start address.
+  start_ += size_ - (start_ % size_);
+  cur_.store(start_);
 }
 
 }  // namespace scalloc

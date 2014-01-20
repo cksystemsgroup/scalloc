@@ -22,11 +22,8 @@ class BlockPool {
   static void Init();
   static BlockPool& Instance() { return block_pool_; }
 
-  void Free(void* p, const size_t sc, const size_t dq_id);
-  void* Allocate(const size_t sc,
-                 const size_t dq_id,
-                 const size_t tid,
-                 SpanHeader** block);
+  void Free(void* p, const size_t sc, const size_t tid);
+  void* Allocate(const size_t sc, const size_t tid, SpanHeader** block);
 
  private:
   static BlockPool block_pool_ cache_aligned;
@@ -36,8 +33,8 @@ class BlockPool {
 
 inline void BlockPool::Free(void* p,
                             const size_t sc,
-                            const size_t dq_id) {
-  dqs_[sc].EnqueueAt(p, dq_id % utils::Cpus());
+                            const size_t tid) {
+  dqs_[sc].EnqueueAt(p, tid % utils::Cpus());
 }
 
 }  // namespace scalloc

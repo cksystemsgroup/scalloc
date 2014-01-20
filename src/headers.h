@@ -60,7 +60,7 @@ class Header {
 
 class SpanHeader : public Header {
  public:
-  static inline SpanHeader* GetFromObject(void* p) {
+  static inline SpanHeader* GetFromObject(const void* p) {
     return reinterpret_cast<SpanHeader*>
         (reinterpret_cast<uintptr_t>(p) & kVirtualSpanMask);
   }

@@ -45,7 +45,7 @@ void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
 #endif  // PROFILER_ON
     // Only try to steal we had a span at least once.
     SpanHeader* hdr;
-    void* p = BlockPool::Instance().Allocate(sc, id_, id_, &hdr);
+    void* p = BlockPool::Instance().Allocate(sc, id_, &hdr);
     if (p != NULL) {
 #ifdef PROFILER_ON
       Profiler::GetProfiler().LogBlockStealing();

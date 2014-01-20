@@ -60,10 +60,8 @@ inline void Freelist::Init(const void* start,
 
 
 inline void Freelist::Push(void* p) {
-#ifdef DEBUG
   ScallocAssert((reinterpret_cast<uintptr_t>(p) >= lower_) &&
                 (reinterpret_cast<uintptr_t>(p) < upper_));
-#endif  // DEBUG
   *(reinterpret_cast<void**>(p)) = list_;
   list_ = p;
   len_++;
@@ -73,10 +71,8 @@ inline void Freelist::Push(void* p) {
 inline void* Freelist::Pop() {
   void* result = list_;
   if (result != NULL) {
-#ifdef DEBUG
     ScallocAssert((reinterpret_cast<uintptr_t>(result) >= lower_) &&
                   (reinterpret_cast<uintptr_t>(result) < upper_));
-#endif  // DEBUG
     list_ = *(reinterpret_cast<void**>(list_));
     len_--;
   }

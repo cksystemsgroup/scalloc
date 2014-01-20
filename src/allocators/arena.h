@@ -19,9 +19,9 @@ namespace scalloc {
 
 class Arena {
  public:
-  void Init(size_t size);
+  void Init(const size_t size);
   void* Allocate(const size_t size);
-  bool Contains(void* p);
+  bool Contains(const void* p);
 
  private:
   std::atomic<uintptr_t> cur_;
@@ -30,7 +30,7 @@ class Arena {
 } cache_aligned;
 
 
-inline bool Arena::Contains(void* p) {
+inline bool Arena::Contains(const void* p) {
   return (reinterpret_cast<uintptr_t>(p) ^ start_) < size_;
 }
 
@@ -40,7 +40,7 @@ inline void* Arena::Allocate(const size_t size) {
   if (reinterpret_cast<uintptr_t>(p) > (start_ + size_)) {
     Fatal("arena: oom");
   }
-  LOG(kTrace, "[Arena] allocate: %lu", size);
+  LOG(kTrace, "arena: allocate: %lu", size);
   return p;
 }
 
