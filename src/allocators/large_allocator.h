@@ -25,6 +25,7 @@ class LargeAllocator {
   static void Free(LargeObjectHeader* lbh);
   static bool Owns(const void* p);
 
+ private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(LargeAllocator);
 };

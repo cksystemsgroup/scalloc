@@ -107,8 +107,6 @@
         'src/distributed_queue.h',
         'src/freelist-inl.h',
         'src/headers.h',
-        'src/heap_profiler.cc',
-        'src/heap_profiler.h',
         'src/log.cc',
         'src/log.h',
         'src/override.h',

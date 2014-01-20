@@ -13,7 +13,6 @@
 #include "collector.h"
 #include "common.h"
 #include "headers.h"
-#include "heap_profiler.h"
 #include "span_pool.h"
 #include "size_classes.h"
 

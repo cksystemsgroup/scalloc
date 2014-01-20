@@ -15,7 +15,6 @@
 #include "collector.h"
 #include "common.h"
 #include "distributed_queue.h"
-#include "heap_profiler.h"
 #include "override.h"
 #include "scalloc_arenas.h"
 #include "scalloc_guard.h"
@@ -84,7 +83,7 @@ ScallocGuard::ScallocGuard() {
 #ifdef COLLECTOR
     scalloc::Collector::Init();
 #endif  // COLLECTOR
-    
+
     scalloc::small_allocator_allocator.Init(kPageSize, 64);
     scalloc::SmallAllocator::Init(&scalloc::small_allocator_allocator);
 
@@ -270,7 +269,6 @@ bool Ours(const void* p) {
 #endif
 
 extern "C" {
-
 void* scalloc_malloc(size_t size) __THROW {
   return scalloc::malloc(size);
 }
@@ -324,5 +322,4 @@ void scalloc_malloc_stats() __THROW {
 int scalloc_mallopt(int cmd, int value) __THROW {
   return scalloc::mallopt(cmd, value);
 }
-
 }

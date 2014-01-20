@@ -165,10 +165,9 @@ class SpanHeader : public Header {
            FIELD_OFFSET_AND_SIZE(__pad2),
            FIELD_OFFSET_AND_SIZE(flist),
            FIELD_OFFSET_AND_SIZE(__pad3),
-           FIELD_OFFSET(__pad3) + sizeof(__pad3)
-           );
+           FIELD_OFFSET(__pad3) + sizeof(__pad3));
   }
-  
+
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(SpanHeader);
 };
@@ -223,10 +222,10 @@ class LargeObjectHeader : public Header {
   LargeObjectHeader* fwd;
 #define READ_SZ                               \
   (sizeof(__RESERVED_FOR_LINK_POINTERS) +     \
-   sizeof(type) +                             \
-   sizeof(__pad0) +                           \
-   sizeof(size) +                             \
-   sizeof(fwd))
+      sizeof(type) +                          \
+      sizeof(__pad0) +                        \
+      sizeof(size) +                          \
+      sizeof(fwd))
   char __pad1[CACHELINE_SIZE - (READ_SZ % CACHELINE_SIZE)];  // NOLINT
 #undef READ_SZ
 
@@ -258,8 +257,7 @@ class LargeObjectHeader : public Header {
            FIELD_OFFSET_AND_SIZE(size),
            FIELD_OFFSET_AND_SIZE(fwd),
            FIELD_OFFSET_AND_SIZE(__pad1),
-           FIELD_OFFSET(__pad1) + sizeof(__pad1)
-           );
+           FIELD_OFFSET(__pad1) + sizeof(__pad1));
   }
 };
 
