@@ -56,8 +56,8 @@ void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
         Profiler::GetProfiler().LogSpanReuse(true);
 #endif  // PROFILER_ON
       } else {
-        if (reinterpret_cast<SpanHeader*>(
-                SpanHeader::GetFromObject(p))->aowner.owner != id_) {
+        if ((SpanHeader::GetFromObject(p)->aowner.owner % utils::Cpus()) !=
+                (id_ % utils::Cpus())) {
           Refill(sc);
         }
       }
