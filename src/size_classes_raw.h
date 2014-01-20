@@ -1,7 +1,10 @@
-// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
+//
+//                            DO NOT EDIT!
+//
 // This file is auto-generated using ``python tools/gen_size_classes.py''
 
 #ifndef SCALLOC_SIZE_CLASSES_RAW_H_
