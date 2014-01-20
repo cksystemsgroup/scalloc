@@ -88,7 +88,7 @@ you can do this by
 See the [kernel docs](https://www.kernel.org/doc/Documentation/vm/overcommit-accounting)
 for more information.
 
-## ... on OSX
+### ... on OSX
 
 Similar to preloading on Linux, one can preload scalloc using
 
