@@ -88,6 +88,12 @@ you can do this by
 See the [kernel docs](https://www.kernel.org/doc/Documentation/vm/overcommit-accounting)
 for more information.
 
+## ... on OSX
+
+Similar to preloading on Linux, one can preload scalloc using
+
+    DYLD_INSERT_LIBRARIES=/path/to/libscalloc.dylib DYLD_FORCE_FLAT_NAMESPACE=1 ./foo
+
 ## License
 
 Copyright (c) 2012-2013, the scalloc Project Authors.
