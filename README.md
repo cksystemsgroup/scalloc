@@ -51,7 +51,7 @@ Then, generate a build environment
 
     build/gyp/gyp --depth=. scalloc.gyp
 
-The build supports some configure time parameters:
+The build supports some compile time parameters:
 
 * san_reuse_threshold: Treshold for stealing spans from other threads. (default: 80)
 * local_reuse_threshold: Threshold for reusing local spans. (default: 80)
@@ -61,26 +61,30 @@ The build supports some configure time parameters:
 
 Variables can be set with `-D variable=value` on the `gyp` command.
 
-### Build on Linux
+### Building on Linux
 
     BUILDTYPE=Release make
 
-### Build on OSX
+### Building on OSX
 
 Open `scalloc.xcodeproj` and build it using Xcode, or
 
     build/gyp/gyp --depth=. scalloc.gyp --build=Release
 
-## Usage
+## Using scalloc
 
-In order to make use of scalloc, just preload it using `LD_PRELOAD`.
+### ... on Linux
+
+In order to make use of scalloc, preload it using `LD_PRELOAD`.
 
     LD_PRELOAD=/path/to/libscalloc.so ./foo
 
-On Linux, you may also need to disable overcommit accounting
+scalloc heavily makes use of 64bit address space. If you run into some limits
+you probably need to disable overcommit accounting. On recent versions of Linux
+you can do this by
 
     sudo sh -c "echo 1 > /proc/sys/vm/overcommit_memory"
-    
+
 See the [kernel docs](https://www.kernel.org/doc/Documentation/vm/overcommit-accounting)
 for more information.
 
