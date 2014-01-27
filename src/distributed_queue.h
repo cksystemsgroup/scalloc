@@ -29,6 +29,8 @@ class DistributedQueue {
 
   static void Init(TypedAllocator<State>* sate_alloc,
                    TypedAllocator<Backend>* backend_alloc);
+  static void DestroyDistributedQueueState(void* p);
+
 
   inline DistributedQueue() {}
   void Init(size_t p);

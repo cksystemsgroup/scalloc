@@ -38,9 +38,9 @@ inline bool Arena::Contains(const void* p) {
 inline void* Arena::Allocate(const size_t size) {
   void* p = reinterpret_cast<void*>(cur_.fetch_add(size));
   if (reinterpret_cast<uintptr_t>(p) > (start_ + size_)) {
-    Fatal("arena: oom");
+    Fatal("[Arena] oom");
   }
-  LOG(kTrace, "arena: allocate: %lu", size);
+  LOG(kTrace, "[Arena] allocate: %lu", size);
   return p;
 }
 

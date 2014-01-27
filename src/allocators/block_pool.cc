@@ -37,6 +37,7 @@ void* BlockPool::Allocate(const size_t sc,
                                      my.raw)) {
       // Got it!
       *block = hdr;
+      LOG(kTrace, "[BlockPool] steal successful: %p", hdr);
     }
   }
 

@@ -27,11 +27,11 @@ class SmallAllocator {
   static void Init(TypedAllocator<SmallAllocator>* alloc);
   static inline bool Enabled() { return enabled_; }
   static SmallAllocator* New(const uint64_t id);
+  static void Destroy(SmallAllocator* thiz);
 
   void* Allocate(const size_t size);
   void Free(void* p, SpanHeader* hdr);
   void SetActiveSlab(const size_t sc, const SpanHeader* hdr);
-  void Destroy();
 
  private:
   void Refill(const size_t sc);
@@ -43,6 +43,7 @@ class SmallAllocator {
 
   uint64_t id_;
   SpanHeader* my_headers_[kNumClasses];
+  SpanHeader* cool_spans_[kNumClasses];
   uint64_t me_active_;
   uint64_t me_inactive_;
 
@@ -53,6 +54,13 @@ class SmallAllocator {
 
 inline void SmallAllocator::SetActiveSlab(const size_t sc,
                                           const SpanHeader* hdr) {
+  // Prepend current hotspan to the list of cool spans.
+  if (my_headers_[sc] != NULL) {
+    my_headers_[sc]->next = cool_spans_[sc];
+    my_headers_[sc]->prev = NULL;
+    cool_spans_[sc] = my_headers_[sc];
+  }
+
   my_headers_[sc] = const_cast<SpanHeader*>(hdr);
 }
 
@@ -106,6 +114,17 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
           Collector::Put(hdr);
 #endif  // MADVISE_SAME_THREAD
         } else {
+          // Remove hdr from the list of cool spans.
+          if (cool_spans_[sc] == hdr) {
+            cool_spans_[sc] = reinterpret_cast<SpanHeader*>(hdr->next);
+          }
+          if (hdr->prev != NULL) {
+            reinterpret_cast<SpanHeader*>(hdr->prev)->next = hdr->next;
+          }
+          if (hdr->next != NULL) {
+            reinterpret_cast<SpanHeader*>(hdr->next)->prev = hdr->prev;
+          }
+
           hdr->aowner.active = false;
         }
       }

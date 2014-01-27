@@ -43,7 +43,8 @@ struct ActiveOwner {
 
 class Header {
  public:
-  void* __RESERVED_FOR_LINK_POINTERS;
+  void* next;
+  void* prev;
   BlockType type;
   uint32_t __pad0;
 
@@ -103,7 +104,8 @@ class SpanHeader : public Header {
   size_t remote_flist;
   size_t flist_aligned_blocksize_offset;
 #define READ_SZ                            \
-  (sizeof(__RESERVED_FOR_LINK_POINTERS) +  \
+  (sizeof(next) +                          \
+  sizeof(prev) +                           \
   sizeof(type) +                           \
   sizeof(__pad0) +                         \
   sizeof(size_class) +                     \
@@ -139,7 +141,8 @@ class SpanHeader : public Header {
   inline void PrintLayout() {
     printf("Span header:\n\n"
            "OFFSET\tSIZE\tFIELD\n"
-           "%lu\t%lu\t__RESERVED_FOR_LINK_POINTERS\n"
+           "%lu\t%lu\tnext\n"
+           "%lu\t%lu\tprev\n"
            "%lu\t%lu\ttype\n"
            "%lu\t%lu\t__pad0\n"
            "--- read only (span header) ---\n"
@@ -154,7 +157,8 @@ class SpanHeader : public Header {
            "%lu\t%lu\tflist\n"
            "%lu\t%lu\t__pad3\n"
            "--- payload @ %lu ---\n\n",
-           FIELD_OFFSET_AND_SIZE(__RESERVED_FOR_LINK_POINTERS),
+           FIELD_OFFSET_AND_SIZE(next),
+           FIELD_OFFSET_AND_SIZE(prev),
            FIELD_OFFSET_AND_SIZE(type),
            FIELD_OFFSET_AND_SIZE(__pad0),
            FIELD_OFFSET_AND_SIZE(size_class),
@@ -220,12 +224,13 @@ class LargeObjectHeader : public Header {
 
   size_t size;
   LargeObjectHeader* fwd;
-#define READ_SZ                               \
-  (sizeof(__RESERVED_FOR_LINK_POINTERS) +     \
-      sizeof(type) +                          \
-      sizeof(__pad0) +                        \
-      sizeof(size) +                          \
-      sizeof(fwd))
+#define READ_SZ                              \
+    (sizeof(next) +                          \
+     sizeof(prev) +                          \
+     sizeof(type) +                          \
+     sizeof(__pad0) +                        \
+     sizeof(size) +                          \
+     sizeof(fwd))
   char __pad1[CACHELINE_SIZE - (READ_SZ % CACHELINE_SIZE)];  // NOLINT
 #undef READ_SZ
 
@@ -243,7 +248,8 @@ class LargeObjectHeader : public Header {
     printf("Large object header:\n\n"
            "OFFSET\tSIZE\tFIELD\n"
            "--- read only (base header) ---\n"
-           "%lu\t%lu\t__RESERVED_FOR_LINK_POINTERS\n"
+           "%lu\t%lu\tnext\n"
+           "%lu\t%lu\tprev\n"
            "%lu\t%lu\ttype\n"
            "%lu\t%lu\t__pad0\n"
            "--- read only (span header) ---\n"
@@ -251,7 +257,8 @@ class LargeObjectHeader : public Header {
            "%lu\t%lu\tfwd\n"
            "%lu\t%lu\t__pad1\n"
            "--- payload @ %lu ---\n\n",
-           FIELD_OFFSET_AND_SIZE(__RESERVED_FOR_LINK_POINTERS),
+           FIELD_OFFSET_AND_SIZE(next),
+           FIELD_OFFSET_AND_SIZE(prev),
            FIELD_OFFSET_AND_SIZE(type),
            FIELD_OFFSET_AND_SIZE(__pad0),
            FIELD_OFFSET_AND_SIZE(size),

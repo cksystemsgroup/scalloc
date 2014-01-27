@@ -25,6 +25,7 @@
       'Debug': {
         'cflags': ['-g', '-O0'],
         'xcode_settings': {
+          'BUILT_PRODUCTS_DIR': "out/<(CONFIGURATION_NAME)",
           'OTHER_CFLAGS': ['-g', '-O0']
         },
         'defines': [
@@ -135,6 +136,35 @@
       'include_dirs': [
         'src',
         'src/allocators',
+      ]
+    },
+    {
+      'target_name': 'thread-termination',
+      'product_name': 'thread-termination',
+      'product_dir': "out/<(CONFIGURATION_NAME)",
+      'type' : 'executable',
+      'cflags': [ '<@(default_cflags)' ],
+      'ldflags': [ '<@(default_ldflags)' ],
+      'xcode_settings': {
+        'OTHER_CFLAGS': [ '<@(default_cflags)' ],
+        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
+        'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
+        'CLANG_CXX_LIBRARY': "libc++",
+      },
+      'defines': [
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'ldflags': [
+            '-pthread'
+          ]
+        }],
+      ],
+      'sources': [
+        'benchmarks/thread-termination/thread-termination.cc',
+      ],
+      'include_dirs': [
+        'benchmarks/thread-termination',
       ]
     },
   ],

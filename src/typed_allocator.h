@@ -53,6 +53,7 @@ class TypedAllocator {
   }
 
   void* Refill() {
+    LOG(kTrace, "[TypedAllocator] refilling");
     void* result = InternalArena.Allocate(alloc_increment_);
     uintptr_t ptr = reinterpret_cast<uintptr_t>(result) + tsize_;
     for (size_t i = 1; i < (alloc_increment_ / tsize_); i++) {

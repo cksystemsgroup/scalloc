@@ -22,12 +22,17 @@ void SmallAllocator::Init(TypedAllocator<SmallAllocator>* alloc) {
 
 SmallAllocator* SmallAllocator::New(const uint64_t id) {
   SmallAllocator* a = allocator->New();
+  LOG(kTrace, "[SmallAllocator] New; id: %lu, p: %p", id, a);
   a->id_ = id;
   ActiveOwner dummy;
   dummy.Reset(true, id);
   a->me_active_ = dummy.raw;
   dummy.Reset(false, id);
   a->me_inactive_ = dummy.raw;
+  for (size_t i = 0; i < kNumClasses; i++) {
+    a->my_headers_[i] = NULL;
+    a->cool_spans_[i] = NULL;
+  }
   return a;
 }
 
@@ -39,7 +44,7 @@ void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
     return NULL;
   }
 
-  if (my_headers_[sc] != NULL) {
+  // if (my_headers_[sc] != NULL) {
 #ifdef PROFILER_ON
     Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
@@ -63,7 +68,7 @@ void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
       }
       return p;
     }
-  }
+  // }
 
   Refill(sc);
   return Allocate(size);
@@ -84,18 +89,38 @@ void SmallAllocator::Refill(const size_t sc) {
 }
 
 
-void SmallAllocator::Destroy() {
-  // Destroying basically means giving up all active spans.  We can only give up
-  // our current spans, since we do not have references to the others.  Assuming
-  // the mutator had no memory leak (i.e. all non-shared objects have been
-  // freed), a span now can stay active forever (all reusable blocks travel
-  // through the remote freelists), or it is already inactive (and thus
-  // available for reuse).
+void SmallAllocator::Destroy(SmallAllocator* thiz) {
+  // Destroying basically means giving hot and cool spans.  Remotely freed
+  // blocks keep the span in the system, i.e., it is not released from the
+  // allocator. This is similar to keeping a buffer of objects. Spans will
+  // eventually be reused, since they are globally available, i.e., stealable.
+
+  SpanHeader* cur;
   for (size_t i = 0; i < kNumClasses; i++) {
-    if (my_headers_[i]) {
-      my_headers_[i]->aowner.active = false;
+    // Hot spans.
+    if (thiz->my_headers_[i]) {
+      cur = thiz->my_headers_[i];
+      if (cur->flist.Full()) {
+#ifdef MADVISE_SAME_THREAD
+        SpanPool::Instance().Put(cur, cur->size_class, cur->aowner.owner);
+#else
+        Collector::Put(cur);
+#endif  // MADVISE_SAME_THREAD
+      } else {
+        thiz->my_headers_[i]->aowner.active = false;
+      }
+    }
+
+    // Cool spans.
+    cur = reinterpret_cast<SpanHeader*>(thiz->cool_spans_[i]);
+    while (cur != NULL) {
+      LOG(kTrace, "[SmallAllocator]: making span global %p", cur);
+      cur->aowner.active = false;
+      cur = reinterpret_cast<SpanHeader*>(cur->next);
     }
   }
+
+  SmallAllocator::allocator->Delete(thiz);
 }
 
 }  // namespace scalloc

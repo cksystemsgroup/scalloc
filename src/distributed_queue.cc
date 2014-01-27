@@ -23,7 +23,7 @@ void DistributedQueue::Init(TypedAllocator<State>* state_alloc,
   backend_allocator_ = backend_alloc;
   state_allocator_ = state_alloc;
 #ifndef HAVE_TLS
-  pthread_key_create(&state_key_, NULL);
+  pthread_key_create(&state_key_, DestroyDistributedQueueState);
 #endif
 }
 
@@ -34,6 +34,11 @@ void DistributedQueue::Init(size_t p) {
     backends_[i] = backend_allocator_->New();
     backends_[i]->Init();
   }
+}
+
+
+void DistributedQueue::DestroyDistributedQueueState(void* p) {
+  state_allocator_->Delete(reinterpret_cast<State*>(p));
 }
 
 
