@@ -5,7 +5,7 @@
       '-Werror',
       '-fPIC',
       '-m64',
-      '-std=c++0x',
+      '-std=c++11',
       '-fno-omit-frame-pointer',
       '-ffast-math'
     ],
