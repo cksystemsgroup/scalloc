@@ -94,6 +94,10 @@ Similar to preloading on Linux, one can preload scalloc using
 
     DYLD_INSERT_LIBRARIES=/path/to/libscalloc.dylib DYLD_FORCE_FLAT_NAMESPACE=1 ./foo
 
+## Benchmarking scalloc
+
+See our separate section on [benchmarking](https://github.com/cksystemsgroup/scalloc/tree/master/benchmarks).
+
 ## License
 
 Copyright (c) 2012-2014, the scalloc Project Authors.
