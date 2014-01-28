@@ -5,7 +5,7 @@
       '-Werror',
       '-fPIC',
       '-m64',
-      '-std=c++11',
+      '-std=c++0x',
       '-fno-omit-frame-pointer',
       '-ffast-math'
     ],
@@ -20,7 +20,6 @@
     'madvise_strategy%': "same-thread",
   },
   'target_defaults': {
-    'product_dir': "out/<(CONFIGURATION_NAME)",
     'configurations': {
       'Debug': {
         'cflags': ['-g', '-O0'],
@@ -44,6 +43,7 @@
     {
       'target_name': 'scalloc',
       'product_name': 'scalloc',
+      'product_dir': "out/<(CONFIGURATION_NAME)",
       'type' : 'shared_library',
       'cflags': [ '<@(default_cflags)' ],
       'ldflags': [ '<@(default_ldflags)' ],
@@ -141,7 +141,6 @@
     {
       'target_name': 'thread-termination',
       'product_name': 'thread-termination',
-      'product_dir': "out/<(CONFIGURATION_NAME)",
       'type' : 'executable',
       'cflags': [ '<@(default_cflags)' ],
       'ldflags': [ '<@(default_ldflags)' ],

@@ -1,16 +1,23 @@
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
+
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #if defined(__APPLE__)
-// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
-// Please see the AUTHORS file for details.  Use of this source code is governed
-// by a BSD license that can be found in the LICENSE file.
 
 #include <mach/mach_init.h>
 #include <mach/task.h>
 
 #endif  // __APPLE__
+
+#ifdef __linux__
+
+#include <sys/resource.h>
+
+#endif  // __linux__
 
 #define ALLOCATIONS 1000000
 #define SIZE 8
@@ -26,6 +33,16 @@ static size_t GetRSS() {
 }
 
 #endif  // __APPLE__
+
+#ifdef __linux__
+
+static size_t GetRSS() {
+  struct rusage usage;
+  getrusage(RUSAGE_SELF, &usage);
+  return usage.ru_maxrss;
+}
+
+#endif
 
 
 static void* ProducerWorkload(void* data) {
