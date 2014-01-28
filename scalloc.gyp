@@ -166,5 +166,31 @@
         'benchmarks/thread-termination',
       ]
     },
+    {
+      'target_name': 'threadtest',
+      'product_name': 'threadtest',
+      'type' : 'executable',
+      'cflags': [ '<@(default_cflags)' ],
+      'ldflags': [ '<@(default_ldflags)' ],
+      'xcode_settings': {
+        'OTHER_CFLAGS': [ '<@(default_cflags)' ],
+        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
+        'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
+        'CLANG_CXX_LIBRARY': "libc++",
+      },
+      'conditions': [
+        ['OS=="linux"', {
+          'ldflags': [
+            '-pthread'
+          ]
+        }],
+      ],
+      'sources': [
+        'benchmarks/hoard/threadtest.cpp',
+      ],
+      'include_dirs': [
+        'benchmarks/hoard/common',
+      ]
+    },
   ],
 }
