@@ -58,7 +58,12 @@ inline void SmallAllocator::SetActiveSlab(const size_t sc,
   if (my_headers_[sc] != NULL) {
     my_headers_[sc]->next = cool_spans_[sc];
     my_headers_[sc]->prev = NULL;
+    if (cool_spans_[sc] != NULL) {
+      cool_spans_[sc]->prev = my_headers_[sc];
+    }
     cool_spans_[sc] = my_headers_[sc];
+    LOG(kTrace, "[SmallAllocator] adding to list of cool spans: %p",
+        my_headers_[sc]);
   }
 
   my_headers_[sc] = const_cast<SpanHeader*>(hdr);
@@ -114,15 +119,18 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
           Collector::Put(hdr);
 #endif  // MADVISE_SAME_THREAD
         } else {
+          LOG(kTrace, "[SmallAllocator] removing from list of cool spans %p",
+              hdr);
+          LOG(kTrace, "  prev: %p, next: %p", hdr->prev, hdr->next);
           // Remove hdr from the list of cool spans.
-          if (cool_spans_[sc] == hdr) {
-            cool_spans_[sc] = reinterpret_cast<SpanHeader*>(hdr->next);
-          }
           if (hdr->prev != NULL) {
             reinterpret_cast<SpanHeader*>(hdr->prev)->next = hdr->next;
           }
           if (hdr->next != NULL) {
             reinterpret_cast<SpanHeader*>(hdr->next)->prev = hdr->prev;
+          }
+          if (cool_spans_[sc] == hdr) {
+            cool_spans_[sc] = reinterpret_cast<SpanHeader*>(hdr->next);
           }
 
           hdr->aowner.active = false;
