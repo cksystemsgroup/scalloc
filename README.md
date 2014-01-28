@@ -96,7 +96,7 @@ Similar to preloading on Linux, one can preload scalloc using
 
 ## License
 
-Copyright (c) 2012-2013, the scalloc Project Authors.
+Copyright (c) 2012-2014, the scalloc Project Authors.
 All rights reserved. Please see the AUTHORS file for details.
 
 Redistribution and use in source and binary forms, with or without
