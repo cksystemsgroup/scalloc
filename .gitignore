@@ -5,6 +5,8 @@ Makefile
 build/
 out/
 
+*.target.mk
+
 scalloc.Makefile
 scalloc.target.mk
 scalloc.xcodeproj/
