@@ -25,7 +25,8 @@
         'cflags': ['-g', '-O0'],
         'xcode_settings': {
           'BUILT_PRODUCTS_DIR': "out/<(CONFIGURATION_NAME)",
-          'OTHER_CFLAGS': ['-g', '-O0']
+          'OTHER_CFLAGS': ['-g', '-O0'],
+          'USE_HEADERMAP': 'NO'
         },
         'defines': [
           'DEBUG',
@@ -34,7 +35,9 @@
       'Release': {
         'cflags': ['-O3'],
         'xcode_settings': {
-          'OTHER_CFLAGS': ['-O3']
+          'BUILT_PRODUCTS_DIR': "out/<(CONFIGURATION_NAME)",
+          'OTHER_CFLAGS': ['-O3'],
+          'USE_HEADERMAP': 'NO'
         },
       }
     },
@@ -43,7 +46,6 @@
     {
       'target_name': 'scalloc',
       'product_name': 'scalloc',
-      'product_dir': "out/<(CONFIGURATION_NAME)",
       'type' : 'shared_library',
       'cflags': [ '<@(default_cflags)' ],
       'ldflags': [ '<@(default_ldflags)' ],
