@@ -22,39 +22,43 @@
   'target_defaults': {
     'configurations': {
       'Debug': {
-        'cflags': ['-g', '-O0'],
+        'cflags': [ '<@(default_cflags)' , '-g', '-O0' ],
+        'ldflags': [ '<@(default_ldflags)' ],
         'xcode_settings': {
           'BUILT_PRODUCTS_DIR': "out/<(CONFIGURATION_NAME)",
-          'OTHER_CFLAGS': ['-g', '-O0'],
-          'USE_HEADERMAP': 'NO'
+          'OTHER_CFLAGS': [ '<@(default_cflags)' , '-g', '-O0'],
+          'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
+          'USE_HEADERMAP': 'NO',
+          'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
+          'CLANG_CXX_LIBRARY': "libc++",
         },
         'defines': [
           'DEBUG',
         ]
       },
       'Release': {
-        'cflags': ['-O3'],
+        'cflags': [ '<@(default_cflags)', '-O3' ],
+        'ldflags': [ '<@(default_ldflags)' ],
         'xcode_settings': {
           'BUILT_PRODUCTS_DIR': "out/<(CONFIGURATION_NAME)",
-          'OTHER_CFLAGS': ['-O3'],
-          'USE_HEADERMAP': 'NO'
+          'OTHER_CFLAGS': [ '<@(default_cflags)', '-O3' ],
+          'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
+          'USE_HEADERMAP': 'NO',
+          'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
+          'CLANG_CXX_LIBRARY': "libc++",
         },
       }
     },
   },
+  'includes': [
+    'benchmarks/thread-termination/thread-termination.gypi',
+    'benchmarks/hoard/hoard-benchmarks.gypi',
+  ],
   'targets': [
     {
       'target_name': 'scalloc',
       'product_name': 'scalloc',
       'type' : 'shared_library',
-      'cflags': [ '<@(default_cflags)' ],
-      'ldflags': [ '<@(default_ldflags)' ],
-      'xcode_settings': {
-        'OTHER_CFLAGS': [ '<@(default_cflags)' ],
-        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
-        'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
-        'CLANG_CXX_LIBRARY': "libc++",
-      },
       'defines': [
         'LOG_LEVEL=<(log_level)',
         'SPAN_REUSE_THRESHOLD=<(span_reuse_threshold)',
@@ -138,60 +142,6 @@
       'include_dirs': [
         'src',
         'src/allocators',
-      ]
-    },
-    {
-      'target_name': 'thread-termination',
-      'product_name': 'thread-termination',
-      'type' : 'executable',
-      'cflags': [ '<@(default_cflags)' ],
-      'ldflags': [ '<@(default_ldflags)' ],
-      'xcode_settings': {
-        'OTHER_CFLAGS': [ '<@(default_cflags)' ],
-        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
-        'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
-        'CLANG_CXX_LIBRARY': "libc++",
-      },
-      'defines': [
-      ],
-      'conditions': [
-        ['OS=="linux"', {
-          'ldflags': [
-            '-pthread'
-          ]
-        }],
-      ],
-      'sources': [
-        'benchmarks/thread-termination/thread-termination.cc',
-      ],
-      'include_dirs': [
-        'benchmarks/thread-termination',
-      ]
-    },
-    {
-      'target_name': 'threadtest',
-      'product_name': 'threadtest',
-      'type' : 'executable',
-      'cflags': [ '<@(default_cflags)' ],
-      'ldflags': [ '<@(default_ldflags)' ],
-      'xcode_settings': {
-        'OTHER_CFLAGS': [ '<@(default_cflags)' ],
-        'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
-        'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
-        'CLANG_CXX_LIBRARY': "libc++",
-      },
-      'conditions': [
-        ['OS=="linux"', {
-          'ldflags': [
-            '-pthread'
-          ]
-        }],
-      ],
-      'sources': [
-        'benchmarks/hoard/threadtest.cpp',
-      ],
-      'include_dirs': [
-        'benchmarks/hoard/common',
       ]
     },
   ],
