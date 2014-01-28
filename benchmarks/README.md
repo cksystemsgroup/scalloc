@@ -2,7 +2,13 @@
 
 ## AC/DC
 
-## Hoard
+For now, see https://github.com/cksystemsgroup/acdc.
+
+## Hoard Benchmarks
+
+For now, see https://github.com/emeryberger/Hoard/tree/master/benchmarks/.
+
+Licensing information can be found [here](https://github.com/cksystemsgroup/scalloc/tree/master/benchmarks/hoard).
 
 ## Other
 
