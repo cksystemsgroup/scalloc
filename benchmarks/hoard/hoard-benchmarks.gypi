@@ -12,7 +12,26 @@
         }],
       ],
       'sources': [
-        'threadtest.cpp',
+        'threadtest/threadtest.cpp',
+      ],
+      'include_dirs': [
+        'common',
+      ]
+    },
+    {
+      'target_name': 'larson',
+      'product_name': 'larson',
+      'type' : 'executable',
+      'cflags!': [ '-Wall', '-Werror' ],
+      'conditions': [
+        ['OS=="linux"', {
+          'ldflags': [
+            '-pthread'
+          ]
+        }],
+      ],
+      'sources': [
+        'larson/larson.cpp',
       ],
       'include_dirs': [
         'common',
