@@ -4,6 +4,8 @@
 Makefile
 build/
 out/
+data/
+plots/
 
 *.target.mk
 
