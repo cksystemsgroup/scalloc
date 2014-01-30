@@ -10,6 +10,14 @@ For now, see https://github.com/emeryberger/Hoard/tree/master/benchmarks/.
 
 Licensing information can be found [here](https://github.com/cksystemsgroup/scalloc/tree/master/benchmarks/hoard).
 
+### threadtest
+
+Parameters: \<threads\> \<rounds\> \<#objects\> \<work\> \<obj-size\>
+
+### larson
+
+Parameters: \<sleep\> \<min-size\> \<max-size\> \<chunks-per-thread\> \<rounds\> \<rng-seed\> \<threads\>
+
 ## Other
 
 ### thread-termination
