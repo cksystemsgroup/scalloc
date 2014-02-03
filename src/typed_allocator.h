@@ -29,8 +29,9 @@ class TypedAllocator {
   // available from a global context (before main).
   //
   // alloc_increment_ needs to be a multiple of the system page size.
-  void Init(size_t alloc_increment, size_t alignment) {
+  void Init(size_t alloc_increment, size_t alignment, const char* name) {
     alloc_increment_ = alloc_increment;
+    name_ = const_cast<char*>(name);
 
     tsize_ = sizeof(T);
     if (alignment > kNoAlignment) {
@@ -53,7 +54,7 @@ class TypedAllocator {
   }
 
   void* Refill() {
-    LOG(kTrace, "[TypedAllocator] refilling");
+    LOG(kTrace, "[TypedAllocator:%s] refilling", name_);
     void* result = InternalArena.Allocate(alloc_increment_);
     uintptr_t ptr = reinterpret_cast<uintptr_t>(result) + tsize_;
     for (size_t i = 1; i < (alloc_increment_ / tsize_); i++) {
@@ -83,6 +84,7 @@ class TypedAllocator {
   }
 
  private:
+  char* name_;
   size_t alloc_increment_;
   size_t tsize_;
   SpinLock refill_lock_;
