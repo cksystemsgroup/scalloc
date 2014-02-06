@@ -169,7 +169,7 @@ class SpanHeader : public Header {
            FIELD_OFFSET_AND_SIZE(__pad2),
            FIELD_OFFSET_AND_SIZE(flist),
            FIELD_OFFSET_AND_SIZE(__pad3),
-           FIELD_OFFSET(__pad3) + sizeof(__pad3));
+           sizeof(SpanHeader));
   }
 
   DISALLOW_ALLOCATION();

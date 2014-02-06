@@ -29,7 +29,7 @@ void ThreadCache::Init() {
   LockScope(g_threadcache_lock);
 
   if (!module_init_) {
-    g_threadcache_alloc.Init(kPageSize, 64);
+    g_threadcache_alloc.Init(kPageSize, 64, "thread_cache_alloc");
     // http://pubs.opengroup.org/onlinepubs/009696799/functions/pthread_key_create.html
     //
     // At thread exit, if a key value has a non-NULL destructor pointer, and the

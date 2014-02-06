@@ -15,7 +15,9 @@
 #include "collector.h"
 #include "common.h"
 #include "distributed_queue.h"
+#include "list-inl.h"
 #include "override.h"
+#include "random.h"
 #include "scalloc_arenas.h"
 #include "scalloc_guard.h"
 #include "size_classes_raw.h"
@@ -58,7 +60,23 @@ cache_aligned TypedAllocator<SmallAllocator> small_allocator_allocator;
 cache_aligned TypedAllocator<DistributedQueue::State> dq_state_allocator;
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
 
+
+inline void CheckSizeClasses() {
+  uint64_t payload;
+  for (size_t i = 1; i < kNumClasses; i++) {
+    payload = ClassToSize[i] * ClassToObjects[i];
+    if ((payload + sizeof(SpanHeader)) > ClassToSpanSize[i]) {
+      LOG(kError, "size class: %lu, size: %lu, objects: %lu, span size: %lu",
+          i, ClassToSize[i], ClassToObjects[i], ClassToSpanSize[i]);
+      Fatal("inconsistent size classes");
+    }
+  }
+}
+
 }  // namespace scalloc
+
+
+
 
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
@@ -66,6 +84,7 @@ ScallocGuard::ScallocGuard() {
 #ifdef DEBUG
     SpanHeader::CheckFieldAlignments();
     LargeObjectHeader::CheckFieldAlignments();
+    scalloc::CheckSizeClasses();
 #endif  // DEBUG
 
     ReplaceSystemAlloc();
@@ -73,8 +92,8 @@ ScallocGuard::ScallocGuard() {
     scalloc::InternalArena.Init(kInternalSpace);
     scalloc::SmallArena.Init(kSmallSpace);
 
-    scalloc::dq_state_allocator.Init(kPageSize, 64);
-    scalloc::dq_backend_allocator.Init(kPageSize, 64);
+    scalloc::dq_state_allocator.Init(kPageSize * 16, 64, "dq_state_allocator");
+    scalloc::dq_backend_allocator.Init(kPageSize * 16, 64, "dq_backend_allocator");
     scalloc::DistributedQueue::Init(&scalloc::dq_state_allocator,
                                     &scalloc::dq_backend_allocator);
     scalloc::SpanPool::Init();
@@ -84,7 +103,7 @@ ScallocGuard::ScallocGuard() {
     scalloc::Collector::Init();
 #endif  // COLLECTOR
 
-    scalloc::small_allocator_allocator.Init(kPageSize, 64);
+    scalloc::small_allocator_allocator.Init(kPageSize * 4, 64, "small_allocator_allocator");
     scalloc::SmallAllocator::Init(&scalloc::small_allocator_allocator);
 
     scalloc::ThreadCache::Init();
