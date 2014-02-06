@@ -30,7 +30,7 @@ SmallAllocator* SmallAllocator::New(const uint64_t id) {
   dummy.Reset(false, id);
   a->me_inactive_ = dummy.raw;
   for (size_t i = 0; i < kNumClasses; i++) {
-    a->my_headers_[i] = NULL;
+    a->hot_span_[i] = NULL;
     a->cool_spans_[i] = NULL;
   }
   return a;
@@ -44,7 +44,7 @@ void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
     return NULL;
   }
 
-  // if (my_headers_[sc] != NULL) {
+  // if (hot_span_[sc] != NULL) {
 #ifdef PROFILER_ON
     Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
@@ -81,16 +81,21 @@ void SmallAllocator::Refill(const size_t sc) {
 #endif  // PROFILER_ON
   LOG(kTrace, "[SmallAllocator] refilling size class: %lu, object size: %lu",
       sc, ClassToSize[sc]);
+
+  // We are not checking cool spans, because their utilization is per
+  // definition > kReuseThreshold, e.g. >80%.
+
   bool reusable;
   SpanHeader* hdr = SpanPool::Instance().Get(sc, id_, &reusable);
   ScallocAssert(hdr != 0);
   hdr->Init(sc, id_, reusable);
   SetActiveSlab(sc, hdr);
+  return;
 }
 
 
 void SmallAllocator::Destroy(SmallAllocator* thiz) {
-  // Destroying basically means giving hot and cool spans.  Remotely freed
+  // Destroying basically means giving up hot and cool spans.  Remotely freed
   // blocks keep the span in the system, i.e., it is not released from the
   // allocator. This is similar to keeping a buffer of objects. Spans will
   // eventually be reused, since they are globally available, i.e., stealable.
@@ -98,8 +103,8 @@ void SmallAllocator::Destroy(SmallAllocator* thiz) {
   SpanHeader* cur;
   for (size_t i = 0; i < kNumClasses; i++) {
     // Hot spans.
-    if (thiz->my_headers_[i]) {
-      cur = thiz->my_headers_[i];
+    if (thiz->hot_span_[i] != NULL) {
+      cur = thiz->hot_span_[i];
       if (cur->flist.Full()) {
 #ifdef MADVISE_SAME_THREAD
         SpanPool::Instance().Put(cur, cur->size_class, cur->aowner.owner);
@@ -107,17 +112,25 @@ void SmallAllocator::Destroy(SmallAllocator* thiz) {
         Collector::Put(cur);
 #endif  // MADVISE_SAME_THREAD
       } else {
-        thiz->my_headers_[i]->aowner.active = false;
+        thiz->hot_span_[i]->aowner.active = false;
       }
     }
+    thiz->hot_span_[i] = NULL;
 
     // Cool spans.
     cur = reinterpret_cast<SpanHeader*>(thiz->cool_spans_[i]);
+    SpanHeader* tmp;
     while (cur != NULL) {
       LOG(kTrace, "[SmallAllocator]: making span global %p", cur);
-      cur->aowner.active = false;
+      tmp = cur;
+      MemoryBarrier();
       cur = reinterpret_cast<SpanHeader*>(cur->next);
+      MemoryBarrier();
+      tmp->next = NULL;
+      tmp->prev = NULL;
+      tmp->aowner.active = false;
     }
+    thiz->cool_spans_[i] = NULL;
   }
 
   SmallAllocator::allocator->Delete(thiz);

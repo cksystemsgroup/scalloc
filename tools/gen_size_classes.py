@@ -32,8 +32,8 @@ def generate_size_classes():
   class_to_size = [ 0 ]
   size_classes = [ SizeClass(0, 0, 0, 0) ]
 
-  # For the first half offine classes we use real spans of 2 pages.
-  span_size = 1 << 13
+  # For the first half offine classes we use real spans of 4 pages.
+  span_size = 1 << 14
   fine = []
   for i in range(1, fine_classes/2):
     class_to_size.append(class_to_size[i-1] + min_alignment)
@@ -42,8 +42,8 @@ def generate_size_classes():
       "({0} - sizeof(SpanHeader))/{1}".format(span_size, class_to_size[i])))
   size_classes.extend(fine)
 
-  # For the next half we switch use real spans of 3 pages.
-  span_size = 1 << 14
+  # For the next half we switch use real spans of 8 pages.
+  span_size = 1 << 15
   fine = []
   for i in range(fine_classes/2, fine_classes):
     class_to_size.append(class_to_size[i-1] + min_alignment)

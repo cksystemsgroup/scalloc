@@ -31,55 +31,85 @@ class SmallAllocator {
 
   void* Allocate(const size_t size);
   void Free(void* p, SpanHeader* hdr);
-  void SetActiveSlab(const size_t sc, const SpanHeader* hdr);
 
  private:
-  void Refill(const size_t sc);
-  SpanHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
+  void AddCoolSpan(const size_t sc, SpanHeader* span);
+  void RemoveCoolSpan(const size_t sc, SpanHeader* span);
+  void AddSlowSpan(const size_t sc, SpanHeader* span);
+  void RemoveSlowSpan(const size_t sc, SpanHeader* node);
   void* AllocateNoSlab(const size_t sc, const size_t size);
+  SpanHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
+  void Refill(const size_t sc);
+  void SetActiveSlab(const size_t sc, const SpanHeader* hdr);
 
   static TypedAllocator<SmallAllocator>* allocator;
   static bool enabled_;
 
   uint64_t id_;
-  SpanHeader* my_headers_[kNumClasses];
-  SpanHeader* cool_spans_[kNumClasses];
   uint64_t me_active_;
   uint64_t me_inactive_;
+  SpanHeader* hot_span_[kNumClasses];
+  SpanHeader* cool_spans_[kNumClasses];
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(SmallAllocator);
 } cache_aligned;
 
 
+inline void SmallAllocator::AddCoolSpan(const size_t sc,
+                                        SpanHeader* span) {
+  LOG(kTrace, "[SmallAllocator] adding to list of cool spans %p", span);
+  span->prev = NULL;
+  span->next = cool_spans_[sc];
+  if (cool_spans_[sc] != NULL) {
+    cool_spans_[sc]->prev = span;
+  }
+  cool_spans_[sc] = span;
+}
+
+
+inline void SmallAllocator::RemoveCoolSpan(const size_t sc,
+                                           SpanHeader* span) {
+  LOG(kTrace, "[SmallAllocator] removing from list of cool spans %p", span);
+  if (span->prev != NULL) {
+    reinterpret_cast<SpanHeader*>(span->prev)->next = span->next;
+  }
+  if (span->next != NULL) {
+    reinterpret_cast<SpanHeader*>(span->next)->prev = span->prev;
+  }
+  if (cool_spans_[sc] == span) {
+    cool_spans_[sc] = reinterpret_cast<SpanHeader*>(span->next);
+  }
+  span->prev = NULL;
+  span->next = NULL;
+}
+
+
 inline void SmallAllocator::SetActiveSlab(const size_t sc,
                                           const SpanHeader* hdr) {
-  // Prepend current hotspan to the list of cool spans.
-  if (my_headers_[sc] != NULL) {
-    my_headers_[sc]->next = cool_spans_[sc];
-    my_headers_[sc]->prev = NULL;
-    if (cool_spans_[sc] != NULL) {
-      cool_spans_[sc]->prev = my_headers_[sc];
-    }
-    cool_spans_[sc] = my_headers_[sc];
-    LOG(kTrace, "[SmallAllocator] adding to list of cool spans: %p",
-        my_headers_[sc]);
+  // Prepend current hot span to the list of cool spans.
+  if (hot_span_[sc] != NULL) {
+    LOG(kTrace, "{%lu} hot span -> cool span %p, utilization: %lu",
+        sc, hot_span_[sc], hot_span_[sc]->Utilization());
+    AddCoolSpan(sc, hot_span_[sc]);
   }
 
-  my_headers_[sc] = const_cast<SpanHeader*>(hdr);
+  hot_span_[sc] = const_cast<SpanHeader*>(hdr);
 }
 
 
 inline void* SmallAllocator::Allocate(const size_t size) {
   void* result;
   const size_t sc = SizeToClass(size);
-  SpanHeader* hdr = my_headers_[sc];
+  SpanHeader* hdr = hot_span_[sc];
 
   if (UNLIKELY(hdr == NULL)) {
     return AllocateNoSlab(sc, size);
   }
 
   if ((result = hdr->flist.Pop()) != NULL) {
+    LOG(kTrace, "[SmallAllocator] returning object from active span."
+                " utilization: %lu", hdr->Utilization());
 #ifdef PROFILER_ON
     Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
@@ -91,7 +121,7 @@ inline void* SmallAllocator::Allocate(const size_t size) {
 
 
 inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
-  SpanHeader* const cur_sc_hdr = my_headers_[hdr->size_class];
+  SpanHeader* const cur_sc_hdr = hot_span_[hdr->size_class];
   const size_t sc = hdr->size_class;
 
   // p may be an address returned by posix_memalign(). We need to fix this.
@@ -108,8 +138,9 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
 #ifdef PROFILER_ON
       Profiler::GetProfiler().LogDeallocation(sc);
 #endif  // PROFILER_ON
-      LOG(kTrace, "[SmallAllocator] free in active local block at %p", p);
       hdr->flist.Push(p);
+      LOG(kTrace, "[SmallAllocator] free in active local block at %p, block: %p, sc: %lu, utilization: %lu",
+          p, hdr, sc, hdr->Utilization());
       if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
         if (UNLIKELY(hdr->flist.Full())) {
@@ -119,20 +150,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
           Collector::Put(hdr);
 #endif  // MADVISE_SAME_THREAD
         } else {
-          LOG(kTrace, "[SmallAllocator] removing from list of cool spans %p",
-              hdr);
-          LOG(kTrace, "  prev: %p, next: %p", hdr->prev, hdr->next);
-          // Remove hdr from the list of cool spans.
-          if (hdr->prev != NULL) {
-            reinterpret_cast<SpanHeader*>(hdr->prev)->next = hdr->next;
-          }
-          if (hdr->next != NULL) {
-            reinterpret_cast<SpanHeader*>(hdr->next)->prev = hdr->prev;
-          }
-          if (cool_spans_[sc] == hdr) {
-            cool_spans_[sc] = reinterpret_cast<SpanHeader*>(hdr->next);
-          }
-
+          RemoveCoolSpan(sc, hdr);
           hdr->aowner.active = false;
         }
       }
@@ -149,7 +167,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       hdr->flist.Push(p);
 
       if (cur_sc_hdr->Utilization() > kLocalReuseThreshold) {
-        SetActiveSlab(hdr->size_class, hdr);
+        SetActiveSlab(sc, hdr);
 #ifdef PROFILER_ON
         Profiler::GetProfiler().LogSpanReuse();
 #endif  // PROFILER_ON
@@ -157,6 +175,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       }
 
       if (hdr->flist.Full()) {
+        LOG(kTrace, "{%lu}  returning span: %p", sc, hdr);
 #ifdef MADVISE_SAME_THREAD
         SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
 #else

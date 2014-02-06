@@ -12,22 +12,22 @@
 
 #define SIZE_CLASSES \
   SIZE_CLASS(0, 0, 0, 0) /* NOLINT */ \
-  SIZE_CLASS(1, 16, 8192, (8192 - sizeof(SpanHeader))/16) /* NOLINT */ \
-  SIZE_CLASS(2, 32, 8192, (8192 - sizeof(SpanHeader))/32) /* NOLINT */ \
-  SIZE_CLASS(3, 48, 8192, (8192 - sizeof(SpanHeader))/48) /* NOLINT */ \
-  SIZE_CLASS(4, 64, 8192, (8192 - sizeof(SpanHeader))/64) /* NOLINT */ \
-  SIZE_CLASS(5, 80, 8192, (8192 - sizeof(SpanHeader))/80) /* NOLINT */ \
-  SIZE_CLASS(6, 96, 8192, (8192 - sizeof(SpanHeader))/96) /* NOLINT */ \
-  SIZE_CLASS(7, 112, 8192, (8192 - sizeof(SpanHeader))/112) /* NOLINT */ \
-  SIZE_CLASS(8, 128, 16384, (16384 - sizeof(SpanHeader))/128) /* NOLINT */ \
-  SIZE_CLASS(9, 144, 16384, (16384 - sizeof(SpanHeader))/144) /* NOLINT */ \
-  SIZE_CLASS(10, 160, 16384, (16384 - sizeof(SpanHeader))/160) /* NOLINT */ \
-  SIZE_CLASS(11, 176, 16384, (16384 - sizeof(SpanHeader))/176) /* NOLINT */ \
-  SIZE_CLASS(12, 192, 16384, (16384 - sizeof(SpanHeader))/192) /* NOLINT */ \
-  SIZE_CLASS(13, 208, 16384, (16384 - sizeof(SpanHeader))/208) /* NOLINT */ \
-  SIZE_CLASS(14, 224, 16384, (16384 - sizeof(SpanHeader))/224) /* NOLINT */ \
-  SIZE_CLASS(15, 240, 16384, (16384 - sizeof(SpanHeader))/240) /* NOLINT */ \
-  SIZE_CLASS(16, 256, 16384, (16384 - sizeof(SpanHeader))/256) /* NOLINT */ \
+  SIZE_CLASS(1, 16, 16384, (16384 - sizeof(SpanHeader))/16) /* NOLINT */ \
+  SIZE_CLASS(2, 32, 16384, (16384 - sizeof(SpanHeader))/32) /* NOLINT */ \
+  SIZE_CLASS(3, 48, 16384, (16384 - sizeof(SpanHeader))/48) /* NOLINT */ \
+  SIZE_CLASS(4, 64, 16384, (16384 - sizeof(SpanHeader))/64) /* NOLINT */ \
+  SIZE_CLASS(5, 80, 16384, (16384 - sizeof(SpanHeader))/80) /* NOLINT */ \
+  SIZE_CLASS(6, 96, 16384, (16384 - sizeof(SpanHeader))/96) /* NOLINT */ \
+  SIZE_CLASS(7, 112, 16384, (16384 - sizeof(SpanHeader))/112) /* NOLINT */ \
+  SIZE_CLASS(8, 128, 32768, (32768 - sizeof(SpanHeader))/128) /* NOLINT */ \
+  SIZE_CLASS(9, 144, 32768, (32768 - sizeof(SpanHeader))/144) /* NOLINT */ \
+  SIZE_CLASS(10, 160, 32768, (32768 - sizeof(SpanHeader))/160) /* NOLINT */ \
+  SIZE_CLASS(11, 176, 32768, (32768 - sizeof(SpanHeader))/176) /* NOLINT */ \
+  SIZE_CLASS(12, 192, 32768, (32768 - sizeof(SpanHeader))/192) /* NOLINT */ \
+  SIZE_CLASS(13, 208, 32768, (32768 - sizeof(SpanHeader))/208) /* NOLINT */ \
+  SIZE_CLASS(14, 224, 32768, (32768 - sizeof(SpanHeader))/224) /* NOLINT */ \
+  SIZE_CLASS(15, 240, 32768, (32768 - sizeof(SpanHeader))/240) /* NOLINT */ \
+  SIZE_CLASS(16, 256, 32768, (32768 - sizeof(SpanHeader))/256) /* NOLINT */ \
   SIZE_CLASS(17, 512, ((64 * 512 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 64) /* NOLINT */ \
   SIZE_CLASS(18, 1024, ((32 * 1024 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 32) /* NOLINT */ \
   SIZE_CLASS(19, 2048, ((16 * 2048 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 16) /* NOLINT */ \

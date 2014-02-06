@@ -18,11 +18,12 @@
     'small_space%': -1,
     'eager_madvise_threshold%': -1,
     'madvise_strategy%': "same-thread",
+    'shbench%': "no"
   },
   'target_defaults': {
     'configurations': {
       'Debug': {
-        'cflags': [ '<@(default_cflags)' , '-g', '-O0' ],
+        'cflags': [ '<@(default_cflags)' , '-g -gdwarf-2', '-O0'  ],
         'ldflags': [ '<@(default_ldflags)' ],
         'xcode_settings': {
           'BUILT_PRODUCTS_DIR': "out/<(CONFIGURATION_NAME)",
@@ -53,6 +54,13 @@
   'includes': [
     'benchmarks/thread-termination/thread-termination.gypi',
     'benchmarks/hoard/hoard-benchmarks.gypi',
+  ],
+  'conditions': [
+    ['"<(shbench)"!="no"', {
+      'includes': [
+        'benchmarks/shbench/shbench.gypi',
+      ]
+    }]
   ],
   'targets': [
     {
