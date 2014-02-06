@@ -75,9 +75,6 @@ inline void CheckSizeClasses() {
 
 }  // namespace scalloc
 
-
-
-
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {

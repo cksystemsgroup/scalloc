@@ -31,6 +31,10 @@ class SpinLock {
     __sync_lock_release(&lockword_);
   }
 
+  inline void Reset() {
+    lockword_ = 0;
+  }
+
  private:
   enum { kSpinLockFree = 0 };
   enum { kSpinLockHeld = 1 };
