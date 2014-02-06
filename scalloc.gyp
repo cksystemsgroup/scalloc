@@ -7,7 +7,8 @@
       '-m64',
       '-std=c++11',
       '-fno-omit-frame-pointer',
-      '-ffast-math'
+      '-ffast-math',
+      '-mcx16'
     ],
     'default_ldflags': [
     ],

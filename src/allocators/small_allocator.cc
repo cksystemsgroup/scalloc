@@ -85,7 +85,7 @@ void SmallAllocator::Refill(const size_t sc) {
   // We are not checking cool spans, because their utilization is per
   // definition > kReuseThreshold, e.g. >80%.
 
-  bool reusable;
+  bool reusable = false;
   SpanHeader* hdr = SpanPool::Instance().Get(sc, id_, &reusable);
   ScallocAssert(hdr != 0);
   hdr->Init(sc, id_, reusable);
@@ -123,7 +123,6 @@ void SmallAllocator::Destroy(SmallAllocator* thiz) {
     while (cur != NULL) {
       LOG(kTrace, "[SmallAllocator]: making span global %p", cur);
       tmp = cur;
-      MemoryBarrier();
       cur = reinterpret_cast<SpanHeader*>(cur->next);
       MemoryBarrier();
       tmp->next = NULL;

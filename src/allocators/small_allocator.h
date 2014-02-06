@@ -194,7 +194,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
 #endif  // PROFILER_ON
   LOG(kTrace, "[SmallAllocator] remote free for %p, owner: %lu, me: %lu",
       p, hdr->aowner.owner, id_);
-  BlockPool::Instance().Free(p, hdr->size_class, hdr->aowner.owner);
+  BlockPool::Instance().Free(p, hdr->size_class, hdr->remote_flist);
 }
 
 }  // namespace scalloc

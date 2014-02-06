@@ -35,68 +35,74 @@ class Stack {
   uint64_t GetState();
 
  private:
-  std::atomic<TaggedValue<void*, uint64_t>::RawType> top_;
+  uint128_t top_; 
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Stack);
 };
 
+
 inline void Stack::Put(void* p) {
   Push(p);
 }
+
 
 inline void* Stack::Get() {
   return Pop();
 }
 
+
 inline void Stack::Init() {
-  top_.store(0);
+  top_ = 0;
 }
+
 
 inline void Stack::Push(void* p) {
-  TaggedValue<void*, uint64_t> top_old;
-  TaggedValue<void*, uint64_t> top_new;
+  TaggedValue128<void*> top_old;
+  TaggedValue128<void*> top_new;
   do {
-    top_old.raw = top_.load();
-    // write the old top's pointer into the current block
+    top_old.raw = top_;
     *(reinterpret_cast<void**>(p)) = top_old.Value();
     top_new.Pack(p, top_old.Tag() + 1);
-  } while (!top_.compare_exchange_weak(top_old.raw, top_new.raw));
+  } while(!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
 }
+
 
 inline void* Stack::Pop() {
-  TaggedValue<void*, uint64_t> top_old;
-  TaggedValue<void*, uint64_t> top_new;
+  TaggedValue128<void*> top_old;
+  TaggedValue128<void*> top_new;
   do {
-    top_old.raw = top_.load();
-    // check whether we top points to NULL, which indicates empty
+    top_old.raw = top_;
     if (top_old.Value() == NULL) {
       return NULL;
     }
     top_new.Pack(*(reinterpret_cast<void**>(top_old.Value())),
                  top_old.Tag() + 1);
-  } while (!top_.compare_exchange_weak(top_old.raw, top_new.raw));
+  } while(!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
   return top_old.Value();
 }
+
 
 inline void* Stack::PopRecordState(uint64_t* state) {
-  TaggedValue<void*, uint64_t> top_old;
-  TaggedValue<void*, uint64_t> top_new;
+  TaggedValue128<void*> top_old;
+  TaggedValue128<void*> top_new;
   do {
-    top_old.raw = top_.load();
-    // check whether we top points to NULL, which indicates empty
+    top_old.raw = top_;
     if (top_old.Value() == NULL) {
-      *state = top_old.raw;
+      *state = top_old.Tag();
       return NULL;
     }
     top_new.Pack(*(reinterpret_cast<void**>(top_old.Value())),
                  top_old.Tag() + 1);
-  } while (!top_.compare_exchange_weak(top_old.raw, top_new.raw));
+  } while(!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
   return top_old.Value();
 }
 
+
 inline uint64_t Stack::GetState() {
-  return top_.load();
+  TaggedValue128<void*> dummy;
+  dummy.raw = top_;
+  return dummy.Tag();
 }
 
 #endif  // SCALLOC_STACK_INL_H_

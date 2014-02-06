@@ -30,11 +30,11 @@ class SpanPool {
   void Put(SpanHeader* p, size_t sc, uint32_t tid);
 
  private:
-  void* RefillOne();
-
   static SpanPool span_pool_;
 
-  DistributedQueue size_class_pool_[kNumClasses] cache_aligned;
+  void* RefillOne();
+
+  DistributedQueue size_class_pool_[kNumClasses];
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(SpanPool);
@@ -73,9 +73,9 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   GlobalProfiler::Instance().LogSpanPoolGet(sc);
 #endif  // PROFILER_ON
 
+  void* result;
   int index;
   size_t i;
-  void* result;
   *reusable = false;
   const int qindex = tid % utils::Cpus();
 

@@ -58,4 +58,47 @@ inline TagType TaggedValue<ValueType, TagType, TagWidth>::Tag() const {
   return (TagType)((raw & kTagMask) >> (kWidth - kTagWidth));
 }
 
+
+typedef unsigned int uint128_t __attribute__((mode(TI)));
+#define UINT128_C(X) (0u + ((uint128_t)(X)))
+
+
+template<typename ValueType>
+class TaggedValue128 {
+ public:
+  inline TaggedValue128() : raw(0) {}
+  inline TaggedValue128(ValueType atomic, uint64_t tag) {
+    Pack(atomic, tag);    
+  }
+
+  void Pack(ValueType atomic, uint64_t tag);
+  ValueType Value() const;
+  uint64_t Tag() const;
+
+  uint128_t raw;
+ private:
+};
+
+
+template<typename ValueType>
+inline void TaggedValue128<ValueType>::Pack(ValueType atomic, uint64_t tag) {
+  // This is a weak pack. Only use in thread-local scenarios.
+  raw = 0;
+  raw |= ((uint128_t)tag);
+  raw |= ((uint128_t)atomic) << 64;
+}
+
+
+
+template<typename ValueType>
+inline ValueType TaggedValue128<ValueType>::Value() const {
+  return (ValueType)(raw >> 64);
+}
+
+
+template<typename ValueType>
+inline uint64_t TaggedValue128<ValueType>::Tag() const {
+  return (uint64_t)(raw);
+}
+
 #endif  // SCALLOC_ATOMIC_H_

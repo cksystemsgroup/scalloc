@@ -92,6 +92,8 @@ class SpanHeader : public Header {
           PTR(reinterpret_cast<uintptr_t>(this) + sizeof(SpanHeader)),
           size_class);
     }
+    this->next = NULL;
+    this->prev = NULL;
   }
 
   // The utilization of the span in percent.
