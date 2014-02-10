@@ -13,6 +13,7 @@
 #include "collector.h"
 #include "common.h"
 #include "headers.h"
+#include "list-inl.h"
 #include "span_pool.h"
 #include "size_classes.h"
 
@@ -50,6 +51,9 @@ class SmallAllocator {
   uint64_t me_inactive_;
   SpanHeader* hot_span_[kNumClasses];
   SpanHeader* cool_spans_[kNumClasses];
+  ListNode* slow_spans_[kNumClasses];
+
+  TypedAllocator<ListNode> node_allocator;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(SmallAllocator);
@@ -82,6 +86,39 @@ inline void SmallAllocator::RemoveCoolSpan(const size_t sc,
   }
   span->prev = NULL;
   span->next = NULL;
+}
+
+
+inline void SmallAllocator::AddSlowSpan(const size_t sc, SpanHeader* span) {
+  ListNode* n = node_allocator.New();
+  n->prev = NULL;
+  n->data = reinterpret_cast<void*>(span);
+  n->next = slow_spans_[sc];
+  if (slow_spans_[sc] != NULL) {
+    slow_spans_[sc]->prev = n;
+  }
+  slow_spans_[sc] = n;
+}
+
+
+inline void SmallAllocator::RemoveSlowSpan(const size_t sc, SpanHeader* span) {
+  ListNode* n = slow_spans_[sc];
+  while (n != NULL) {
+    if (n->data == span) {
+      if (n->prev != NULL) {
+        n->prev->next = n->next;
+      } else {
+        slow_spans_[sc] = n->next;
+      }
+      if (n->next != NULL) {
+        n->next->prev = n->prev;
+      }
+      node_allocator.Delete(n);
+      return;
+    }
+    n = n->next;
+  }
+  UNREACHABLE();
 }
 
 
@@ -144,6 +181,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
         if (UNLIKELY(hdr->flist.Full())) {
+          RemoveSlowSpan(sc, hdr);
 #ifdef MADVISE_SAME_THREAD
           SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
 #else
@@ -151,6 +189,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
 #endif  // MADVISE_SAME_THREAD
         } else {
           RemoveCoolSpan(sc, hdr);
+          AddSlowSpan(sc, hdr);
           hdr->aowner.active = false;
         }
       }
@@ -167,6 +206,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       hdr->flist.Push(p);
 
       if (cur_sc_hdr->Utilization() > kLocalReuseThreshold) {
+        RemoveSlowSpan(sc, hdr);
         SetActiveSlab(sc, hdr);
 #ifdef PROFILER_ON
         Profiler::GetProfiler().LogSpanReuse();
@@ -176,6 +216,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
 
       if (hdr->flist.Full()) {
         LOG(kTrace, "{%lu}  returning span: %p", sc, hdr);
+        RemoveSlowSpan(sc, hdr);
 #ifdef MADVISE_SAME_THREAD
         SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
 #else

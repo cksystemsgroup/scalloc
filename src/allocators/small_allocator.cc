@@ -29,9 +29,11 @@ SmallAllocator* SmallAllocator::New(const uint64_t id) {
   a->me_active_ = dummy.raw;
   dummy.Reset(false, id);
   a->me_inactive_ = dummy.raw;
+  a->node_allocator.Init(kPageSize, 64, "node_alloc");
   for (size_t i = 0; i < kNumClasses; i++) {
     a->hot_span_[i] = NULL;
     a->cool_spans_[i] = NULL;
+    a->slow_spans_[i] = NULL;
   }
   return a;
 }
@@ -85,11 +87,39 @@ void SmallAllocator::Refill(const size_t sc) {
   // We are not checking cool spans, because their utilization is per
   // definition > kReuseThreshold, e.g. >80%.
 
+  SpanHeader* span;
+
+  // Try to reactivate a slow span.
+  ListNode* tmp;
+  ListNode* n = slow_spans_[sc];
+  while (n != NULL) {
+    tmp = n;
+    n = n->next;
+    // Remove it.
+    slow_spans_[sc] = tmp->next;
+    if (tmp->next != NULL) {
+      tmp->next->prev = NULL;
+    }
+    span = reinterpret_cast<SpanHeader*>(tmp->data);
+    ScallocAssert(span != NULL);
+    node_allocator.Delete(tmp);
+    // Try to get span.
+    if (span->aowner.owner == id_ &&
+        span->size_class == sc &&
+        __sync_bool_compare_and_swap(&span->aowner.raw,
+                                     me_inactive_,
+                                     me_active_)) {
+      SetActiveSlab(sc, span);
+      return;
+    }
+  }
+
+  // Get a span from SP.
   bool reusable = false;
-  SpanHeader* hdr = SpanPool::Instance().Get(sc, id_, &reusable);
-  ScallocAssert(hdr != 0);
-  hdr->Init(sc, id_, reusable);
-  SetActiveSlab(sc, hdr);
+  span = SpanPool::Instance().Get(sc, id_, &reusable);
+  ScallocAssert(span != 0);
+  span->Init(sc, id_, reusable);
+  SetActiveSlab(sc, span);
   return;
 }
 
@@ -130,6 +160,16 @@ void SmallAllocator::Destroy(SmallAllocator* thiz) {
       tmp->aowner.active = false;
     }
     thiz->cool_spans_[i] = NULL;
+
+    // Slow spans.
+    ListNode* tmp2;
+    ListNode* n = thiz->slow_spans_[i];
+    while (n != NULL) {
+      tmp2 = n;
+      n = n->next;
+      thiz->node_allocator.Delete(tmp2);
+    }
+    thiz->slow_spans_[i]= NULL;
   }
 
   SmallAllocator::allocator->Delete(thiz);
