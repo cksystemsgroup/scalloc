@@ -181,7 +181,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
         if (UNLIKELY(hdr->flist.Full())) {
-          RemoveSlowSpan(sc, hdr);
+          RemoveCoolSpan(sc, hdr);
 #ifdef MADVISE_SAME_THREAD
           SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
 #else
