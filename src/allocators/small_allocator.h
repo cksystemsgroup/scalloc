@@ -90,6 +90,7 @@ inline void SmallAllocator::RemoveCoolSpan(const size_t sc,
 
 
 inline void SmallAllocator::AddSlowSpan(const size_t sc, SpanHeader* span) {
+#ifdef REUSE_SLOW_SPANS
   ListNode* n = node_allocator.New();
   n->prev = NULL;
   n->data = reinterpret_cast<void*>(span);
@@ -98,10 +99,12 @@ inline void SmallAllocator::AddSlowSpan(const size_t sc, SpanHeader* span) {
     slow_spans_[sc]->prev = n;
   }
   slow_spans_[sc] = n;
+#endif  // REUSE_SLOW_SPANS
 }
 
 
 inline void SmallAllocator::RemoveSlowSpan(const size_t sc, SpanHeader* span) {
+#ifdef REUSE_SLOW_SPANS
   ListNode* n = slow_spans_[sc];
   while (n != NULL) {
     if (n->data == span) {
@@ -119,6 +122,7 @@ inline void SmallAllocator::RemoveSlowSpan(const size_t sc, SpanHeader* span) {
     n = n->next;
   }
   UNREACHABLE();
+#endif  // REUSE_SLOW_SPANS
 }
 
 

@@ -48,4 +48,8 @@ const size_t kEagerMadviseThreshold = EAGER_MADVISE_THRESHOLD;
 #endif  // MADVISE_SEPARATE_THREAD
 #endif  // EAGER_MADVISE_THRESHOLD
 
+#ifndef DISABLE_SLOW_SPAN_REUSE
+#define REUSE_SLOW_SPANS
+#endif  // DONT_REUSE_SLOW_SPANS
+
 #endif  // SCALLOC_COMMON_H_

@@ -89,6 +89,7 @@ void SmallAllocator::Refill(const size_t sc) {
 
   SpanHeader* span;
 
+#ifdef REUSE_SLOW_SPANS
   // Try to reactivate a slow span.
   ListNode* tmp;
   ListNode* n = slow_spans_[sc];
@@ -113,6 +114,7 @@ void SmallAllocator::Refill(const size_t sc) {
       return;
     }
   }
+#endif  // REUSE_SLOW_SPANS
 
   // Get a span from SP.
   bool reusable = false;
@@ -161,6 +163,7 @@ void SmallAllocator::Destroy(SmallAllocator* thiz) {
     }
     thiz->cool_spans_[i] = NULL;
 
+#ifdef REUSE_SLOW_SPANS
     // Slow spans.
     ListNode* tmp2;
     ListNode* n = thiz->slow_spans_[i];
@@ -170,6 +173,7 @@ void SmallAllocator::Destroy(SmallAllocator* thiz) {
       thiz->node_allocator.Delete(tmp2);
     }
     thiz->slow_spans_[i]= NULL;
+#endif  // REUSE_SLOW_SPANS
   }
 
   SmallAllocator::allocator->Delete(thiz);

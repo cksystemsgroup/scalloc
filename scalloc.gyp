@@ -19,7 +19,9 @@
     'small_space%': -1,
     'eager_madvise_threshold%': -1,
     'madvise_strategy%': "same-thread",
-    'shbench%': "no"
+    'shbench%': "no",
+    'disable_slow_span_reuse%': -1,
+    'disable_free_list_reuse%': -1,
   },
   'target_defaults': {
     'configurations': {
@@ -87,6 +89,16 @@
         ['<(eager_madvise_threshold)!=-1', {
           'defines': [
             'EAGER_MADVISE_THRESHOLD=<(eager_madvise_threshold)'
+          ]
+        }],
+        ['<(disable_slow_span_reuse)!=-1', {
+          'defines': [
+            'DISABLE_SLOW_SPAN_REUSE'
+          ]
+        }],
+        ['<(disable_free_list_reuse)!=-1', {
+          'defines': [
+            'DISABLE_FREE_LIST_REUSE'
           ]
         }],
         ['"<(madvise_strategy)"=="same-thread"', {

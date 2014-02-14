@@ -124,7 +124,9 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
 #else
   if (i == sc) {
 #endif  // EAGER_MADVISE
+#ifndef DISABLE_FREE_LIST_REUSE
     *reusable = true;
+#endif  // DISABLE_FREE_LIST_REUSE
   }
 
   LOG(kTrace, "[SpanPool] get: %p", result);
