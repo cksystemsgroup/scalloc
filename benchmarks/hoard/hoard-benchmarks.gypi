@@ -22,7 +22,6 @@
       'target_name': 'larson',
       'product_name': 'larson',
       'type' : 'executable',
-      'cflags!': [ '-Wall', '-Werror' ],
       'conditions': [
         ['OS=="linux"', {
           'ldflags': [
@@ -41,7 +40,6 @@
       'target_name': 'cache-scratch',
       'product_name': 'cache-scratch',
       'type' : 'executable',
-      'cflags!': [ '-Wall', '-Werror' ],
       'conditions': [
         ['OS=="linux"', {
           'ldflags': [
@@ -60,7 +58,6 @@
       'target_name': 'cache-thrash',
       'product_name': 'cache-thrash',
       'type' : 'executable',
-      'cflags!': [ '-Wall', '-Werror' ],
       'conditions': [
         ['OS=="linux"', {
           'ldflags': [

@@ -113,7 +113,7 @@ int main (int argc, char * argv[])
     exit(1);
   }
 
-  HL::Fred threads[nthreads];
+  HL::Fred * threads = new HL::Fred[nthreads];
   HL::Fred::setConcurrency (HL::CPUInfo::getNumProcessors());
 
   int i;
@@ -121,11 +121,9 @@ int main (int argc, char * argv[])
   HL::Timer t;
   t.start();
 
-  workerArg w[nthreads];
-
+  workerArg* wArg = new workerArg(objSize, repetitions / nthreads, iterations);
   for (i = 0; i < nthreads; i++) {
-    w[i] = workerArg (objSize, repetitions / nthreads, iterations);
-    threads[i].create (&worker, (void *) &w[i]);
+    threads[i].create (&worker, (void *) wArg);
   }
   for (i = 0; i < nthreads; i++) {
     threads[i].join();

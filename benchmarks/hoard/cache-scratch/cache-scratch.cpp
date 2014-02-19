@@ -115,9 +115,7 @@ int main (int argc, char * argv[])
 
   HL::Fred * threads = new HL::Fred[nthreads];
   HL::Fred::setConcurrency (HL::CPUInfo::getNumProcessors());
-
-  workerArg w[nthreads];
-
+  
   int i;
 
   // Allocate nthreads objects and distribute them among the threads.
@@ -129,9 +127,10 @@ int main (int argc, char * argv[])
   HL::Timer t;
   t.start();
 
+  workerArg* wArg;
   for (i = 0; i < nthreads; i++) {
-    w[i] = workerArg (objs[i], objSize, repetitions / nthreads, iterations);
-    threads[i].create (&worker, (void *) &w[i]);
+    wArg = new workerArg(objs[i], objSize, repetitions / nthreads, iterations);
+    threads[i].create (&worker, (void *) wArg);
   }
   for (i = 0; i < nthreads; i++) {
     threads[i].join();

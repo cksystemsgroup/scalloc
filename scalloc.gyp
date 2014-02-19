@@ -7,8 +7,7 @@
       '-m64',
       '-std=c++11',
       '-fno-omit-frame-pointer',
-      '-ffast-math',
-      '-mcx16'
+      '-ffast-math'
     ],
     'default_ldflags': [
     ],
@@ -19,7 +18,6 @@
     'small_space%': -1,
     'eager_madvise_threshold%': -1,
     'madvise_strategy%': "same-thread",
-    'shbench%': "no",
     'disable_slow_span_reuse%': -1,
     'disable_free_list_reuse%': -1,
   },
@@ -54,17 +52,6 @@
       }
     },
   },
-  'includes': [
-    'benchmarks/thread-termination/thread-termination.gypi',
-    'benchmarks/hoard/hoard-benchmarks.gypi',
-  ],
-  'conditions': [
-    ['"<(shbench)"!="no"', {
-      'includes': [
-        'benchmarks/shbench/shbench.gypi',
-      ]
-    }]
-  ],
   'targets': [
     {
       'target_name': 'scalloc',
