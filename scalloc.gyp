@@ -54,7 +54,9 @@
   },
   'conditions': [
     ['OS=="linux"', {
-      'cflags': [ '-mcx16' ]
+      'target_defaults': {
+        'cflags': [ '-mcx16' ]
+      }
     }]
   ],
   'targets': [
