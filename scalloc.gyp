@@ -52,6 +52,11 @@
       }
     },
   },
+  'conditions': [
+    ['OS=="linux"', {
+      'cflags': [ '-mcx16' ]
+    }]
+  ],
   'targets': [
     {
       'target_name': 'scalloc',
