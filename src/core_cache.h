@@ -10,6 +10,7 @@
 #include <sched.h>
 
 #include "random.h"
+#include "spinlock-inl.h"
 #include "typed_allocator.h"
 
 namespace scalloc {
@@ -35,6 +36,7 @@ class CoreCache {
 
   static uint64_t num_cores_;
   static CoreCache* caches_[kMaxCores];
+  static SpinLock core_lock_;
 
   SmallAllocator* alloc_;
 };
@@ -48,6 +50,7 @@ inline CoreCache& CoreCache::GetCache() {
 #ifdef __linux__
   core_id = static_cast<uint64_t>(sched_getcpu());
 #endif
+  LockScope(core_lock_);
   CoreCache* cache = caches_[core_id];
   if (LIKELY(cache != NULL)) {
     return *cache;

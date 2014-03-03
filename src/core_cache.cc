@@ -29,6 +29,7 @@ void CoreCache::Init(TypedAllocator<CoreCache>* cache_alloc) {
     caches_[i] = NULL;
   }
   core_id = 0;
+  core_lock_.Reset();
 }
 
 
