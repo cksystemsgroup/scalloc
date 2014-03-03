@@ -20,17 +20,18 @@ namespace scalloc {
 
 uint64_t CoreCache::num_cores_;
 CoreCache* CoreCache::caches_[kMaxCores];
-  
+
 void CoreCache::Init(TypedAllocator<CoreCache>* cache_alloc) {
   num_cores_ = utils::Cpus();
+  ScallocAssert(num_cores_ <= kMaxCores);
   cache_allocator = cache_alloc;
-  for(int i = 0 ; i < kMaxCores; i++) {
+  for (uint64_t i = 0 ; i < kMaxCores; i++) {
     caches_[i] = NULL;
   }
   core_id = 0;
 }
-  
-  
+
+
 CoreCache* CoreCache::NewIfNecessary(uint64_t id) {
   LockScope(core_cache_lock);
 

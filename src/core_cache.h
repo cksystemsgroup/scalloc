@@ -15,7 +15,7 @@
 namespace scalloc {
 
 class SmallAllocator;
-  
+
 // Core-local policy (POLICY_CORE_LOCAL):
 // We allocate all core buffers in a fixed-size (MAX_CORES) array and use
 // sched_getcpu (on Linux) to assign an appropriate buffer. Note that this
@@ -24,21 +24,21 @@ class SmallAllocator;
 class CoreCache {
  public:
   static const uint64_t kMaxCores = 160;
-  
+
   static void Init(TypedAllocator<CoreCache>* cache_alloc);
   static CoreCache& GetCache();
-  
+
   inline SmallAllocator* Allocator() { return alloc_; }
 
  private:
   static CoreCache* NewIfNecessary(uint64_t id);
-  
+
   static uint64_t num_cores_;
   static CoreCache* caches_[kMaxCores];
-  
+
   SmallAllocator* alloc_;
 };
-  
+
 
 inline CoreCache& CoreCache::GetCache() {
   uint64_t core_id;
