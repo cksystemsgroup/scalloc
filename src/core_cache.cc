@@ -20,6 +20,7 @@ namespace scalloc {
 
 uint64_t CoreCache::num_cores_;
 CoreCache* CoreCache::caches_[kMaxCores];
+SpinLock CoreCache::core_lock_;
 
 void CoreCache::Init(TypedAllocator<CoreCache>* cache_alloc) {
   num_cores_ = utils::Cpus();
