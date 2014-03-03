@@ -35,7 +35,7 @@ class Stack {
   uint64_t GetState();
 
  private:
-  uint128_t top_; 
+  uint128_t top_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Stack);
@@ -64,7 +64,7 @@ inline void Stack::Push(void* p) {
     top_old.raw = top_;
     *(reinterpret_cast<void**>(p)) = top_old.Value();
     top_new.Pack(p, top_old.Tag() + 1);
-  } while(!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
+  } while (!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
 }
 
 
@@ -78,7 +78,7 @@ inline void* Stack::Pop() {
     }
     top_new.Pack(*(reinterpret_cast<void**>(top_old.Value())),
                  top_old.Tag() + 1);
-  } while(!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
+  } while (!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
   return top_old.Value();
 }
 
@@ -94,7 +94,7 @@ inline void* Stack::PopRecordState(uint64_t* state) {
     }
     top_new.Pack(*(reinterpret_cast<void**>(top_old.Value())),
                  top_old.Tag() + 1);
-  } while(!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
+  } while (!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
   return top_old.Value();
 }
 
