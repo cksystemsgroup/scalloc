@@ -54,11 +54,6 @@ class SmallAllocator {
   ListNode* slow_spans_[kNumClasses];
 
   TypedAllocator<ListNode> node_allocator;
-  
-#ifdef POLICY_CORE_LOCAL
-  SpinLock core_lock_;
-  pthread_t locker_;
-#endif
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(SmallAllocator);
@@ -145,13 +140,6 @@ inline void SmallAllocator::SetActiveSlab(const size_t sc,
 
 
 inline void* SmallAllocator::Allocate(const size_t size) {
-#ifdef POLICY_CORE_LOCAL
-  if(locker_ != pthread_self()) {
-    core_lock_.Lock();
-  }
-  locker_ = pthread_self();
-#endif  // POLICY_CORE_LOCAL
-
   void* result;
   const size_t sc = SizeToClass(size);
   SpanHeader* hdr = hot_span_[sc];
@@ -166,9 +154,6 @@ inline void* SmallAllocator::Allocate(const size_t size) {
 #ifdef PROFILER_ON
     Profiler::GetProfiler().LogAllocation(size);
 #endif  // PROFILER_ON
-#ifdef POLICY_CORE_LOCAL
-    locker_ = 0;
-#endif
     return result;
   }
 
@@ -177,10 +162,6 @@ inline void* SmallAllocator::Allocate(const size_t size) {
 
 
 inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
-#ifdef POLICY_CORE_LOCAL
-  LockScope(core_lock_);
-#endif  // POLICY_CORE_LOCAL
-
   SpanHeader* const cur_sc_hdr = hot_span_[hdr->size_class];
   const size_t sc = hdr->size_class;
 
@@ -199,7 +180,8 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       Profiler::GetProfiler().LogDeallocation(sc);
 #endif  // PROFILER_ON
       hdr->flist.Push(p);
-      LOG(kTrace, "[SmallAllocator] free in active local block at %p, block: %p, sc: %lu, utilization: %lu",
+      LOG(kTrace, "[SmallAllocator] free in active local block at %p, "
+                  "block: %p, sc: %lu, utilization: %lu",
           p, hdr, sc, hdr->Utilization());
       if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
