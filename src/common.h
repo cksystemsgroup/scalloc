@@ -52,4 +52,21 @@ const size_t kEagerMadviseThreshold = EAGER_MADVISE_THRESHOLD;
 #define REUSE_SLOW_SPANS
 #endif  // DONT_REUSE_SLOW_SPANS
 
+
+#define SCALLOC_THREAD_LOCAL  1
+#define SCALLOC_CORE_LOCAL    2
+
+// Ensure POLICY_* macros to be set. Default POLICY_THREAD_LOCAL.
+#ifndef SCALLOC_CACHE_POLICY
+#define POLICY_THREAD_LOCAL 1
+#else
+#if SCALLOC_CACHE_POLICY == SCALLOC_TREAD_LOCAL
+#define POLICY_THREAD_LOCAL 1
+#elif SCALLOC_CACHE_POLICY == SCALLOC_CORE_LOCAL
+#define POLICY_CORE_LOCAL 1
+#else
+#error "unkknown caching policy"
+#endif  // SCALLOC_CACHE_POLICY
+#endif  // SCALLOC_CACHE_POLICY
+
 #endif  // SCALLOC_COMMON_H_

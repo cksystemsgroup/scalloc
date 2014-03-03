@@ -35,6 +35,10 @@ SmallAllocator* SmallAllocator::New(const uint64_t id) {
     a->cool_spans_[i] = NULL;
     a->slow_spans_[i] = NULL;
   }
+#ifdef POLICY_CORE_LOCAL
+  a->core_lock_.Reset();
+  a->locker_ = 0;
+#endif  // POLICY_CORE_LOCAL
   return a;
 }
 
