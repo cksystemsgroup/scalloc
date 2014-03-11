@@ -58,8 +58,12 @@ The build supports some compile time parameters:
 * *log_level*: One of kTrace, kWarning, kFatal, ... (default: kWarning)
 * *small_space*: Size of small allocator space.
 * *eager_madvise_threshold*: Threshold for eager madvising on returning spans.
+* *enable_slow_span_reuse*: Reuse slow spans as they become empty. (default: -1)
+* *enable_free_list_reuse*: Reuse already initialized free lists where possible.
+  (default: -1)
 
-Variables can be set with `-D variable=value` on the `gyp` command.
+Variables can be set with `-D variable=value` on the `gyp` command. A value of
+'-1' means that the features is disabled.
 
 ### Building on Linux
 
