@@ -68,7 +68,7 @@ class TaggedValue128 {
  public:
   inline TaggedValue128() : raw(0) {}
   inline TaggedValue128(ValueType atomic, uint64_t tag) {
-    Pack(atomic, tag);    
+    Pack(atomic, tag);
   }
 
   void Pack(ValueType atomic, uint64_t tag);
