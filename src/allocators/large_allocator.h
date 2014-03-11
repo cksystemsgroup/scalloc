@@ -48,7 +48,7 @@ inline void* LargeAllocator::Alloc(size_t size) {
   LOG(kTrace, "[LargeAllocator] allocation size: %lu ,p: %p",
       size, reinterpret_cast<void*>(p));
   return reinterpret_cast<void*>(p + sizeof(*lbh));
-};
+}
 
 
 inline void LargeAllocator::Free(LargeObjectHeader* lbh) {
