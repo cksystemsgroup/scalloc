@@ -25,7 +25,7 @@ the [scalloc drone.io downloads
 page](https://drone.io/github.com/cksystemsgroup/scalloc/files). Note that since
 these binaries get generated on every code change, they may not be very stable.
 
-## Building [![Build Status](https://drone.io/github.com/cksystemsgroup/scalloc/status.png)](https://drone.io/github.com/cksystemsgroup/scalloc/latest)
+## Building from source [![Build Status](https://drone.io/github.com/cksystemsgroup/scalloc/status.png)](https://drone.io/github.com/cksystemsgroup/scalloc/latest)
 
 We support building on OS X (>10.6) and Linux-based systems using
 [gyp](https://code.google.com/p/gyp/). The build setup can also be accessed on
@@ -74,13 +74,21 @@ where possible using the following command
       -D enable_free_list_reuse=1 \
       scalloc.gyp
 
-### Building on Linux
+### Building
+
+We support the following configurations:
+* Debug: Binaries are created with debugging symbols and without optimizations. We also 
+  include assertions checking for various invariants.
+* Release: Binaries are created with maximum optimization levels, no debugging symbols,
+  and without assertions.
+
+#### ... on Linux
 
     BUILDTYPE=Release make
 
-### Building on OSX
+#### ... on OSX
 
-Open `scalloc.xcodeproj` and build it using Xcode, or build it from the command
+Open `scalloc.xcodeproj` and build the project using Xcode, or build it from the command
 line using
 
     build/gyp/gyp --depth=. scalloc.gyp --build=Release
@@ -93,8 +101,8 @@ In order to make use of scalloc, preload it using `LD_PRELOAD`.
 
     LD_PRELOAD=/path/to/libscalloc.so ./foo
 
-scalloc heavily makes use of 64bit address space. If you run into some limits
-you probably need to disable overcommit accounting. On recent versions of Linux
+scalloc heavily makes use of 64bit address space. If you run into mmap limits
+you  need to disable overcommit accounting. On recent versions of Linux
 you can do this by
 
     sudo sh -c "echo 1 > /proc/sys/vm/overcommit_memory"
