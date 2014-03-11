@@ -53,26 +53,10 @@ SIZE_CLASSES
 };
 
 // Allocators for internal data structures.
-#ifdef HEAP_PROFILE
-cache_aligned TypedAllocator<HeapProfiler> profile_allocator;
-#endif  // HEAP_PROFILE
 cache_aligned TypedAllocator<SmallAllocator<LockMode::kLocal>>
     small_allocator_allocator;
 cache_aligned TypedAllocator<DistributedQueue::State> dq_state_allocator;
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
-
-
-inline void CheckSizeClasses() {
-  uint64_t payload;
-  for (size_t i = 1; i < kNumClasses; i++) {
-    payload = ClassToSize[i] * ClassToObjects[i];
-    if ((payload + sizeof(SpanHeader)) > ClassToSpanSize[i]) {
-      LOG(kError, "size class: %lu, size: %lu, objects: %lu, span size: %lu",
-          i, ClassToSize[i], ClassToObjects[i], ClassToSpanSize[i]);
-      Fatal("inconsistent size classes");
-    }
-  }
-}
 
 }  // namespace scalloc
 
@@ -91,9 +75,10 @@ ScallocGuard::ScallocGuard() {
     scalloc::SmallArena.Init(kSmallSpace);
 
     scalloc::dq_state_allocator.Init(kPageSize * 16, 64, "dq_state_allocator");
-    scalloc::dq_backend_allocator.Init(kPageSize * 16, 64, "dq_backend_allocator");
-    scalloc::DistributedQueue::Init(&scalloc::dq_state_allocator,
-                                    &scalloc::dq_backend_allocator);
+    scalloc::dq_backend_allocator.Init(
+        kPageSize * 16, 64, "dq_backend_allocator");
+    scalloc::DistributedQueue::Init(
+        &scalloc::dq_state_allocator, &scalloc::dq_backend_allocator);
     scalloc::SpanPool::Init();
     scalloc::BlockPool::Init();
 
@@ -101,15 +86,12 @@ ScallocGuard::ScallocGuard() {
     scalloc::Collector::Init();
 #endif  // COLLECTOR
 
-    scalloc::small_allocator_allocator.Init(kPageSize * 4, 64, "small_allocator_allocator");
-    scalloc::SmallAllocator<scalloc::LockMode::kLocal>::Init(&scalloc::small_allocator_allocator);
+    scalloc::small_allocator_allocator.Init(
+        kPageSize * 4, 64, "small_allocator_allocator");
+    scalloc::SmallAllocator<scalloc::LockMode::kLocal>::Init(
+        &scalloc::small_allocator_allocator);
 
     scalloc::ThreadCache::Init();
-
-#ifdef HEAP_PROFILE
-    scalloc::profile_allocator.Init(kPageSize, 64);
-    scalloc::HeapProfiler::Init(&scalloc::profile_allocator);
-#endif  // HEAP_PROFILE
 
     free(malloc(1));
 
@@ -132,7 +114,8 @@ namespace scalloc {
 void* malloc(const size_t size) {
   LOG(kTrace, "malloc: size: %lu", size);
   void* p;
-  if (LIKELY(size <= kMaxMediumSize && SmallAllocator<LockMode::kLocal>::Enabled())) {
+  if (LIKELY(size <= kMaxMediumSize &&
+      SmallAllocator<LockMode::kLocal>::Enabled())) {
     p = ThreadCache::GetCache().Allocator()->Allocate(size);
   } else {
     p = LargeAllocator::Alloc(size);

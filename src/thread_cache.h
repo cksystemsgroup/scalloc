@@ -16,7 +16,6 @@ namespace scalloc {
 #ifdef HEAP_PROFILE
 class HeapProfiler;
 #endif  // HEAP_PROFILE
-//class SmallAllocator;
 
 // A threadlocal cache that may hold any allocator.  We use __thread as fast
 // path, but still implement a pthread_{get|set}specific version, since we need
@@ -46,10 +45,23 @@ class ThreadCache {
   static ThreadCache* thread_caches_;
   static pthread_key_t cache_key_;
 
-  SmallAllocator<LockMode::kLocal>* alloc_;
+  ThreadCache(SmallAllocator<LockMode::kLocal>* allocator,
+              pthread_t owner,
+              ThreadCache* next);
+
+  // House-keeping data.
   bool in_setspecific_;
   pthread_t owner_;
   ThreadCache* next_;
+#define MANAGING_SZ           \
+  (8 +                        \
+  sizeof(owner_) +            \
+  sizeof(next_))
+  char __pad1[CACHELINE_SIZE - (MANAGING_SZ % CACHELINE_SIZE)];  // NOLINT
+#undef MANAGING_SZ
+
+  // Actual thread-local data.
+  SmallAllocator<LockMode::kLocal>* alloc_;
 #ifdef HEAP_PROFILE
   HeapProfiler* profiler_;
 #endif  // HEAP_PROFILE

@@ -7,6 +7,8 @@
 #include "thread_cache.h"
 #include "typed_allocator.h"
 
+#include <new>
+
 namespace {
 
 SpinLock g_threadcache_lock(LINKER_INITIALIZED);
@@ -24,6 +26,7 @@ pthread_key_t ThreadCache::cache_key_;
 #ifdef HAVE_TLS
 __thread TLS_MODE ThreadCache* ThreadCache::tl_cache_;
 #endif  // HAVE_TLS
+
 
 void ThreadCache::Init() {
   LockScope(g_threadcache_lock);
@@ -43,17 +46,27 @@ void ThreadCache::Init() {
   }
 }
 
-ThreadCache* ThreadCache::New(pthread_t owner) {
-  ThreadCache* cache = g_threadcache_alloc.New();
 
-  const uint64_t id = __sync_fetch_and_add(&g_thread_id, 1);
-  cache->alloc_ = SmallAllocator<LockMode::kLocal>::New(id);
-  cache->owner_ = owner;
-  cache->next_ = thread_caches_;
+ThreadCache* ThreadCache::New(pthread_t owner) {
+  const uint64_t allocator_id = __sync_fetch_and_add(&g_thread_id, 1);
+  ThreadCache* cache = new(g_threadcache_alloc.New()) ThreadCache(
+      SmallAllocator<LockMode::kLocal>::New(allocator_id),
+      owner,
+      thread_caches_);
   thread_caches_ = cache;
-  LOG(kTrace, "[ThreadCache] creating new cache; id: %lu, p: %p", id, cache);
   return cache;
 }
+
+
+ThreadCache::ThreadCache(SmallAllocator<LockMode::kLocal>* allocator,
+                         pthread_t owner,
+                         ThreadCache* next) {
+  alloc_ = allocator;
+  owner_ = owner;
+  next_ = next;
+  in_setspecific_ = false;
+}
+
 
 ThreadCache* ThreadCache::NewIfNecessary() {
   // This early call may crash on old platforms. We don't care.
@@ -86,6 +99,7 @@ ThreadCache* ThreadCache::NewIfNecessary() {
 
   return cache;
 }
+
 
 void ThreadCache::DestroyThreadCache(void* p) {
   if (p == NULL) {

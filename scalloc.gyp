@@ -143,6 +143,7 @@
         'src/scalloc_arenas.h',
         'src/scalloc_guard.h',
         'src/size_classes_raw.h',
+        'src/size_classes.cc',
         'src/size_classes.h',
         'src/spinlock-inl.h',
         'src/stack-inl.h',

@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -41,6 +41,7 @@ inline size_t SizeToBlockSize(const size_t size) {
   return 0;
 }
 
+
 inline void PrintSizeclasses() {
   printf("Sizeclass summary\n");
   for (size_t i = 0; i < kNumClasses; i++) {
@@ -53,6 +54,9 @@ inline void PrintSizeclasses() {
 }
 
 
+void CheckSizeClasses();
+
 }  // namespace scalloc
 
 #endif  // SCALLOC_SIZE_CLASSES_H_
+
