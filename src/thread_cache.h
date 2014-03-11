@@ -1,4 +1,4 @@
-// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -12,17 +12,23 @@
 
 namespace scalloc {
 
+#ifdef HEAP_PROFILE
+class HeapProfiler;
+#endif  // HEAP_PROFILE
 class SmallAllocator;
 
-// Thread-local policy (POLICY_THREAD_LOCAL):
-// We use __thread as fast path, but still implement a pthread_{get|set}specific
-// version, since we need a finalizer for threads that terminate and support
-// platforms which do not have __thread, or implement it with malloc().
+// A threadlocal cache that may hold any allocator.  We use __thread as fast
+// path, but still implement a pthread_{get|set}specific version, since we need
+// a finalizer for threads that terminate and support platforms which do not
+// have __thread, or implement it with malloc().
 class ThreadCache {
  public:
   static void Init();
   static ThreadCache& GetCache();
 
+#ifdef HEAP_PROFILE
+  inline HeapProfiler* Profiler() { return profiler_; }
+#endif  // HEAP_PROFILE
   inline SmallAllocator* Allocator() { return alloc_; }
 
  private:
@@ -39,11 +45,13 @@ class ThreadCache {
   static ThreadCache* thread_caches_;
   static pthread_key_t cache_key_;
 
+  SmallAllocator* alloc_;
   bool in_setspecific_;
   pthread_t owner_;
   ThreadCache* next_;
-
-  SmallAllocator* alloc_;
+#ifdef HEAP_PROFILE
+  HeapProfiler* profiler_;
+#endif  // HEAP_PROFILE
 } cache_aligned;
 
 

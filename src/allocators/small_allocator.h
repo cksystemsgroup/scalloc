@@ -180,8 +180,7 @@ inline void SmallAllocator::Free(void* p, SpanHeader* hdr) {
       Profiler::GetProfiler().LogDeallocation(sc);
 #endif  // PROFILER_ON
       hdr->flist.Push(p);
-      LOG(kTrace, "[SmallAllocator] free in active local block at %p, "
-                  "block: %p, sc: %lu, utilization: %lu",
+      LOG(kTrace, "[SmallAllocator] free in active local block at %p, block: %p, sc: %lu, utilization: %lu",
           p, hdr, sc, hdr->Utilization());
       if (hdr != cur_sc_hdr &&
           (hdr->Utilization() < kSpanReuseThreshold)) {

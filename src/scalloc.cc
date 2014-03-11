@@ -14,7 +14,6 @@
 #include "assert.h"
 #include "collector.h"
 #include "common.h"
-#include "core_cache.h"
 #include "distributed_queue.h"
 #include "list-inl.h"
 #include "override.h"
@@ -53,16 +52,13 @@ SIZE_CLASSES
 #undef SIZE_CLASS
 };
 
-// Allocators for internal data structures and buffers.
+// Allocators for internal data structures.
+#ifdef HEAP_PROFILE
+cache_aligned TypedAllocator<HeapProfiler> profile_allocator;
+#endif  // HEAP_PROFILE
 cache_aligned TypedAllocator<SmallAllocator> small_allocator_allocator;
 cache_aligned TypedAllocator<DistributedQueue::State> dq_state_allocator;
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
-#ifdef POLICY_THREAD_LOCAL
-cache_aligned TypedAllocator<ThreadCache> thread_cache_allocator;
-#endif  // POLICY_THREAD_LOCAL
-#ifdef POLICY_CORE_LOCAL
-cache_aligned TypedAllocator<CoreCache> core_cache_allocator;
-#endif  // POLICY_CORE_LOCAL
 
 
 inline void CheckSizeClasses() {
@@ -93,10 +89,8 @@ ScallocGuard::ScallocGuard() {
     scalloc::InternalArena.Init(kInternalSpace);
     scalloc::SmallArena.Init(kSmallSpace);
 
-    scalloc::dq_state_allocator.Init(
-        kPageSize * 16, 64, "dq_state_allocator");
-    scalloc::dq_backend_allocator.Init(
-        kPageSize * 16, 64, "dq_backend_allocator");
+    scalloc::dq_state_allocator.Init(kPageSize * 16, 64, "dq_state_allocator");
+    scalloc::dq_backend_allocator.Init(kPageSize * 16, 64, "dq_backend_allocator");
     scalloc::DistributedQueue::Init(&scalloc::dq_state_allocator,
                                     &scalloc::dq_backend_allocator);
     scalloc::SpanPool::Init();
@@ -106,20 +100,15 @@ ScallocGuard::ScallocGuard() {
     scalloc::Collector::Init();
 #endif  // COLLECTOR
 
-    scalloc::small_allocator_allocator.Init(
-        kPageSize * 4, 64, "small_allocator_allocator");
+    scalloc::small_allocator_allocator.Init(kPageSize * 4, 64, "small_allocator_allocator");
     scalloc::SmallAllocator::Init(&scalloc::small_allocator_allocator);
 
-#ifdef POLICY_THREAD_LOCAL
-    scalloc::thread_cache_allocator.Init(
-        kPageSize, 64, "thread_cache_allocator");
     scalloc::ThreadCache::Init();
-#endif  // POLICY_THREAD_LOCAL
-#ifdef POLICY_CORE_LOCAL
-    scalloc::core_cache_allocator.Init(
-        kPageSize, 64, "core_cache_allocator");
-    scalloc::CoreCache::Init(&scalloc::core_cache_allocator);
-#endif  // POLICY_CORE_LOCAL
+
+#ifdef HEAP_PROFILE
+    scalloc::profile_allocator.Init(kPageSize, 64);
+    scalloc::HeapProfiler::Init(&scalloc::profile_allocator);
+#endif  // HEAP_PROFILE
 
     free(malloc(1));
 
@@ -143,12 +132,7 @@ void* malloc(const size_t size) {
   LOG(kTrace, "malloc: size: %lu", size);
   void* p;
   if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
-#ifdef POLICY_THREAD_LOCAL
     p = ThreadCache::GetCache().Allocator()->Allocate(size);
-#endif  // POLICY_THREAD_LOCAL
-#ifdef POLICY_CORE_LOCAL
-    p = CoreCache::GetCache().Allocator()->Allocate(size);
-#endif  // POLICY_CORE_LOCAL
   } else {
     p = LargeAllocator::Alloc(size);
   }
@@ -166,12 +150,7 @@ void free(void* p) {
   }
   LOG(kTrace, "free: %p", p);
   if (LIKELY(SmallArena.Contains(p))) {
-#ifdef POLICY_THREAD_LOCAL
     ThreadCache::GetCache().Allocator()->Free(p, SpanHeader::GetFromObject(p));
-#endif  // POLICY_THREAD_LOCAL
-#ifdef POLICY_CORE_LOCAL
-    CoreCache::GetCache().Allocator()->Free(p, SpanHeader::GetFromObject(p));
-#endif  // POLICY_CORE_LOCAL
   } else {
     LargeAllocator::Free(LargeObjectHeader::GetFromObject(p));
   }

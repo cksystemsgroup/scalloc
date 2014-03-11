@@ -20,7 +20,6 @@
     'madvise_strategy%': "same-thread",
     'disable_slow_span_reuse%': -1,
     'disable_free_list_reuse%': -1,
-    'core_local%': -1,
   },
   'target_defaults': {
     'configurations': {
@@ -28,6 +27,7 @@
         'cflags': [ '<@(default_cflags)' , '-g -gdwarf-2', '-O0'  ],
         'ldflags': [ '<@(default_ldflags)' ],
         'xcode_settings': {
+          'BUILT_PRODUCTS_DIR': "out/<(CONFIGURATION_NAME)",
           'OTHER_CFLAGS': [ '<@(default_cflags)' , '-g', '-O0'],
           'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
           'USE_HEADERMAP': 'NO',
@@ -42,6 +42,7 @@
         'cflags': [ '<@(default_cflags)', '-O3' ],
         'ldflags': [ '<@(default_ldflags)' ],
         'xcode_settings': {
+          'BUILT_PRODUCTS_DIR': "out/<(CONFIGURATION_NAME)",
           'OTHER_CFLAGS': [ '<@(default_cflags)', '-O3' ],
           'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
           'USE_HEADERMAP': 'NO',
@@ -62,7 +63,6 @@
     {
       'target_name': 'scalloc',
       'product_name': 'scalloc',
-      'product_dir': "out/<(CONFIGURATION_NAME)",
       'type' : 'shared_library',
       'defines': [
         'LOG_LEVEL=<(log_level)',
@@ -95,11 +95,6 @@
             'DISABLE_FREE_LIST_REUSE'
           ]
         }],
-        ['<(core_local)!=-1', {
-          'defines': [
-            'SCALLOC_CACHE_POLICY=2'
-          ]
-        }],
         ['"<(madvise_strategy)"=="same-thread"', {
           'defines': [
             'MADVISE_SAME_THREAD'
@@ -130,8 +125,6 @@
         'src/collector.cc',
         'src/collector.h',
         'src/common.h',
-        'src/core_cache.cc',
-        'src/core_cache.h',
         'src/distributed_queue.cc',
         'src/distributed_queue.h',
         'src/freelist-inl.h',
