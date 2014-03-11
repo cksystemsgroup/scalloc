@@ -56,7 +56,8 @@ SIZE_CLASSES
 #ifdef HEAP_PROFILE
 cache_aligned TypedAllocator<HeapProfiler> profile_allocator;
 #endif  // HEAP_PROFILE
-cache_aligned TypedAllocator<SmallAllocator> small_allocator_allocator;
+cache_aligned TypedAllocator<SmallAllocator<LockMode::kLocal>>
+    small_allocator_allocator;
 cache_aligned TypedAllocator<DistributedQueue::State> dq_state_allocator;
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
 
@@ -101,7 +102,7 @@ ScallocGuard::ScallocGuard() {
 #endif  // COLLECTOR
 
     scalloc::small_allocator_allocator.Init(kPageSize * 4, 64, "small_allocator_allocator");
-    scalloc::SmallAllocator::Init(&scalloc::small_allocator_allocator);
+    scalloc::SmallAllocator<scalloc::LockMode::kLocal>::Init(&scalloc::small_allocator_allocator);
 
     scalloc::ThreadCache::Init();
 
@@ -131,7 +132,7 @@ namespace scalloc {
 void* malloc(const size_t size) {
   LOG(kTrace, "malloc: size: %lu", size);
   void* p;
-  if (LIKELY(size <= kMaxMediumSize && SmallAllocator::Enabled())) {
+  if (LIKELY(size <= kMaxMediumSize && SmallAllocator<LockMode::kLocal>::Enabled())) {
     p = ThreadCache::GetCache().Allocator()->Allocate(size);
   } else {
     p = LargeAllocator::Alloc(size);

@@ -47,7 +47,7 @@ ThreadCache* ThreadCache::New(pthread_t owner) {
   ThreadCache* cache = g_threadcache_alloc.New();
 
   const uint64_t id = __sync_fetch_and_add(&g_thread_id, 1);
-  cache->alloc_ = SmallAllocator::New(id);
+  cache->alloc_ = SmallAllocator<LockMode::kLocal>::New(id);
   cache->owner_ = owner;
   cache->next_ = thread_caches_;
   thread_caches_ = cache;
@@ -97,7 +97,7 @@ void ThreadCache::DestroyThreadCache(void* p) {
 #endif  // HAVE_TLS
 
   ThreadCache* cache = reinterpret_cast<ThreadCache*>(p);
-  SmallAllocator::Destroy(cache->Allocator());
+  SmallAllocator<LockMode::kLocal>::Destroy(cache->Allocator());
 
   {
     LockScope(g_threadcache_lock);

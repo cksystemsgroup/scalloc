@@ -10,17 +10,23 @@
 
 namespace scalloc {
 
-TypedAllocator<SmallAllocator>* SmallAllocator::allocator;
-bool SmallAllocator::enabled_;
+  /*
+template<int MODE>
+TypedAllocator<SmallAllocator<MODE>>* SmallAllocator<MODE>::allocator;
+
+template<int MODE>
+bool SmallAllocator<MODE>::enabled_;
 
 
-void SmallAllocator::Init(TypedAllocator<SmallAllocator>* alloc) {
+template<int MODE>
+void SmallAllocator<MODE>::Init(TypedAllocator<SmallAllocator>* alloc) {
   enabled_ = true;
   allocator = alloc;
 }
 
 
-SmallAllocator* SmallAllocator::New(const uint64_t id) {
+template<int MODE>
+SmallAllocator<MODE>* SmallAllocator<MODE>::New(const uint64_t id) {
   SmallAllocator* a = allocator->New();
   LOG(kTrace, "[SmallAllocator] New; id: %lu, p: %p", id, a);
   a->id_ = id;
@@ -39,7 +45,8 @@ SmallAllocator* SmallAllocator::New(const uint64_t id) {
 }
 
 
-void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
+template<int MODE>
+void* SmallAllocator<MODE>::AllocateNoSlab(const size_t sc, const size_t size) {
   // Size class 0 represents an object of size 0, which results in malloc()
   // returning NULL.
   if (sc == 0) {
@@ -77,7 +84,8 @@ void* SmallAllocator::AllocateNoSlab(const size_t sc, const size_t size) {
 }
 
 
-void SmallAllocator::Refill(const size_t sc) {
+template<int MODE>
+void SmallAllocator<MODE>::Refill(const size_t sc) {
 #ifdef PROFILER_ON
   Profiler::GetProfiler().LogSizeclassRefill();
 #endif  // PROFILER_ON
@@ -126,7 +134,8 @@ void SmallAllocator::Refill(const size_t sc) {
 }
 
 
-void SmallAllocator::Destroy(SmallAllocator* thiz) {
+template<int MODE>
+void SmallAllocator<MODE>::Destroy(SmallAllocator* thiz) {
   // Destroying basically means giving up hot and cool spans.  Remotely freed
   // blocks keep the span in the system, i.e., it is not released from the
   // allocator. This is similar to keeping a buffer of objects. Spans will
@@ -178,5 +187,6 @@ void SmallAllocator::Destroy(SmallAllocator* thiz) {
 
   SmallAllocator::allocator->Delete(thiz);
 }
+*/
 
 }  // namespace scalloc

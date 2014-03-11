@@ -7,6 +7,7 @@
 
 #include <pthread.h>
 
+#include "allocators/small_allocator.h"
 #include "common.h"
 #include "headers.h"
 
@@ -15,7 +16,7 @@ namespace scalloc {
 #ifdef HEAP_PROFILE
 class HeapProfiler;
 #endif  // HEAP_PROFILE
-class SmallAllocator;
+//class SmallAllocator;
 
 // A threadlocal cache that may hold any allocator.  We use __thread as fast
 // path, but still implement a pthread_{get|set}specific version, since we need
@@ -29,7 +30,7 @@ class ThreadCache {
 #ifdef HEAP_PROFILE
   inline HeapProfiler* Profiler() { return profiler_; }
 #endif  // HEAP_PROFILE
-  inline SmallAllocator* Allocator() { return alloc_; }
+  inline SmallAllocator<LockMode::kLocal>* Allocator() { return alloc_; }
 
  private:
   static ThreadCache* RawGetCache();
@@ -45,7 +46,7 @@ class ThreadCache {
   static ThreadCache* thread_caches_;
   static pthread_key_t cache_key_;
 
-  SmallAllocator* alloc_;
+  SmallAllocator<LockMode::kLocal>* alloc_;
   bool in_setspecific_;
   pthread_t owner_;
   ThreadCache* next_;
