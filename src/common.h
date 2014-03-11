@@ -48,4 +48,8 @@ const size_t kEagerMadviseThreshold = EAGER_MADVISE_THRESHOLD;
 #endif  // MADVISE_SEPARATE_THREAD
 #endif  // EAGER_MADVISE_THRESHOLD
 
+#ifndef POLICY_CORE_LOCAL
+#define POLICY_THREAD_LOCAL
+#endif  // POLICY_CORE_LOCAL
+
 #endif  // SCALLOC_COMMON_H_
