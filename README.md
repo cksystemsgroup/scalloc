@@ -47,7 +47,8 @@ If you don't have a global gyp installation, you can get a local one using
 
     tools/make_deps.sh
     
-Then, generate a build environment
+Then, generate a build environment (using the gyp installation from the previous
+step)
 
     build/gyp/gyp --depth=. scalloc.gyp
 
@@ -65,13 +66,22 @@ The build supports some compile time parameters:
 Variables can be set with `-D variable=value` on the `gyp` command. A value of
 '-1' means that the features is disabled.
 
+For example, try a configuration where slow spans and free lists are reused
+where possible using the following command
+
+    build/gyp/gyp --depth=. \
+      -D enable_slow_span_reuse=1 \
+      -D enable_free_list_reuse=1 \
+      scalloc.gyp
+
 ### Building on Linux
 
     BUILDTYPE=Release make
 
 ### Building on OSX
 
-Open `scalloc.xcodeproj` and build it using Xcode, or
+Open `scalloc.xcodeproj` and build it using Xcode, or build it from the command
+line using
 
     build/gyp/gyp --depth=. scalloc.gyp --build=Release
 
