@@ -53,7 +53,7 @@ class ThreadCache {
 #ifdef HEAP_PROFILE
   HeapProfiler* profiler_;
 #endif  // HEAP_PROFILE
-} cache_aligned;
+};
 
 
 inline ThreadCache* ThreadCache::RawGetCache() {

@@ -9,10 +9,10 @@
 
 namespace {
 
-cache_aligned SpinLock g_threadcache_lock(LINKER_INITIALIZED);
-cache_aligned scalloc::TypedAllocator<scalloc::ThreadCache>
+SpinLock g_threadcache_lock(LINKER_INITIALIZED);
+scalloc::TypedAllocator<scalloc::ThreadCache>
     g_threadcache_alloc;
-cache_aligned uint64_t g_thread_id;
+uint64_t g_thread_id;
 
 }  // namespace
 
