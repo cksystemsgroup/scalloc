@@ -9,7 +9,7 @@
 
 #include "allocators/block_pool.h"
 #include "allocators/large-inl.h"
-#include "allocators/small_allocator.h"
+#include "allocators/scalloc_core-inl.h"
 #include "allocators/span_pool.h"
 #include "assert.h"
 #include "collector.h"
@@ -53,7 +53,7 @@ SIZE_CLASSES
 };
 
 // Allocators for internal data structures.
-cache_aligned TypedAllocator<SmallAllocator<LockMode::kLocal>>
+cache_aligned TypedAllocator<ScallocCore<LockMode::kLocal>>
     small_allocator_allocator;
 cache_aligned TypedAllocator<DistributedQueue::State> dq_state_allocator;
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
@@ -88,7 +88,7 @@ ScallocGuard::ScallocGuard() {
 
     scalloc::small_allocator_allocator.Init(
         kPageSize * 4, 64, "small_allocator_allocator");
-    scalloc::SmallAllocator<scalloc::LockMode::kLocal>::Init(
+    scalloc::ScallocCore<scalloc::LockMode::kLocal>::Init(
         &scalloc::small_allocator_allocator);
 
     scalloc::ThreadCache::Init();
@@ -115,7 +115,7 @@ void* malloc(const size_t size) {
   LOG(kTrace, "malloc: size: %lu", size);
   void* p;
   if (LIKELY(size <= kMaxMediumSize &&
-      SmallAllocator<LockMode::kLocal>::Enabled())) {
+      ScallocCore<LockMode::kLocal>::Enabled())) {
     p = ThreadCache::GetCache().Allocator()->Allocate(size);
   } else {
     p = LargeAllocator::Alloc(size);

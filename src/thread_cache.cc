@@ -2,12 +2,12 @@
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
-#include "allocators/small_allocator.h"
-#include "spinlock-inl.h"
 #include "thread_cache.h"
-#include "typed_allocator.h"
 
 #include <new>
+
+#include "spinlock-inl.h"
+#include "typed_allocator.h"
 
 namespace {
 
@@ -50,7 +50,7 @@ void ThreadCache::Init() {
 ThreadCache* ThreadCache::New(pthread_t owner) {
   const uint64_t allocator_id = __sync_fetch_and_add(&g_thread_id, 1);
   ThreadCache* cache = new(g_threadcache_alloc.New()) ThreadCache(
-      SmallAllocator<LockMode::kLocal>::New(allocator_id),
+      ScallocCore<LockMode::kLocal>::New(allocator_id),
       owner,
       thread_caches_);
   thread_caches_ = cache;
@@ -58,7 +58,7 @@ ThreadCache* ThreadCache::New(pthread_t owner) {
 }
 
 
-ThreadCache::ThreadCache(SmallAllocator<LockMode::kLocal>* allocator,
+ThreadCache::ThreadCache(ScallocCore<LockMode::kLocal>* allocator,
                          pthread_t owner,
                          ThreadCache* next) {
   alloc_ = allocator;
@@ -111,7 +111,7 @@ void ThreadCache::DestroyThreadCache(void* p) {
 #endif  // HAVE_TLS
 
   ThreadCache* cache = reinterpret_cast<ThreadCache*>(p);
-  SmallAllocator<LockMode::kLocal>::Destroy(cache->Allocator());
+  ScallocCore<LockMode::kLocal>::Destroy(cache->Allocator());
 
   {
     LockScope(g_threadcache_lock);

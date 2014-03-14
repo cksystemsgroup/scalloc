@@ -7,7 +7,7 @@
 
 #include <pthread.h>
 
-#include "allocators/small_allocator.h"
+#include "allocators/scalloc_core-inl.h"
 #include "common.h"
 #include "headers.h"
 
@@ -29,7 +29,7 @@ class ThreadCache {
 #ifdef HEAP_PROFILE
   inline HeapProfiler* Profiler() { return profiler_; }
 #endif  // HEAP_PROFILE
-  inline SmallAllocator<LockMode::kLocal>* Allocator() { return alloc_; }
+  inline ScallocCore<LockMode::kLocal>* Allocator() { return alloc_; }
 
  private:
   static ThreadCache* RawGetCache();
@@ -45,12 +45,12 @@ class ThreadCache {
   static ThreadCache* thread_caches_;
   static pthread_key_t cache_key_;
 
-  ThreadCache(SmallAllocator<LockMode::kLocal>* allocator,
+  ThreadCache(ScallocCore<LockMode::kLocal>* allocator,
               pthread_t owner,
               ThreadCache* next);
 
   // Actual thread-local data.
-  SmallAllocator<LockMode::kLocal>* alloc_;
+  ScallocCore<LockMode::kLocal>* alloc_;
 #ifdef HEAP_PROFILE
   HeapProfiler* profiler_;
 #endif  // HEAP_PROFILE
