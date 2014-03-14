@@ -19,9 +19,7 @@
 // AtomicAlign (default 4).
 class Stack {
  public:
-  static void InitModule() {}
-
-  Stack() {}
+  Stack() { top_ = 0; }
   void Init();
   void Push(void* p);
   void* Pop();

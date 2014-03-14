@@ -49,22 +49,16 @@ class ThreadCache {
               pthread_t owner,
               ThreadCache* next);
 
-  // House-keeping data.
-  bool in_setspecific_;
-  pthread_t owner_;
-  ThreadCache* next_;
-#define MANAGING_SZ           \
-  (8 +                        \
-  sizeof(owner_) +            \
-  sizeof(next_))
-  char __pad1[CACHELINE_SIZE - (MANAGING_SZ % CACHELINE_SIZE)];  // NOLINT
-#undef MANAGING_SZ
-
   // Actual thread-local data.
   SmallAllocator<LockMode::kLocal>* alloc_;
 #ifdef HEAP_PROFILE
   HeapProfiler* profiler_;
 #endif  // HEAP_PROFILE
+
+  // House-keeping data.
+  bool in_setspecific_;
+  pthread_t owner_;
+  ThreadCache* next_;
 };
 
 

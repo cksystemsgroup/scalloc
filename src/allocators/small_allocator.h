@@ -45,8 +45,8 @@ class SmallAllocator {
   void Free(void* p, SpanHeader* hdr);
 
  private:
-  SmallAllocator(const uint64_t id);
-  
+  explicit SmallAllocator(const uint64_t id);
+
   void AddCoolSpan(const size_t sc, SpanHeader* span);
   void RemoveCoolSpan(const size_t sc, SpanHeader* span);
   void AddSlowSpan(const size_t sc, SpanHeader* span);
@@ -63,7 +63,6 @@ class SmallAllocator {
   static bool enabled_;
 
   // Only used with LockMode::kSizeClassLocked.
-  //FastLock size_class_lock_[kNumClasses];
   pthread_mutex_t size_class_lock_[kNumClasses];
 
   uint64_t id_;

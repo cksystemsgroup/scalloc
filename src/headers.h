@@ -78,19 +78,20 @@ class SpanHeader : public Header {
     dummy->CheckAlignments();
   }
 
-  inline void Init(const size_t size_class, const size_t id, bool reusable) {
+  inline void Init(
+      const size_t sc, const size_t owner_id, bool reuse_freelist) {
     this->type = kSlab;
-    this->size_class = size_class;
-    this->remote_flist = id;
+    this->size_class = sc;
+    this->remote_flist = owner_id;
     this->flist_aligned_blocksize_offset =
         (reinterpret_cast<uintptr_t>(this) + sizeof(SpanHeader))
-            % scalloc::ClassToSize[size_class];
-    this->aowner.owner = id;
+            % scalloc::ClassToSize[sc];
+    this->aowner.owner = owner_id;
     this->aowner.active = true;
-    if (!reusable) {
+    if (!reuse_freelist) {
       this->flist.Init(
           PTR(reinterpret_cast<uintptr_t>(this) + sizeof(SpanHeader)),
-          size_class);
+          sc);
     }
     this->next = NULL;
     this->prev = NULL;
