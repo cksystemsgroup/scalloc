@@ -8,14 +8,16 @@
 #include <pthread.h>
 #include <stdint.h>
 
-#include "assert.h"
+#include <new>
+
 #include "allocators/arena.h"
 #include "allocators/block_pool.h"
+#include "assert.h"
 #include "collector.h"
 #include "common.h"
 #include "headers.h"
-#include "fast_lock.h"
 #include "list-inl.h"
+#include "lock_utils-inl.h"
 #include "span_pool.h"
 #include "size_classes.h"
 
@@ -43,6 +45,8 @@ class SmallAllocator {
   void Free(void* p, SpanHeader* hdr);
 
  private:
+  SmallAllocator(const uint64_t id);
+  
   void AddCoolSpan(const size_t sc, SpanHeader* span);
   void RemoveCoolSpan(const size_t sc, SpanHeader* span);
   void AddSlowSpan(const size_t sc, SpanHeader* span);
@@ -59,8 +63,8 @@ class SmallAllocator {
   static bool enabled_;
 
   // Only used with LockMode::kSizeClassLocked.
-  FastLock size_class_lock_[kNumClasses];
-  uint64_t lock_padding_[7];
+  //FastLock size_class_lock_[kNumClasses];
+  pthread_mutex_t size_class_lock_[kNumClasses];
 
   uint64_t id_;
   uint64_t me_active_;
@@ -71,7 +75,6 @@ class SmallAllocator {
 
   TypedAllocator<ListNode> node_allocator;
 
-  DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(SmallAllocator);
 };
 
@@ -82,6 +85,25 @@ TypedAllocator<SmallAllocator<MODE>>* SmallAllocator<MODE>::allocator;
 
 template<LockMode MODE>
 bool SmallAllocator<MODE>::enabled_;
+
+
+template<LockMode MODE>
+inline SmallAllocator<MODE>::SmallAllocator(const uint64_t id) : id_(id) {
+  ActiveOwner dummy;
+  dummy.Reset(true, id_);
+  me_active_ = dummy.raw;
+  dummy.Reset(false, id_);
+  me_inactive_ = dummy.raw;
+
+  node_allocator.Init(kPageSize, 64, "node_alloc");
+
+  for (size_t i = 0; i < kNumClasses; i++) {
+    hot_span_[i] = NULL;
+    cool_spans_[i] = NULL;
+    slow_spans_[i] = NULL;
+    pthread_mutex_init(&size_class_lock_[i], NULL);
+  }
+}
 
 
 template<LockMode MODE>
@@ -181,7 +203,7 @@ template<>
 inline void* SmallAllocator<LockMode::kSizeClassLocked>::Allocate(
     const size_t size) {
   const size_t sc = SizeToClass(size);
-  FastLockScope(size_class_lock_[sc]);
+  LockScopePthread(size_class_lock_[sc]);
   return AllocateInSizeClass(sc);
 }
 
@@ -219,7 +241,7 @@ template<>
 inline void SmallAllocator<LockMode::kSizeClassLocked>::Free(
     void* p, SpanHeader* hdr) {
   const size_t sc = hdr->size_class;
-  FastLockScope(size_class_lock_[sc]);
+  LockScopePthread(size_class_lock_[sc]);
   FreeInSizeClass(sc, p, hdr);
 }
 
@@ -317,22 +339,8 @@ void SmallAllocator<MODE>::Init(TypedAllocator<SmallAllocator>* alloc) {
 
 template<LockMode MODE>
 SmallAllocator<MODE>* SmallAllocator<MODE>::New(const uint64_t id) {
-  SmallAllocator* a = allocator->New();
-  LOG(kTrace, "[SmallAllocator] New; id: %lu, p: %p", id, a);
-  a->id_ = id;
-  ActiveOwner dummy;
-  dummy.Reset(true, id);
-  a->me_active_ = dummy.raw;
-  dummy.Reset(false, id);
-  a->me_inactive_ = dummy.raw;
-  a->node_allocator.Init(kPageSize, 64, "node_alloc");
-  for (size_t i = 0; i < kNumClasses; i++) {
-    a->hot_span_[i] = NULL;
-    a->cool_spans_[i] = NULL;
-    a->slow_spans_[i] = NULL;
-    a->size_class_lock_[i].Init();
-  }
-  return a;
+  LOG(kTrace, "[SmallAllocator] New; id: %lu", id);
+  return new(allocator->New()) SmallAllocator<MODE>(id);
 }
 
 

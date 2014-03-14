@@ -5,6 +5,8 @@
 #ifndef SCALLOC_FAST_LOCK_H_
 #define SCALLOC_FAST_LOCK_H_
 
+#ifdef __linux__
+
 #include <linux/futex.h>
 #include <sys/syscall.h>
 
@@ -80,6 +82,8 @@ class FastLockHolder {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(FastLockHolder);
 };
+
+#endif  // __linux__
 
 #endif  // SCALLOC_FAST_LOCK_H_
 
