@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "allocators/block_pool.h"
-#include "allocators/large_allocator.h"
+#include "allocators/large-inl.h"
 #include "allocators/small_allocator.h"
 #include "allocators/span_pool.h"
 #include "assert.h"

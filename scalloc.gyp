@@ -115,7 +115,7 @@
         'src/allocators/arena.h',
         'src/allocators/block_pool.cc',
         'src/allocators/block_pool.h',
-        'src/allocators/large_allocator.h',
+        'src/allocators/large-inl.h',
         'src/allocators/small_allocator.h',
         'src/allocators/span_pool.cc',
         'src/allocators/span_pool.h',
