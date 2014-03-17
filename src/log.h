@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -20,7 +20,10 @@ enum Severity {
 const int kVerbosity = LOG_LEVEL;
 const int kLogLen = 240;
 
-void LogPrintf(const int severity, const char* format, ...);
+void LogPrintf(const char* category,
+               const int severity,
+               const char* format, ...);
+
 
 // Here comes the ugly part. What we basically want is a construct that is only
 // compiled if the log level is succiciently high. Furthermore we don't even
@@ -32,13 +35,25 @@ void LogPrintf(const int severity, const char* format, ...);
 
 #define LOG_ON(severity) (kVerbosity >= severity)
 
-#define LOG(severity, format, ...) do {           \
-  if (LOG_ON(severity)) {                         \
-    LogPrintf(severity, format, ##__VA_ARGS__);   \
-  }                                               \
-  if (severity == kFatal) {                       \
-    abort();                                      \
-  }                                               \
+
+#define LOG(severity, format, ...) do {                                        \
+  if (LOG_ON(severity)) {                                                      \
+    LogPrintf("", severity, format, ##__VA_ARGS__);                            \
+  }                                                                            \
+  if (severity == kFatal) {                                                    \
+    abort();                                                                   \
+  }                                                                            \
 } while (0)
+
+
+#define LOG_CAT(cat, severity, format, ...) do {                               \
+  if (LOG_ON(severity)) {                                                      \
+    LogPrintf(cat, severity, format, ##__VA_ARGS__);                           \
+  }                                                                            \
+  if (severity == kFatal) {                                                    \
+    abort();                                                                   \
+  }                                                                            \
+} while (0)
+
 
 #endif  // SCALLOC_LOG_H_

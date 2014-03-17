@@ -15,6 +15,8 @@
 #include "common.h"
 #include "log.h"
 
+#define ARENA_LOG "arena"
+
 namespace scalloc {
 
 class Arena {
@@ -40,7 +42,7 @@ inline void* Arena::Allocate(const size_t size) {
   if (reinterpret_cast<uintptr_t>(p) > (start_ + size_)) {
     Fatal("[Arena] oom");
   }
-  LOG(kTrace, "[Arena] allocate: %lu", size);
+  LOG_CAT(ARENA_LOG, kTrace, "allocate: %lu", size);
   return p;
 }
 

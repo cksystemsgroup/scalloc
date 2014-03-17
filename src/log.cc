@@ -8,18 +8,26 @@
 #include <stdio.h>
 #include <string.h>
 
-void LogPrintf(const int severity, const char* format, ...) {
+void LogPrintf(const char* category,
+               const int severity,
+               const char* format,
+                ...) {
   const char* suffix = "...";
   const char* fatal_prefix = "FATAL ERROR: ";
-  char buffer[kLogLen] = {0};
+  char buffer[kLogLen] = { 0 };
   int rest = kLogLen;
+  const size_t netto_len = rest - strlen(suffix) - 1;
   va_list args;
-  va_start(args, format);
+  strncat(buffer, "[", 1);
+  strncat(buffer, category, kLogLen);
+  rest -= strlen(category);
+  strncat(buffer, "] ", 2);
+  rest -= 3;
   if (severity == kFatal) {
     strncat(buffer, fatal_prefix, kLogLen);
     rest -= strlen(fatal_prefix);
   }
-  const size_t netto_len = rest - strlen(suffix) - 1;
+  va_start(args, format);
   int would = vsnprintf(&(buffer[kLogLen-rest]), netto_len, format, args);
   va_end(args);
   if (would > rest) {
