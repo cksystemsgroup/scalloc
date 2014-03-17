@@ -19,7 +19,7 @@ void LogPrintf(const char* category,
   const size_t netto_len = rest - strlen(suffix) - 1;
   va_list args;
   strncat(buffer, "[", 1);
-  strncat(buffer, category, kLogLen);
+  strncat(buffer, category, kLogLen - 3);
   rest -= strlen(category);
   strncat(buffer, "] ", 2);
   rest -= 3;
