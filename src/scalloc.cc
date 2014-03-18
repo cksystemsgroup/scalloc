@@ -64,11 +64,11 @@ SIZE_CLASSES
 cache_aligned TypedAllocator<DistributedQueue::State> dq_state_allocator;
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
 #ifdef POLICY_THREAD_LOCAL
-cache_aligned TypedAllocator<SmallAllocator<LockMode::kLocal>>
+cache_aligned TypedAllocator<ScallocCore<LockMode::kLocal>>
     small_allocator_allocator;
 #endif  // POLICY_THREAD_LOCAL
 #ifdef POLICY_CORE_LOCAL
-cache_aligned TypedAllocator<SmallAllocator<LockMode::kSizeClassLocked>>
+cache_aligned TypedAllocator<ScallocCore<LockMode::kSizeClassLocked>>
     small_allocator_allocator;
 #endif  // POLICY_CORE_LOCAL
 

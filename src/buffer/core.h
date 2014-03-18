@@ -5,7 +5,7 @@
 #ifndef SCALLOC_BUFFER_CORE_H_
 #define SCALLOC_BUFFER_CORE_H_
 
-#include "allocators/small_allocator.h"
+#include "allocators/scalloc_core-inl.h"
 #include "spinlock-inl.h"
 #include "typed_allocator.h"
 
@@ -16,19 +16,19 @@ class CoreBuffer {
   static const uint64_t kMaxCores = 160;
 
   static void Init();
-  static SmallAllocator<LockMode::kSizeClassLocked>& Allocator();
+  static ScallocCore<LockMode::kSizeClassLocked>& Allocator();
 
  private:
-  static SmallAllocator<LockMode::kSizeClassLocked>* NewIfNecessary(uint64_t core_id);
+  static ScallocCore<LockMode::kSizeClassLocked>* NewIfNecessary(uint64_t core_id);
 
   static uint64_t num_cores_;
   static uint64_t core_counter_;
   static SpinLock new_allocator_lock_;
-  static SmallAllocator<LockMode::kSizeClassLocked>* allocators_[kMaxCores];
+  static ScallocCore<LockMode::kSizeClassLocked>* allocators_[kMaxCores];
 };
 
 
-inline SmallAllocator<LockMode::kSizeClassLocked>& CoreBuffer::Allocator() {
+inline ScallocCore<LockMode::kSizeClassLocked>& CoreBuffer::Allocator() {
   uint64_t core_id;
 #ifdef __APPLE__
   core_id = hwrand() % num_cores_;
@@ -36,7 +36,7 @@ inline SmallAllocator<LockMode::kSizeClassLocked>& CoreBuffer::Allocator() {
 #ifdef __linux__
   core_id = static_cast<uint64_t>(sched_getcpu());
 #endif  // __linux__
-  SmallAllocator<LockMode::kSizeClassLocked>* alloc = allocators_[core_id];
+  ScallocCore<LockMode::kSizeClassLocked>* alloc = allocators_[core_id];
   if (LIKELY(alloc != NULL)) {
     return *alloc;
   }

@@ -7,7 +7,7 @@ namespace scalloc {
 uint64_t CoreBuffer::num_cores_;
 uint64_t CoreBuffer::core_counter_;
 SpinLock CoreBuffer::new_allocator_lock_;
-SmallAllocator<LockMode::kSizeClassLocked>* CoreBuffer::allocators_[CoreBuffer::kMaxCores];
+ScallocCore<LockMode::kSizeClassLocked>* CoreBuffer::allocators_[CoreBuffer::kMaxCores];
 
 
 void CoreBuffer::Init() {
@@ -20,11 +20,11 @@ void CoreBuffer::Init() {
 }
 
 
-SmallAllocator<LockMode::kSizeClassLocked>* CoreBuffer::NewIfNecessary(uint64_t core_id) {
+ScallocCore<LockMode::kSizeClassLocked>* CoreBuffer::NewIfNecessary(uint64_t core_id) {
   LockScope(new_allocator_lock_);
 
   if (allocators_[core_id] == NULL) {
-    allocators_[core_id] = SmallAllocator<LockMode::kSizeClassLocked>::New(core_counter_++);
+    allocators_[core_id] = ScallocCore<LockMode::kSizeClassLocked>::New(core_counter_++);
   }
   return allocators_[core_id];
 }
