@@ -20,6 +20,7 @@
     'madvise_strategy%': "same-thread",
     'enable_slow_span_reuse%': -1,
     'enable_free_list_reuse%': -1,
+    'core_local%': -1,
   },
   'target_defaults': {
     'configurations': {
@@ -95,6 +96,11 @@
             'REUSE_FREE_LIST'
           ]
         }],
+        ['<(core_local)!=-1', {
+          'defines': [
+            'POLICY_CORE_LOCAL'
+          ]
+        }],
         ['"<(madvise_strategy)"=="same-thread"', {
           'defines': [
             'MADVISE_SAME_THREAD'
@@ -121,6 +127,8 @@
         'src/allocators/span_pool.h',
         'src/assert.h',
         'src/atomic.h',
+        'src/buffer/core.cc',
+        'src/buffer/core.h',
         'src/collector.cc',
         'src/collector.h',
         'src/common.h',
