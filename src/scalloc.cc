@@ -113,7 +113,7 @@ ScallocGuard::ScallocGuard() {
 #ifdef POLICY_CORE_LOCAL
     scalloc::small_allocator_allocator.Init(
         kPageSize * 4, 64, "small_allocator_allocator");
-    scalloc::SmallAllocator<scalloc::LockMode::kSizeClassLocked>::Init(
+    scalloc::ScallocCore<scalloc::LockMode::kSizeClassLocked>::Init(
         &scalloc::small_allocator_allocator);
     scalloc::CoreBuffer::Init();
 #endif  // POLICY_CORE_LOCAL
@@ -146,7 +146,7 @@ void* malloc(const size_t size) {
 #endif  // POLICY_THREAD_LOCAL
 #ifdef POLICY_CORE_LOCAL
   if (LIKELY(size <= kMaxMediumSize &&
-      SmallAllocator<LockMode::kSizeClassLocked>::Enabled())) {
+      ScallocCore<LockMode::kSizeClassLocked>::Enabled())) {
     p = CoreBuffer::Allocator().Allocate(size);
 #endif  // POLICY_CORE_LOCAL
   } else {
