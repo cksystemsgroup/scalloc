@@ -61,7 +61,6 @@ SIZE_CLASSES
 };
 
 // Allocators for internal data structures.
-cache_aligned TypedAllocator<DistributedQueue::State> dq_state_allocator;
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
 #ifdef POLICY_THREAD_LOCAL
 cache_aligned TypedAllocator<ScallocCore<LockMode::kLocal>>
@@ -89,11 +88,9 @@ ScallocGuard::ScallocGuard() {
     scalloc::InternalArena.Init(kInternalSpace);
     scalloc::SmallArena.Init(kSmallSpace);
 
-    scalloc::dq_state_allocator.Init(kPageSize * 16, 64, "dq_state_allocator");
     scalloc::dq_backend_allocator.Init(
         kPageSize * 16, 64, "dq_backend_allocator");
-    scalloc::DistributedQueue::Init(
-        &scalloc::dq_state_allocator, &scalloc::dq_backend_allocator);
+    scalloc::DistributedQueue::Init(&scalloc::dq_backend_allocator);
     scalloc::SpanPool::Init();
     scalloc::BlockPool::Init();
 

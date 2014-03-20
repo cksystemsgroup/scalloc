@@ -27,10 +27,7 @@ class DistributedQueue {
     uint64_t backend_states[kMaxBackends];
   };
 
-  static void Init(TypedAllocator<State>* sate_alloc,
-                   TypedAllocator<Backend>* backend_alloc);
-  static void DestroyDistributedQueueState(void* p);
-
+  static void Init(TypedAllocator<Backend>* backend_alloc);
 
   inline DistributedQueue() {}
   void Init(size_t p);
@@ -41,19 +38,7 @@ class DistributedQueue {
   void* DequeueStartAt(const size_t first_backend_id);
 
  private:
-  State* NewState();
-  State* GetState();
-
   static scalloc::TypedAllocator<Backend>* backend_allocator_;
-  static scalloc::TypedAllocator<State>* state_allocator_;
-
-#ifdef HAVE_TLS
-  // State object used to record backend states by each thread in the emptiness
-  // check of a dequeue operation.
-  static __thread TLS_MODE State* state_;
-#else
-  static pthread_key_t state_key_;
-#endif  // HAVE_TLS
 
   // Number of backends.
   size_t p_;
@@ -91,23 +76,20 @@ inline void* DistributedQueue::DequeueOnlyAt(const size_t backend_id) {
 inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
   void* result;
   size_t start = first_backend_id;
-  State* state = GetState();
-  if (state == NULL) {
-    state = NewState();
-  }
+  State state;
   size_t i;
   while (true) {
  GET_RETRY:
     for (size_t _cnt = 0; _cnt < p_; _cnt++) {
       i = (_cnt + start) % p_;
       if ((result = backends_[i]->PopRecordState(
-              &(state->backend_states[i]))) != NULL) {
+              &(state.backend_states[i]))) != NULL) {
         return result;
       }
     }
     for (size_t _cnt = 0; _cnt < p_; _cnt++) {
       i = (_cnt + start) % p_;
-      if (state->backend_states[i] != backends_[i]->GetState()) {
+      if (state.backend_states[i] != backends_[i]->GetState()) {
         start = i;
         goto GET_RETRY;
       }

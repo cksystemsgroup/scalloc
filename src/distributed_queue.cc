@@ -10,21 +10,10 @@
 namespace scalloc {
 
 TypedAllocator<DistributedQueue::Backend>* DistributedQueue::backend_allocator_;
-TypedAllocator<DistributedQueue::State>* DistributedQueue::state_allocator_;
-#ifdef HAVE_TLS
-__thread DistributedQueue::State* DistributedQueue::state_;
-#else
-pthread_key_t DistributedQueue::state_key_;
-#endif
 
 
-void DistributedQueue::Init(TypedAllocator<State>* state_alloc,
-                            TypedAllocator<Backend>* backend_alloc) {
+void DistributedQueue::Init(TypedAllocator<Backend>* backend_alloc) {
   backend_allocator_ = backend_alloc;
-  state_allocator_ = state_alloc;
-#ifndef HAVE_TLS
-  pthread_key_create(&state_key_, DestroyDistributedQueueState);
-#endif
 }
 
 
@@ -36,29 +25,5 @@ void DistributedQueue::Init(size_t p) {
   }
 }
 
-
-void DistributedQueue::DestroyDistributedQueueState(void* p) {
-  state_allocator_->Delete(reinterpret_cast<State*>(p));
-}
-
-
-DistributedQueue::State* DistributedQueue::NewState() {
-  State* state = state_allocator_->New();
-#ifdef HAVE_TLS
-  state_ = state;
-#else
-  pthread_setspecific(state_key_, static_cast<void*>(state));
-#endif
-  return state;
-}
-
-
-DistributedQueue::State* DistributedQueue::GetState() {
-#ifdef HAVE_TLS
-  return state_;
-#else
-  return static_cast<State*>(pthread_getspecific(state_key_));
-#endif
-}
-
 }  // namespace scalloc
+
