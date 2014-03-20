@@ -30,7 +30,7 @@ const size_t kNumClasses = kFineClasses + kCoarseClasses;
 #ifdef SMALL_SPACE
 const size_t kSmallSpace = SMALL_SPACE;
 #else
-const size_t kSmallSpace = 1UL << 45;  // 32TiB
+const size_t kSmallSpace = 1UL << 44;  // 16TiB
 #endif
 const size_t kInternalSpace = 1UL << 31;  // 2GiB
 
