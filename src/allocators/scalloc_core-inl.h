@@ -53,7 +53,8 @@ class ScallocCore {
   void RemoveSlowSpan(const size_t sc, SpanHeader* node);
 
   void* AllocateInSizeClass(const size_t sc);
-  void FreeInSizeClass(const size_t sc, void* p, SpanHeader* hdr);
+  bool LocalFreeInSizeClass(const size_t sc, void* p, SpanHeader* hdr);
+  void RemoteFreeInSizeClass(const size_t sc, void* p, SpanHeader* hdr);
   void* AllocateNoSlab(const size_t sc);
   SpanHeader* InitSlab(uintptr_t block, size_t len, const size_t sc);
   void Refill(const size_t sc);
@@ -232,7 +233,9 @@ inline void* ScallocCore<MODE>::AllocateInSizeClass(const size_t sc) {
 template<>
 inline void ScallocCore<LockMode::kLocal>::Free(void* p, SpanHeader* hdr) {
   const size_t sc = hdr->size_class;
-  FreeInSizeClass(sc, p, hdr);
+  if (!LocalFreeInSizeClass(sc, p, hdr)) {
+    RemoteFreeInSizeClass(sc, p, hdr);
+  }
 }
 
 
@@ -240,13 +243,19 @@ template<>
 inline void ScallocCore<LockMode::kSizeClassLocked>::Free(
     void* p, SpanHeader* hdr) {
   const size_t sc = hdr->size_class;
-  LockScopePthread(size_class_lock_[sc]);
-  FreeInSizeClass(sc, p, hdr);
+  bool success;
+  {
+    LockScopePthread(size_class_lock_[sc]);
+    success = LocalFreeInSizeClass(sc, p, hdr);
+  }
+  if (!success) {
+    RemoteFreeInSizeClass(sc, p, hdr);
+  }
 }
 
 
 template<LockMode MODE>
-inline void ScallocCore<MODE>::FreeInSizeClass(
+inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
     const size_t sc, void* p, SpanHeader* hdr) {
   SpanHeader* const cur_sc_hdr = hot_span_[hdr->size_class];
 
@@ -283,7 +292,7 @@ inline void ScallocCore<MODE>::FreeInSizeClass(
           hdr->aowner.active = false;
         }
       }
-      return;
+      return true;
   } else if (hdr->aowner.raw == me_inactive_) {
     // Local free in already globally available span.
     if (__sync_bool_compare_and_swap(
@@ -301,7 +310,7 @@ inline void ScallocCore<MODE>::FreeInSizeClass(
 #ifdef PROFILER_ON
         Profiler::GetProfiler().LogSpanReuse();
 #endif  // PROFILER_ON
-        return;
+        return true;
       }
 
       if (hdr->flist.Full()) {
@@ -312,20 +321,24 @@ inline void ScallocCore<MODE>::FreeInSizeClass(
 #else
         Collector::Put(hdr);
 #endif  // MADVISE_SAME_THREAD
-        return;
+        return true;
       }
 
       MemoryBarrier();
       hdr->aowner.active = false;
-      return;
+      return true;
     }
   }
-#ifdef PROFILER_ON
-  Profiler::GetProfiler().LogDeallocation(hdr->size_class, false, true);
-#endif  // PROFILER_ON
+  return false;
+}
+
+
+template<LockMode MODE>
+void ScallocCore<MODE>::RemoteFreeInSizeClass(
+    const size_t sc, void* p, SpanHeader* hdr) {
   LOG(kTrace, "[ScallocCore] remote free for %p, owner: %lu, me: %lu",
       p, hdr->aowner.owner, id_);
-  BlockPool::Instance().Free(p, hdr->size_class, hdr->remote_flist);
+  BlockPool::Instance().Free(p, sc, hdr->remote_flist); 
 }
 
 
