@@ -1,16 +1,8 @@
 {
+  'includes': [
+    'common.gypi'
+  ],
   'variables': {
-    'default_cflags' : [
-      '-Wall',
-      '-Werror',
-      '-fPIC',
-      '-m64',
-      '-std=c++11',
-      '-fno-omit-frame-pointer',
-      '-ffast-math'
-    ],
-    'default_ldflags': [
-    ],
     'heap_profile%': 0,
     'log_level%': "kWarning",
     'span_reuse_threshold%': 80,
@@ -21,37 +13,6 @@
     'enable_slow_span_reuse%': -1,
     'enable_free_list_reuse%': -1,
     'core_local%': -1,
-  },
-  'target_defaults': {
-    'configurations': {
-      'Debug': {
-        'cflags': [ '<@(default_cflags)' , '-g -gdwarf-2', '-O0'  ],
-        'ldflags': [ '<@(default_ldflags)' ],
-        'xcode_settings': {
-          'BUILT_PRODUCTS_DIR': "out/<(CONFIGURATION_NAME)",
-          'OTHER_CFLAGS': [ '<@(default_cflags)' , '-g', '-O0'],
-          'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
-          'USE_HEADERMAP': 'NO',
-          'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
-          'CLANG_CXX_LIBRARY': "libc++",
-        },
-        'defines': [
-          'DEBUG',
-        ]
-      },
-      'Release': {
-        'cflags': [ '<@(default_cflags)', '-O3' ],
-        'ldflags': [ '<@(default_ldflags)' ],
-        'xcode_settings': {
-          'BUILT_PRODUCTS_DIR': "out/<(CONFIGURATION_NAME)",
-          'OTHER_CFLAGS': [ '<@(default_cflags)', '-O3' ],
-          'OTHER_LDFLAGS': [ '<@(default_ldflags)' ],
-          'USE_HEADERMAP': 'NO',
-          'CLANG_CXX_LANGUAGE_STANDARD': "c++0x",
-          'CLANG_CXX_LIBRARY': "libc++",
-        },
-      }
-    },
   },
   'conditions': [
     ['OS=="linux"', {
@@ -167,6 +128,23 @@
       'include_dirs': [
         'src',
         'src/allocators',
+      ]
+    },
+    {
+      'target_name': 'unittest_test',
+      'type': 'executable',
+      'dependencies': [
+        'third_party/gtest.gypi:gtestmain',
+      ],
+      'sources': [
+        'src/unittest_test.cc'
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'ldflags': [
+            '-pthread'
+          ]
+        }],
       ]
     },
   ],
