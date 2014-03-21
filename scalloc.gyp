@@ -139,6 +139,9 @@
       'sources': [
         'src/unittest_test.cc'
       ],
+      'include_dirs': [
+        'third_party/gtest/include',
+      ],
       'conditions': [
         ['OS=="linux"', {
           'ldflags': [
