@@ -44,14 +44,14 @@
         'gtest',
         'gtest/include',
       ],
-#      'direct_dependent_settings': {
-#        'defines': [
-#          'UNIT_TEST',
-#        ],
-#        'include_dirs': [
-#          'gtest/include', 
-#        ],
-#      },
+      'direct_dependent_settings': {
+        'defines': [
+          'UNIT_TEST',
+        ],
+        'include_dirs': [
+          'gtest/include', 
+        ],
+      },
     },
     {
       'target_name': 'gtestmain',
