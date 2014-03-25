@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#include "assert.h"
+#include "scalloc_assert.h"
 
 // Packed structure for ABA stamped pointers.
 // Not concurrency safe. Use with std::atomic.

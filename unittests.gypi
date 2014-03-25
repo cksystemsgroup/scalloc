@@ -20,5 +20,25 @@
         }],
       ],
     },
+    {
+      'target_name': 'atomic_test',
+      'type': 'executable',
+      'dependencies': [
+        'third_party/gtest.gypi:gtestmain',
+      ],
+      'sources': [
+        'test/atomic_unittest.cc',
+      ],
+      'include_dirs': [
+        'src',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'ldflags': [
+            '-pthread'
+          ]
+        }],
+      ],
+    },
   ],
 }
