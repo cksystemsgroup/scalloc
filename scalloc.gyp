@@ -16,13 +16,6 @@
     'unit_tests%': -1,
   },
   'conditions': [
-    ['OS=="linux"', {
-      'target_defaults': {
-        'cflags': [ '-mcx16' ]
-      }
-    }]
-  ],
-  'conditions': [
     ['<(unit_tests)!=-1', {
       'includes': [
         'unittests.gypi'
@@ -41,9 +34,8 @@
       ],
       'conditions': [
         ['OS=="linux"', {
-          'ldflags': [
-            '-pthread'
-          ]
+          'ldflags': [ '-pthread' ],
+          'cflags': [ '-mcx16' ],
         }],
         ['<(small_space)!=-1', {
           'defines': [
