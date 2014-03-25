@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "assert.h"
+#include "scalloc_assert.h"
 #include "common.h"
 
 namespace scalloc {

@@ -8,7 +8,7 @@
 #include <stdint.h>  // intptr_t and friends
 #include <sys/mman.h>  // mmap
 
-#include "assert.h"
+#include "scalloc_assert.h"
 #include "platform.h"
 #include "utils.h"
 

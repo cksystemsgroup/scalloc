@@ -1,6 +1,6 @@
 {
   'includes': [
-    'common.gypi'
+    'common.gypi',
   ],
   'variables': {
     'heap_profile%': 0,
@@ -13,6 +13,7 @@
     'enable_slow_span_reuse%': -1,
     'enable_free_list_reuse%': -1,
     'core_local%': -1,
+    'unit_tests%': -1,
   },
   'conditions': [
     ['OS=="linux"', {
@@ -20,6 +21,13 @@
         'cflags': [ '-mcx16' ]
       }
     }]
+  ],
+  'conditions': [
+    ['<(unit_tests)!=-1', {
+      'includes': [
+        'unittests.gypi'
+      ]
+    }],
   ],
   'targets': [
     {
@@ -128,26 +136,6 @@
       'include_dirs': [
         'src',
         'src/allocators',
-      ]
-    },
-    {
-      'target_name': 'unittest_test',
-      'type': 'executable',
-      'dependencies': [
-        'third_party/gtest.gypi:gtestmain',
-      ],
-      'sources': [
-        'src/unittest_test.cc'
-      ],
-      'include_dirs': [
-        'third_party/gtest/include',
-      ],
-      'conditions': [
-        ['OS=="linux"', {
-          'ldflags': [
-            '-pthread'
-          ]
-        }],
       ]
     },
   ],

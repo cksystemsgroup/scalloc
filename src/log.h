@@ -9,6 +9,10 @@
 #include <stdlib.h>  // abort()
 #include <unistd.h>
 
+#ifndef LOG_LEVEL
+#define LOG_LEVEL kWarning
+#endif  // LOG_LEVEL
+
 enum Severity {
   kTrace = -1,
   kInfo = -2,

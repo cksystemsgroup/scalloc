@@ -62,6 +62,14 @@
       'sources': [
         'gtest/src/gtest_main.cc'
       ],
+      'direct_dependent_settings': {
+        'defines': [
+          'UNIT_TEST',
+        ],
+        'include_dirs': [
+          'gtest/include', 
+        ],
+      },
     },
   ],
 }

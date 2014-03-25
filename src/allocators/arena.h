@@ -11,7 +11,7 @@
 
 #include <atomic>
 
-#include "assert.h"
+#include "scalloc_assert.h"
 #include "common.h"
 #include "log.h"
 
