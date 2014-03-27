@@ -1,11 +1,11 @@
-// Copyright (c) 2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
 #ifndef SCALLOC_FREELIST_H_
 #define SCALLOC_FREELIST_H_
 
-#include "assert.h"
+#include "scalloc_assert.h"
 #include "common.h"
 #include "size_classes.h"
 
