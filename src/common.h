@@ -38,6 +38,14 @@ const size_t kInternalSpace = 1UL << 31;  // 2GiB
 #error "platform not supported"
 #endif
 
+#ifndef SPAN_REUSE_THRESHOLD
+#define SPAN_REUSE_THRESHOLD 80
+#endif  // SPAN_REUSE_THRESHOLD
+
+#ifndef LOCAL_REUSE_THRESHOLD
+#define LOCAL_REUSE_THRESHOLD 80
+#endif  // LOCAL_REUSE_THRESHOLD
+
 const size_t kSpanReuseThreshold = SPAN_REUSE_THRESHOLD;
 const size_t kLocalReuseThreshold = LOCAL_REUSE_THRESHOLD;
 #ifdef EAGER_MADVISE_THRESHOLD
