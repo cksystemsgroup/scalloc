@@ -42,23 +42,6 @@ namespace scalloc {
 cache_aligned Arena InternalArena;
 cache_aligned Arena SmallArena;
 
-cache_aligned const uint64_t ClassToObjects[] = {
-#define SIZE_CLASS(a, b, c, d) (d),
-SIZE_CLASSES
-#undef SIZE_CLASS
-};
-
-cache_aligned const uint64_t ClassToSize[] = {
-#define SIZE_CLASS(a, b, c, d) (b),
-SIZE_CLASSES
-#undef SIZE_CLASS
-};
-
-cache_aligned const uint64_t ClassToSpanSize[] = {
-#define SIZE_CLASS(a, b, c, d) (c),
-SIZE_CLASSES
-#undef SIZE_CLASS
-};
 
 // Allocators for internal data structures.
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;

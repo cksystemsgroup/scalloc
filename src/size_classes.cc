@@ -5,8 +5,27 @@
 #include "size_classes.h"
 
 #include "headers.h"
+#include "size_classes_raw.h"
 
 namespace scalloc {
+
+cache_aligned const uint64_t ClassToObjects[] = {
+#define SIZE_CLASS(a, b, c, d) (d),
+SIZE_CLASSES
+#undef SIZE_CLASS
+};
+
+cache_aligned const uint64_t ClassToSize[] = {
+#define SIZE_CLASS(a, b, c, d) (b),
+SIZE_CLASSES
+#undef SIZE_CLASS
+};
+
+cache_aligned const uint64_t ClassToSpanSize[] = {
+#define SIZE_CLASS(a, b, c, d) (c),
+SIZE_CLASSES
+#undef SIZE_CLASS
+};
 
 void CheckSizeClasses() {
   uint64_t payload;
