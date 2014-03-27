@@ -14,6 +14,10 @@
 #include "stack-inl.h"
 #include "typed_allocator.h"
 
+#ifndef MAX_BACKENDS
+#define MAX_BACKENDS 80
+#endif  // MAX_BACKENDS
+
 namespace scalloc {
 
 class DistributedQueue {
@@ -21,7 +25,7 @@ class DistributedQueue {
   typedef Stack Backend;
 
   // Upper bound on DQ backends (and thus also State records).
-  static const size_t kMaxBackends = 80;
+  static const size_t kMaxBackends = MAX_BACKENDS;
 
   struct State {
     uint64_t backend_states[kMaxBackends];

@@ -18,6 +18,9 @@ void DistributedQueue::Init(TypedAllocator<Backend>* backend_alloc) {
 
 
 void DistributedQueue::Init(size_t p) {
+  if (p > kMaxBackends) {
+    p = kMaxBackends;
+  }
   p_ = p;
   for (size_t i = 0; i < p_; i++) {
     backends_[i] = backend_allocator_->New();
