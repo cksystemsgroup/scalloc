@@ -40,5 +40,27 @@
         }],
       ],
     },
+    {
+      'target_name': 'freelist_test',
+      'type': 'executable',
+      'dependencies': [
+        'third_party/gtest.gypi:gtestmain',
+      ],
+      'sources': [
+        'src/log.cc',
+        'src/size_classes.cc',
+        'test/freelist_unittest.cc',
+      ],
+      'include_dirs': [
+        'src',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'ldflags': [
+            '-pthread'
+          ]
+        }],
+      ],
+    },
   ],
 }
