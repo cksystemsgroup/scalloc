@@ -62,7 +62,7 @@ inline void DistributedQueue::Enqueue(void* p) {
 
 
 inline void DistributedQueue::EnqueueAt(void* p, const size_t backend_id) {
-  backends_[backend_id]->Put(p);
+  backends_[backend_id % p_]->Put(p);
 }
 
 
@@ -73,13 +73,13 @@ inline void* DistributedQueue::Dequeue() {
 
 
 inline void* DistributedQueue::DequeueOnlyAt(const size_t backend_id) {
-  return backends_[backend_id]->Pop();
+  return backends_[backend_id % p_]->Pop();
 }
 
 
 inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
   void* result;
-  size_t start = first_backend_id;
+  size_t start = first_backend_id % p_;
   State state;
   size_t i;
   while (true) {
