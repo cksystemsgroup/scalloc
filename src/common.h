@@ -60,4 +60,8 @@ const size_t kEagerMadviseThreshold = EAGER_MADVISE_THRESHOLD;
 #define POLICY_THREAD_LOCAL
 #endif  // POLICY_CORE_LOCAL
 
+#ifndef MAX_PARALLELISM
+#define MAX_PARALLELISM 80
+#endif  // MAX_PARALLELISM
+
 #endif  // SCALLOC_COMMON_H_

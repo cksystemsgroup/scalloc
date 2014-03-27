@@ -42,6 +42,8 @@ inline bool IsPowerOfTwo(size_t num) {
 
 size_t Cpus();
 
+size_t Parallelism();
+
 }  // namespace utils
 }  // namespace scalloc
 

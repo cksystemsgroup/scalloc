@@ -16,9 +16,8 @@ cache_aligned SpanPool SpanPool::span_pool_;
 
 
 void SpanPool::Init() {
-  unsigned num_cores = utils::Cpus();
   for (unsigned i = 0; i < kNumClasses; ++i) {
-    span_pool_.size_class_pool_[i].Init(num_cores);
+    span_pool_.size_class_pool_[i].Init(utils::Parallelism());
   }
 }
 

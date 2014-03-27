@@ -14,7 +14,7 @@ cache_aligned BlockPool BlockPool::block_pool_;
 
 void BlockPool::Init() {
   for (size_t i = 0; i < kNumClasses; i++) {
-    block_pool_.dqs_[i].Init(utils::Cpus());
+    block_pool_.dqs_[i].Init(utils::Parallelism());
   }
 }
 

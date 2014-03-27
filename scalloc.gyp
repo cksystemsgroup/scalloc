@@ -14,7 +14,8 @@
     'enable_free_list_reuse%': -1,
     'core_local%': -1,
     'unit_tests%': -1,
-    'max_backends%': -1,
+    'max_parallelism%': -1,
+    'dq_backend%': "-1",
   },
   'conditions': [
     ['<(unit_tests)!=-1', {
@@ -58,9 +59,14 @@
             'REUSE_FREE_LIST'
           ]
         }],
-        ['<(max_backends)!=-1', {
+        ['<(max_parallelism)!=-1', {
           'defines': [
-            'MAX_BACKENDS=<(max_backends)'
+            'MAX_PARALLELISM=<(max_parallelism)'
+          ]
+        }],
+        ['"<(dq_backend)"!="-1"', {
+          'defines': [
+            'BACKEND_TYPE=<(dq_backend)'
           ]
         }],
         ['<(core_local)!=-1', {

@@ -6,23 +6,24 @@
 #define SCALLOC_DISTRIBUTED_QUEUE_H_
 
 #include <cstdlib>
-#include <pthread.h>
 
 #include "common.h"
+#include "locked_stack-inl.h"  // Backend: LockedStack
 #include "random.h"
-#include "spinlock-inl.h"
-#include "stack-inl.h"
+#include "stack-inl.h"  // Backend: Stack
 #include "typed_allocator.h"
 
-#ifndef MAX_BACKENDS
-#define MAX_BACKENDS 80
-#endif  // MAX_BACKENDS
+#define MAX_BACKENDS 120
+
+#ifndef BACKEND_TYPE
+#define BACKEND_TYPE Stack
+#endif  // BACKEND_TYPE
 
 namespace scalloc {
 
 class DistributedQueue {
  public:
-  typedef Stack Backend;
+  typedef BACKEND_TYPE Backend;
 
   // Upper bound on DQ backends (and thus also State records).
   static const size_t kMaxBackends = MAX_BACKENDS;

@@ -381,8 +381,8 @@ void* ScallocCore<MODE>::AllocateNoSlab(const size_t sc) {
         Profiler::GetProfiler().LogSpanReuse(true);
 #endif  // PROFILER_ON
       } else {
-        if ((SpanHeader::GetFromObject(p)->aowner.owner % utils::Cpus()) !=
-                (id_ % utils::Cpus())) {
+        if ((SpanHeader::GetFromObject(p)->aowner.owner % utils::Parallelism()) !=
+                (id_ % utils::Parallelism())) {
           Refill(sc);
         }
       }
