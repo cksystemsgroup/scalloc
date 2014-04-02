@@ -25,6 +25,10 @@
 #include "profiler.h"
 #endif  // PROFILER_ON
 
+#ifdef __linux__
+#include "fast_lock.h"
+#endif  // __linux__
+
 namespace scalloc {
 
 enum LockMode {
@@ -64,7 +68,11 @@ class ScallocCore {
   static bool enabled_;
 
   // Only used with LockMode::kSizeClassLocked.
+#ifdef __linux__
+  FastLock size_class_lock_[kNumClasses];
+#else
   pthread_mutex_t size_class_lock_[kNumClasses];
+#endif  // __linux__
 
   uint64_t id_;
   uint64_t me_active_;
@@ -101,7 +109,11 @@ inline ScallocCore<MODE>::ScallocCore(const uint64_t id) : id_(id) {
     hot_span_[i] = NULL;
     cool_spans_[i] = NULL;
     slow_spans_[i] = NULL;
+#ifdef __linux__
+    size_class_lock_[i].Init();
+#else
     pthread_mutex_init(&size_class_lock_[i], NULL);
+#endif  // __linux__
   }
 }
 
@@ -203,7 +215,11 @@ template<>
 inline void* ScallocCore<LockMode::kSizeClassLocked>::Allocate(
     const size_t size) {
   const size_t sc = SizeToClass(size);
+#ifdef __linux__
+  FastLockScope(size_class_lock_[sc]);
+#else
   LockScopePthread(size_class_lock_[sc]);
+#endif  // __linux__
   return AllocateInSizeClass(sc);
 }
 
@@ -245,7 +261,11 @@ inline void ScallocCore<LockMode::kSizeClassLocked>::Free(
   const size_t sc = hdr->size_class;
   bool success;
   {
+#ifdef __linux__
+    FastLockScope(size_class_lock_[sc]);
+#else
     LockScopePthread(size_class_lock_[sc]);
+#endif  // __linux__
     success = LocalFreeInSizeClass(sc, p, hdr);
   }
   if (!success) {
