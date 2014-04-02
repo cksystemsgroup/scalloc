@@ -16,6 +16,7 @@
     'unit_tests%': -1,
     'max_parallelism%': -1,
     'dq_backend%': "-1",
+    'dq_non_lin_empty%': -1,
   },
   'conditions': [
     ['<(unit_tests)!=-1', {
@@ -67,6 +68,11 @@
         ['"<(dq_backend)"!="-1"', {
           'defines': [
             'BACKEND_TYPE=<(dq_backend)'
+          ]
+        }],
+        ['<(dq_non_lin_empty)!=-1', {
+          'defines': [
+            'DQ_NON_LIN_EMPTY'
           ]
         }],
         ['<(core_local)!=-1', {

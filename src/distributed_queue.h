@@ -92,6 +92,9 @@ inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
         return result;
       }
     }
+#ifdef DQ_NON_LIN_EMPTY
+    return NULL;
+#endif  // DQ_NON_LIN_EMPTY
     for (size_t _cnt = 0; _cnt < p_; _cnt++) {
       i = (_cnt + start) % p_;
       if (state.backend_states[i] != backends_[i]->GetState()) {
