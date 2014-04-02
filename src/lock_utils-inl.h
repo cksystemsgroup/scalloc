@@ -7,7 +7,6 @@
 
 #include <pthread.h>
 
-
 #define LockScopePthread(lock)                                                 \
   PthreadMutexHolder holder(&lock);                                            \
   __asm__ __volatile__("" : : : "memory");
@@ -31,3 +30,4 @@ class PthreadMutexHolder {
 };
 
 #endif  // SCALLOC_LOCK_UTILS_INL_H_
+
