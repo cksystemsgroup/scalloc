@@ -29,6 +29,7 @@ class BlockPool {
 
  private:
   static BlockPool block_pool_ cache_aligned;
+
   DistributedQueue dqs_[kNumClasses] cache_aligned;
 
   DISALLOW_ALLOCATION();
@@ -39,7 +40,7 @@ class BlockPool {
 inline void BlockPool::Free(void* p,
                             const size_t sc,
                             const size_t tid) {
-  dqs_[sc].EnqueueAt(p, tid % utils::Cpus());
+  dqs_[sc].EnqueueAt(p, tid % utils::Parallelism());
 }
 
 }  // namespace scalloc

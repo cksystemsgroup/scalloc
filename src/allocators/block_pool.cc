@@ -23,8 +23,7 @@ void* BlockPool::Allocate(const size_t sc,
                           const size_t tid,
                           SpanHeader** block) {
   *block = NULL;
-  void* p = dqs_[sc].DequeueStartAt(tid % utils::Cpus());
-
+  void* p = dqs_[sc].DequeueStartAt(tid % utils::Parallelism());
   if (p != NULL) {
     // We found an object, let's try to steal the whole block.
     SpanHeader* hdr = SpanHeader::GetFromObject(p);

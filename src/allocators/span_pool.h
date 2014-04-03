@@ -54,7 +54,7 @@ inline void SpanPool::Put(SpanHeader* p, size_t sc, uint32_t tid) {
   }
 #endif  // EAGER_MADVISE
 
-  size_class_pool_[sc].EnqueueAt(p, tid % utils::Cpus());
+  size_class_pool_[sc].EnqueueAt(p, tid % utils::Parallelism());
 
 #ifdef PROFILER_ON
   Profiler::GetProfiler().DecreaseRealSpanFragmentation(
@@ -77,7 +77,7 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   int index;
   size_t i;
   *reusable = false;
-  const int qindex = tid % utils::Cpus();
+  const int qindex = tid % utils::Parallelism();
 
   for (i = 0; i < kNumClasses; i++) {
     index = sc - i;
