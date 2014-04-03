@@ -13,10 +13,6 @@
 
 namespace scalloc {
 
-#ifdef HEAP_PROFILE
-class HeapProfiler;
-#endif  // HEAP_PROFILE
-
 // A threadlocal cache that may hold any allocator.  We use __thread as fast
 // path, but still implement a pthread_{get|set}specific version, since we need
 // a finalizer for threads that terminate and support platforms which do not
@@ -25,17 +21,15 @@ class ThreadCache {
  public:
   static void Init();
   static ThreadCache& GetCache();
+  static void DestroyRemainingCaches();
 
-#ifdef HEAP_PROFILE
-  inline HeapProfiler* Profiler() { return profiler_; }
-#endif  // HEAP_PROFILE
   inline ScallocCore<LockMode::kLocal>* Allocator() { return alloc_; }
 
  private:
+  static void DestroyThreadCache(void* p);
   static ThreadCache* RawGetCache();
   static ThreadCache* NewIfNecessary();
   static ThreadCache* New(pthread_t owner);
-  static void DestroyThreadCache(void* p);
 
 #ifdef HAVE_TLS
   // Fast path thread-local access point.
@@ -51,9 +45,6 @@ class ThreadCache {
 
   // Actual thread-local data.
   ScallocCore<LockMode::kLocal>* alloc_;
-#ifdef HEAP_PROFILE
-  HeapProfiler* profiler_;
-#endif  // HEAP_PROFILE
 
   // House-keeping data.
   bool in_setspecific_;

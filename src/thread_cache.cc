@@ -7,6 +7,7 @@
 #include <new>
 
 #include "spinlock-inl.h"
+#include "scalloc_assert.h"
 #include "typed_allocator.h"
 
 namespace {
@@ -41,7 +42,9 @@ void ThreadCache::Init() {
     // previously associated value as its sole argument. The order of destructor
     // calls is unspecified if more than one destructor exists for a thread when
     // it exits.
-    pthread_key_create(&cache_key_, DestroyThreadCache);
+    if (pthread_key_create(&cache_key_, ThreadCache::DestroyThreadCache) != 0) {
+      LOG(kFatal, "pthread_key_create failed");
+    }
     module_init_  = true;
   }
 }
@@ -101,11 +104,25 @@ ThreadCache* ThreadCache::NewIfNecessary() {
 }
 
 
+void ThreadCache::DestroyRemainingCaches() {
+  ThreadCache* prev = NULL;
+  for (ThreadCache* c = thread_caches_; c != NULL; c = c->next_) {
+    if (prev != NULL) {
+      DestroyThreadCache((void*)prev);
+    }
+    prev = c;
+  }
+  if (prev != NULL) {
+    DestroyThreadCache((void*)prev);
+  }
+}
+
+
 void ThreadCache::DestroyThreadCache(void* p) {
   if (p == NULL) {
     return;
   }
-  LOG(kTrace, "[ThreadCache] destroy; p :%p", p);
+  LOG_CAT("threadcache", kTrace, "destroy p: %p", p);
 #ifdef HAVE_TLS
   tl_cache_ = NULL;
 #endif  // HAVE_TLS
@@ -120,7 +137,7 @@ void ThreadCache::DestroyThreadCache(void* p) {
     for (ThreadCache* c = thread_caches_; c != NULL; c = c->next_) {
       if (c == cache) {
         if (prev == NULL) {
-          thread_caches_ = NULL;
+          thread_caches_ = c->next_;
         } else {
           prev->next_ = c->next_;
         }
