@@ -3,7 +3,7 @@
     'common.gypi',
   ],
   'variables': {
-    'heap_profile%': 0,
+    'profile%': 0,
     'log_level%': "kWarning",
     'span_reuse_threshold%': 80,
     'local_reuse_threshold%': 80,
@@ -89,9 +89,9 @@
             'MADVISE_SEPARATE_THREAD'
           ]
         }],
-        ['<(heap_profile)!=0', {
+        ['<(profile)!=0', {
           'defines': [
-            'HEAP_PROFILE'
+            'PROFILER'
           ]
         }],
       ],
@@ -123,7 +123,6 @@
         'src/override_osx.h',
         'src/override_gcc_weak.h',
         'src/platform.h',
-        'src/profiler.cc',
         'src/profiler.h',
         'src/random.h',
         'src/scalloc.cc',

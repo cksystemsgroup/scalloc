@@ -16,18 +16,12 @@
 #include "collector.h"
 #include "common.h"
 #include "headers.h"
+#include "fast_lock.h"
 #include "list-inl.h"
 #include "lock_utils-inl.h"
+#include "profiler.h"
 #include "span_pool.h"
 #include "size_classes.h"
-
-#ifdef PROFILER_ON
-#include "profiler.h"
-#endif  // PROFILER_ON
-
-#ifdef __linux__
-#include "fast_lock.h"
-#endif  // __linux__
 
 namespace scalloc {
 
@@ -83,6 +77,8 @@ class ScallocCore {
 
   TypedAllocator<ListNode> node_allocator;
 
+  PROFILER_DECL;
+
   DISALLOW_COPY_AND_ASSIGN(ScallocCore);
 };
 
@@ -115,6 +111,10 @@ inline ScallocCore<MODE>::ScallocCore(const uint64_t id) : id_(id) {
     pthread_mutex_init(&size_class_lock_[i], NULL);
 #endif  // __linux__
   }
+
+#ifdef PROFILER
+  profiler_.Init(&GlobalProfiler);
+#endif  // PROFILER
 }
 
 
@@ -236,9 +236,6 @@ inline void* ScallocCore<MODE>::AllocateInSizeClass(const size_t sc) {
   if ((result = hdr->flist.Pop()) != NULL) {
     LOG(kTrace, "[ScallocCore] returning object from active span."
                 " utilization: %lu", hdr->Utilization());
-#ifdef PROFILER_ON
-    Profiler::GetProfiler().LogAllocation(size);
-#endif  // PROFILER_ON
     return result;
   }
 
@@ -290,9 +287,6 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
 
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used span.
-#ifdef PROFILER_ON
-      Profiler::GetProfiler().LogDeallocation(sc);
-#endif  // PROFILER_ON
       hdr->flist.Push(p);
       LOG(kTrace, "[ScallocCore] free in active local block at %p, "
                   "block: %p, sc: %lu, utilization: %lu",
@@ -302,6 +296,7 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
         if (UNLIKELY(hdr->flist.Full())) {
           RemoveCoolSpan(sc, hdr);
 #ifdef MADVISE_SAME_THREAD
+          PROFILER_SPANPOOL_PUT(sc);
           SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
 #else
           Collector::Put(hdr);
@@ -317,9 +312,6 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
     // Local free in already globally available span.
     if (__sync_bool_compare_and_swap(
           &hdr->aowner.raw, me_inactive_, me_active_)) {
-#ifdef PROFILER_ON
-      Profiler::GetProfiler().LogDeallocation(sc, false);
-#endif  // PROFILER_ON
       LOG(kTrace, "[ScallocCore] free in retired local block at %p, "
                   "sc: %lu", p, sc);
       hdr->flist.Push(p);
@@ -327,9 +319,6 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
       if (cur_sc_hdr->Utilization() > kLocalReuseThreshold) {
         RemoveSlowSpan(sc, hdr);
         SetActiveSlab(sc, hdr);
-#ifdef PROFILER_ON
-        Profiler::GetProfiler().LogSpanReuse();
-#endif  // PROFILER_ON
         return true;
       }
 
@@ -337,6 +326,7 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
         LOG(kTrace, "{%lu}  returning span: %p", sc, hdr);
         RemoveSlowSpan(sc, hdr);
 #ifdef MADVISE_SAME_THREAD
+        PROFILER_SPANPOOL_PUT(sc);
         SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
 #else
         Collector::Put(hdr);
@@ -385,21 +375,12 @@ void* ScallocCore<MODE>::AllocateNoSlab(const size_t sc) {
   }
 
   // if (hot_span_[sc] != NULL) {
-#ifdef PROFILER_ON
-    Profiler::GetProfiler().LogAllocation(size);
-#endif  // PROFILER_ON
     // Only try to steal we had a span at least once.
     SpanHeader* hdr;
     void* p = BlockPool::Instance().Allocate(sc, id_, &hdr);
     if (p != NULL) {
-#ifdef PROFILER_ON
-      Profiler::GetProfiler().LogBlockStealing();
-#endif  // PROFILER_ON
       if (hdr != NULL) {
         SetActiveSlab(sc, hdr);
-#ifdef PROFILER_ON
-        Profiler::GetProfiler().LogSpanReuse(true);
-#endif  // PROFILER_ON
       } else {
         if ((SpanHeader::GetFromObject(p)->aowner.owner % utils::Parallelism()) !=
                 (id_ % utils::Parallelism())) {
@@ -417,9 +398,6 @@ void* ScallocCore<MODE>::AllocateNoSlab(const size_t sc) {
 
 template<LockMode MODE>
 void ScallocCore<MODE>::Refill(const size_t sc) {
-#ifdef PROFILER_ON
-  Profiler::GetProfiler().LogSizeclassRefill();
-#endif  // PROFILER_ON
   LOG(kTrace, "[ScallocCore] refilling size class: %lu, object size: %lu",
       sc, ClassToSize[sc]);
 
@@ -456,6 +434,7 @@ void ScallocCore<MODE>::Refill(const size_t sc) {
 #endif  // REUSE_SLOW_SPANS
 
   // Get a span from SP.
+  PROFILER_SPANPOOL_GET(sc);
   bool reusable = false;
   span = SpanPool::Instance().Get(sc, id_, &reusable);
   ScallocAssert(span != 0);
@@ -467,6 +446,7 @@ void ScallocCore<MODE>::Refill(const size_t sc) {
 
 template<LockMode MODE>
 void ScallocCore<MODE>::Destroy(ScallocCore* thiz) {
+  LOG_CAT("scalloc-core", kTrace, "destroying allocator");
   // Destroying basically means giving up hot and cool spans.  Remotely freed
   // blocks keep the span in the system, i.e., it is not released from the
   // allocator. This is similar to keeping a buffer of objects. Spans will
@@ -479,6 +459,9 @@ void ScallocCore<MODE>::Destroy(ScallocCore* thiz) {
       cur = thiz->hot_span_[i];
       if (cur->flist.Full()) {
 #ifdef MADVISE_SAME_THREAD
+#ifdef PROFILER
+        thiz->profiler_.SpanPoolPut();
+#endif  // PROFILER
         SpanPool::Instance().Put(cur, cur->size_class, cur->aowner.owner);
 #else
         Collector::Put(cur);
@@ -493,7 +476,7 @@ void ScallocCore<MODE>::Destroy(ScallocCore* thiz) {
     cur = reinterpret_cast<SpanHeader*>(thiz->cool_spans_[i]);
     SpanHeader* tmp;
     while (cur != NULL) {
-      LOG(kTrace, "[ScallocCore]: making span global %p", cur);
+      LOG_CAT("scalloc-core", kTrace, "making span global %p", cur);
       tmp = cur;
       cur = reinterpret_cast<SpanHeader*>(cur->next);
       MemoryBarrier();
@@ -516,6 +499,7 @@ void ScallocCore<MODE>::Destroy(ScallocCore* thiz) {
 #endif  // REUSE_SLOW_SPANS
   }
 
+  thiz->profiler_.Report();
   ScallocCore::allocator->Delete(thiz);
 }
 

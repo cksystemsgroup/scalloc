@@ -5,6 +5,7 @@
 #include "scalloc.h"
 
 #include <errno.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "allocators/block_pool.h"
@@ -18,16 +19,13 @@
 #include "distributed_queue.h"
 #include "list-inl.h"
 #include "override.h"
+#include "profiler.h"
 #include "random.h"
 #include "scalloc_arenas.h"
 #include "scalloc_guard.h"
 #include "size_classes_raw.h"
 #include "size_classes.h"
 #include "utils.h"
-
-#ifdef PROFILER_ON
-#include "profiler.h"
-#endif  // PROFILER_ON
 
 #ifdef POLICY_CORE_LOCAL
 #include "buffer/core.h"
@@ -42,6 +40,9 @@ namespace scalloc {
 cache_aligned Arena InternalArena;
 cache_aligned Arena SmallArena;
 
+#ifdef PROFILER
+cache_aligned Profiler GlobalProfiler;
+#endif  // PROFILER
 
 // Allocators for internal data structures.
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
@@ -57,6 +58,18 @@ cache_aligned TypedAllocator<ScallocCore<LockMode::kSizeClassLocked>>
 
 }  // namespace scalloc
 
+void exit_func() {
+#ifdef POLICY_THREAD_LOCAL
+  scalloc::ThreadCache::DestroyRemainingCaches();
+#endif  // POLICY_THREAD_LOCAL
+#ifdef POLICY_CORE_LOCAL
+  scalloc::CoreBuffer::DestroyBuffers();
+#endif  // POLICY_CORE_LOCAL
+#ifdef PROFILER
+  scalloc::GlobalProfiler.Print();
+#endif  // PROFILER
+}
+
 static int scallocguard_refcount = 0;
 ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
@@ -65,6 +78,10 @@ ScallocGuard::ScallocGuard() {
     LargeObjectHeader::CheckFieldAlignments();
     scalloc::CheckSizeClasses();
 #endif  // DEBUG
+
+#ifdef PROFILER
+    scalloc::GlobalProfiler.Init(NULL);
+#endif  // PROFILER
 
     ReplaceSystemAlloc();
 
@@ -100,10 +117,7 @@ ScallocGuard::ScallocGuard() {
 
     free(malloc(1));
 
-#ifdef PROFILER_ON
-    scalloc::GlobalProfiler::Instance().Init();
-    scalloc::Profiler::Enable();
-#endif  // PROFILER_ON
+    atexit(exit_func);
   }
 }
 
