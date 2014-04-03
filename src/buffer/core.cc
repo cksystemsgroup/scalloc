@@ -29,4 +29,13 @@ ScallocCore<LockMode::kSizeClassLocked>* CoreBuffer::NewIfNecessary(uint64_t cor
   return allocators_[core_id];
 }
 
+
+void CoreBuffer::DestroyBuffers() {
+  for (uint64_t i = 0; i < kMaxCores; i++) {
+    if (allocators_[i] != NULL) {
+      ScallocCore<LockMode::kSizeClassLocked>::Destroy(allocators_[i]); 
+    }
+  }
+}
+
 }

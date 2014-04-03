@@ -17,6 +17,7 @@ class CoreBuffer {
 
   static void Init();
   static ScallocCore<LockMode::kSizeClassLocked>& Allocator();
+  static void DestroyBuffers();
 
  private:
   static ScallocCore<LockMode::kSizeClassLocked>* NewIfNecessary(uint64_t core_id);
