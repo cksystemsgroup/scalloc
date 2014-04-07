@@ -13,7 +13,6 @@
 #include "allocators/arena.h"
 #include "allocators/block_pool.h"
 #include "assert.h"
-#include "buffer/core.h"
 #include "collector.h"
 #include "common.h"
 #include "headers.h"
@@ -23,6 +22,13 @@
 #include "profiler.h"
 #include "span_pool.h"
 #include "size_classes.h"
+
+#ifdef POLICY_CORE_LOCAL
+#include "buffer/core.h"
+#else
+#include "thread_cache.h"
+#endif  // POLICY_CORE_LOCAL
+
 
 namespace scalloc {
 
@@ -71,8 +77,6 @@ class ScallocCore {
   ListNode* slow_spans_[kNumClasses];
 
   TypedAllocator<ListNode> node_allocator;
-
-  PROFILER_DECL;
 
   DISALLOW_COPY_AND_ASSIGN(ScallocCore);
 };
@@ -455,9 +459,7 @@ void ScallocCore<MODE>::Destroy(ScallocCore* thiz) {
       cur = thiz->hot_span_[i];
       if (cur->flist.Full()) {
 #ifdef MADVISE_SAME_THREAD
-#ifdef PROFILER
-        thiz->profiler_.SpanPoolPut();
-#endif  // PROFILER
+        // TODO: profiling
         SpanPool::Instance().Put(cur, cur->size_class, cur->aowner.owner);
 #else
         Collector::Put(cur);
@@ -495,7 +497,6 @@ void ScallocCore<MODE>::Destroy(ScallocCore* thiz) {
 #endif  // REUSE_SLOW_SPANS
   }
 
-  PROFILER_.Report();
   ScallocCore::allocator->Delete(thiz);
 }
 

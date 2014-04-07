@@ -78,6 +78,10 @@
         ['<(core_local)!=-1', {
           'defines': [
             'POLICY_CORE_LOCAL'
+          ],
+          'sources': [
+            'src/buffer/core.cc',
+            'src/buffer/core.h',
           ]
         }],
         ['"<(madvise_strategy)"=="same-thread"', {
@@ -106,8 +110,6 @@
         'src/allocators/span_pool.h',
         'src/assert.h',
         'src/atomic.h',
-        'src/buffer/core.cc',
-        'src/buffer/core.h',
         'src/collector.cc',
         'src/collector.h',
         'src/common.h',

@@ -51,6 +51,9 @@ void CoreBuffer::DestroyBuffers() {
   for (uint64_t i = 0; i < kMaxCores; i++) {
     if (buffers_[i] != NULL) {
       ScallocCore<LockMode::kSizeClassLocked>::Destroy(buffers_[i]->Allocator()); 
+#ifdef PROFILER
+      buffers_[i]->profiler_.Report();
+#endif  // PROFILER
     }
   }
 }

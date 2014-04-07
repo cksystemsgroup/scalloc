@@ -13,7 +13,6 @@
 #include "allocators/scalloc_core-inl.h"
 #include "allocators/span_pool.h"
 #include "assert.h"
-#include "buffer/core.h"
 #include "collector.h"
 #include "common.h"
 #include "distributed_queue.h"

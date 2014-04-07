@@ -7,11 +7,14 @@
 
 #include <pthread.h>
 
-#include "allocators/scalloc_core-inl.h"
 #include "common.h"
 #include "headers.h"
+#include "profiler.h"
 
 namespace scalloc {
+
+template<LockMode MODE>
+class ScallocCore;
 
 // A threadlocal cache that may hold any allocator.  We use __thread as fast
 // path, but still implement a pthread_{get|set}specific version, since we need
@@ -24,6 +27,8 @@ class ThreadCache {
   static void DestroyRemainingCaches();
 
   inline ScallocCore<LockMode::kLocal>* Allocator() { return alloc_; }
+
+  PROFILER_GETTER
 
  private:
   static void DestroyThreadCache(void* p);
@@ -45,6 +50,7 @@ class ThreadCache {
 
   // Actual thread-local data.
   ScallocCore<LockMode::kLocal>* alloc_;
+  PROFILER_DECL;
 
   // House-keeping data.
   bool in_setspecific_;

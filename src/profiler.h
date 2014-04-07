@@ -19,14 +19,13 @@
 
 #include <stdio.h>
 
+#include "common.h"
 #include "log.h"
 
 #ifdef POLICY_CORE_LOCAL
-#include "buffer/core.h"
 #define PROFILER_ scalloc::CoreBuffer::GetBuffer().Profiler()
 #endif  // POLICY_CORE_LOCAL
 #ifdef POLICY_THREAD_LOCAL
-namespace scalloc { class ThreadCache; }
 #define PROFILER_ scalloc::ThreadCache::GetCache().Profiler()
 #endif  // POLICY_THREAD_LOCAL
 

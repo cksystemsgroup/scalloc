@@ -6,6 +6,7 @@
 
 #include <new>
 
+#include "allocators/scalloc_core-inl.h"
 #include "spinlock-inl.h"
 #include "scalloc_assert.h"
 #include "typed_allocator.h"
@@ -68,6 +69,9 @@ ThreadCache::ThreadCache(ScallocCore<LockMode::kLocal>* allocator,
   owner_ = owner;
   next_ = next;
   in_setspecific_ = false;
+#ifdef PROFILER
+  profiler_.Init(&GlobalProfiler);
+#endif  // PROFILER
 }
 
 
@@ -129,6 +133,9 @@ void ThreadCache::DestroyThreadCache(void* p) {
 
   ThreadCache* cache = reinterpret_cast<ThreadCache*>(p);
   ScallocCore<LockMode::kLocal>::Destroy(cache->Allocator());
+#ifdef PROFILER
+  cache->profiler_.Report();
+#endif  // PROFILER
 
   {
     LockScope(g_threadcache_lock);
