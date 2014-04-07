@@ -9,8 +9,6 @@
 
 #include "common.h"
 #include "profiler.h"
-#include "spinlock-inl.h"
-#include "typed_allocator.h"
 
 namespace scalloc {
 
@@ -63,7 +61,6 @@ inline CoreBuffer& CoreBuffer::GetBuffer() {
     return *buffer;
   }
   buffer = NewIfNecessary(core_id);
-  ScallocAssert(buffer != NULL);
   return *buffer;
 }
 

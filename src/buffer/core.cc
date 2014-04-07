@@ -1,6 +1,8 @@
 #include "buffer/core.h"
 
 #include "allocators/scalloc_core-inl.h"
+#include "spinlock-inl.h"
+#include "typed_allocator.h"
 #include "utils.h"
 
 namespace {
