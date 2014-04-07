@@ -13,6 +13,7 @@
 #include "allocators/arena.h"
 #include "allocators/block_pool.h"
 #include "assert.h"
+#include "buffer/core.h"
 #include "collector.h"
 #include "common.h"
 #include "headers.h"
@@ -24,12 +25,6 @@
 #include "size_classes.h"
 
 namespace scalloc {
-
-enum LockMode {
-  kLocal = 0,
-  kSizeClassLocked
-};
-
 
 template<LockMode MODE = kLocal>
 class ScallocCore {
@@ -112,9 +107,6 @@ inline ScallocCore<MODE>::ScallocCore(const uint64_t id) : id_(id) {
 #endif  // __linux__
   }
 
-#ifdef PROFILER
-  profiler_.Init(&GlobalProfiler);
-#endif  // PROFILER
 }
 
 
@@ -348,6 +340,7 @@ void ScallocCore<MODE>::RemoteFreeInSizeClass(
     const size_t sc, void* p, SpanHeader* hdr) {
   LOG(kTrace, "[ScallocCore] remote free for %p, owner: %lu, me: %lu",
       p, hdr->aowner.owner, id_);
+  PROFILER_BLOCKPOOL_PUT(sc);
   BlockPool::Instance().Free(p, sc, hdr->remote_flist); 
 }
 
@@ -377,6 +370,7 @@ void* ScallocCore<MODE>::AllocateNoSlab(const size_t sc) {
   // if (hot_span_[sc] != NULL) {
     // Only try to steal we had a span at least once.
     SpanHeader* hdr;
+    PROFILER_BLOCKPOOL_GET(sc);
     void* p = BlockPool::Instance().Allocate(sc, id_, &hdr);
     if (p != NULL) {
       if (hdr != NULL) {
@@ -388,6 +382,8 @@ void* ScallocCore<MODE>::AllocateNoSlab(const size_t sc) {
         }
       }
       return p;
+    } else {
+      PROFILER_BLOCKPOOL_EMPTY_GET(sc);
     }
   // }
 
@@ -499,7 +495,7 @@ void ScallocCore<MODE>::Destroy(ScallocCore* thiz) {
 #endif  // REUSE_SLOW_SPANS
   }
 
-  thiz->profiler_.Report();
+  PROFILER_.Report();
   ScallocCore::allocator->Delete(thiz);
 }
 

@@ -8,23 +8,42 @@
 #ifndef PROFILER
 
 #define PROFILER_DECL 
+#define PROFILER_GETTER
 #define PROFILER_SPANPOOL_PUT(sc)
 #define PROFILER_SPANPOOL_GET(sc)
+#define PROFILER_BLOCKPOOL_PUT(sc)
+#define PROFILER_BLOCKPOOL_GET(sc)
+#define PROFILER_BLOCKPOOL_EMPTY_GET(sc)
 
 #else  // PROFILER
 
+#include <stdio.h>
+
 #include "log.h"
 
-namespace scalloc {
-  class Profiler;
-  extern Profiler GlobalProfiler;
-}
+#ifdef POLICY_CORE_LOCAL
+#include "buffer/core.h"
+#define PROFILER_ scalloc::CoreBuffer::GetBuffer().Profiler()
+#endif  // POLICY_CORE_LOCAL
+#ifdef POLICY_THREAD_LOCAL
+namespace scalloc { class ThreadCache; }
+#define PROFILER_ scalloc::ThreadCache::GetCache().Profiler()
+#endif  // POLICY_THREAD_LOCAL
 
 #define PROFILER_DECL scalloc::Profiler profiler_
-#define PROFILER_SPANPOOL_PUT(sc) profiler_.SpanPoolPut()
-#define PROFILER_SPANPOOL_GET(sc) profiler_.SpanPoolGet()
+#define PROFILER_GETTER \
+  inline scalloc::Profiler& Profiler() { return profiler_; }
+
+#define PROFILER_SPANPOOL_PUT(sc) PROFILER_.SpanPoolPut()
+#define PROFILER_SPANPOOL_GET(sc) PROFILER_.SpanPoolGet()
+#define PROFILER_BLOCKPOOL_PUT(sc) PROFILER_.BlockPoolPut()
+#define PROFILER_BLOCKPOOL_GET(sc) PROFILER_.BlockPoolGet()
+#define PROFILER_BLOCKPOOL_EMPTY_GET(sc) PROFILER_.BlockPoolEmptyGet()
 
 namespace scalloc {
+
+class Profiler;
+extern Profiler GlobalProfiler;
 
 class Profiler {
  public:
@@ -34,6 +53,9 @@ class Profiler {
   inline void Report();
   inline void SpanPoolPut();
   inline void SpanPoolGet();
+  inline void BlockPoolPut();
+  inline void BlockPoolGet();
+  inline void BlockPoolEmptyGet();
   inline void Print();
 
  private:
@@ -44,6 +66,9 @@ class Profiler {
   uint64_t updates_;
   uint64_t span_pool_put_;
   uint64_t span_pool_get_;
+  uint64_t block_pool_put_;
+  uint64_t block_pool_get_;
+  uint64_t block_pool_empty_get_;
 };
 
 
@@ -60,6 +85,9 @@ void Profiler::Init(scalloc::Profiler* parent) {
 void Profiler::Reset() {
   span_pool_put_ = 0;
   span_pool_get_ = 0;
+  block_pool_put_ = 0;
+  block_pool_get_ = 0;
+  block_pool_empty_get_ = 0;
   updates_ = 0;
 }
 
@@ -69,6 +97,9 @@ void Profiler::Update(Profiler* other) {
   updates_++;
   span_pool_put_ += other->span_pool_put_;
   span_pool_get_ += other->span_pool_get_;
+  block_pool_put_ += other->block_pool_put_;
+  block_pool_get_ += other->block_pool_get_;
+  block_pool_empty_get_ += other->block_pool_empty_get_;
 }
 
 
@@ -90,16 +121,36 @@ void Profiler::SpanPoolGet() {
 }
 
 
+void Profiler::BlockPoolPut() {
+  block_pool_put_++;
+}
+
+
+void Profiler::BlockPoolGet() {
+  block_pool_get_++;
+}
+
+
+void Profiler::BlockPoolEmptyGet() {
+  block_pool_empty_get_++;
+}
+
 void Profiler::Print() {
   printf(
       "{\n"
       "  'updates': %lu,\n"
       "  'span_pool_put': %lu,\n"
       "  'span_pool_get': %lu\n"
+      "  'block_pool_put': %lu,\n"
+      "  'block_pool_get': %lu\n"
+      "  'block_pool_empty_get': %lu\n"
       "}\n",
       updates_,
       span_pool_put_,
-      span_pool_get_
+      span_pool_get_,
+      block_pool_put_,
+      block_pool_get_,
+      block_pool_empty_get_
       );
 }
 

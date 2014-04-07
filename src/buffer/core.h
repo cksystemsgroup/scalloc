@@ -5,45 +5,66 @@
 #ifndef SCALLOC_BUFFER_CORE_H_
 #define SCALLOC_BUFFER_CORE_H_
 
-#include "allocators/scalloc_core-inl.h"
+#include <pthread.h>
+
+#include "common.h"
+#include "profiler.h"
 #include "spinlock-inl.h"
 #include "typed_allocator.h"
 
 namespace scalloc {
+
+template<LockMode MODE>
+class ScallocCore;
 
 class CoreBuffer {
  public:
   static const uint64_t kMaxCores = 160;
 
   static void Init();
-  static ScallocCore<LockMode::kSizeClassLocked>& Allocator();
   static void DestroyBuffers();
+  static CoreBuffer& GetBuffer();
+
+  inline ScallocCore<LockMode::kSizeClassLocked>* Allocator() {
+    return allocator_;
+  }
+
+  PROFILER_GETTER
 
  private:
-  static ScallocCore<LockMode::kSizeClassLocked>* NewIfNecessary(uint64_t core_id);
+  static CoreBuffer* NewIfNecessary(uint64_t core_id);
+
+  explicit CoreBuffer(uint64_t core_id);
 
   static uint64_t num_cores_;
-  static uint64_t core_counter_;
-  static SpinLock new_allocator_lock_;
-  static ScallocCore<LockMode::kSizeClassLocked>* allocators_[kMaxCores];
+  static uint64_t thread_counter_;
+  static pthread_key_t core_key;
+  static CoreBuffer* buffers_[kMaxCores];
+
+  ScallocCore<LockMode::kSizeClassLocked>* allocator_;
+  PROFILER_DECL;
 };
 
 
-inline ScallocCore<LockMode::kSizeClassLocked>& CoreBuffer::Allocator() {
+inline CoreBuffer& CoreBuffer::GetBuffer() {
   uint64_t core_id;
 #ifdef __APPLE__
   core_id = hwrand() % num_cores_;
 #endif  // __APPLE__
 #ifdef __linux__
-  core_id = static_cast<uint64_t>(sched_getcpu());
+  core_id = reinterpret_cast<uint64_t>(pthread_getspecific(core_key)) - 1;
+  if (core_id == static_cast<uint64_t>(-1)) {
+    core_id = __sync_fetch_and_add(&thread_counter_, 1) % num_cores_;
+    pthread_setspecific(core_key, (void*)(core_id+1));
+  } 
 #endif  // __linux__
-  ScallocCore<LockMode::kSizeClassLocked>* alloc = allocators_[core_id];
-  if (LIKELY(alloc != NULL)) {
-    return *alloc;
+  CoreBuffer* buffer = buffers_[core_id];
+  if (LIKELY(buffer != NULL)) {
+    return *buffer;
   }
-  alloc = NewIfNecessary(core_id);
-  ScallocAssert(alloc != NULL);
-  return *alloc;
+  buffer = NewIfNecessary(core_id);
+  ScallocAssert(buffer != NULL);
+  return *buffer;
 }
 
 }  // namespace scalloc

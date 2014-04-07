@@ -141,7 +141,7 @@ void* malloc(const size_t size) {
 #ifdef POLICY_CORE_LOCAL
   if (LIKELY(size <= kMaxMediumSize &&
       ScallocCore<LockMode::kSizeClassLocked>::Enabled())) {
-    p = CoreBuffer::Allocator().Allocate(size);
+    p = CoreBuffer::GetBuffer().Allocator()->Allocate(size);
 #endif  // POLICY_CORE_LOCAL
   } else {
     p = LargeAllocator::Alloc(size);
@@ -164,7 +164,7 @@ void free(void* p) {
     ThreadCache::GetCache().Allocator()->Free(p, SpanHeader::GetFromObject(p));
 #endif  // POLICY_THREAD_LOCAL
 #ifdef POLICY_CORE_LOCAL
-    CoreBuffer::Allocator().Free(p, SpanHeader::GetFromObject(p));
+    CoreBuffer::GetBuffer().Allocator()->Free(p, SpanHeader::GetFromObject(p));
 #endif  // POLICY_CORE_LOCAL
   } else {
     LargeAllocator::Free(LargeObjectHeader::GetFromObject(p));

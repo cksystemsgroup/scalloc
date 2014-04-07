@@ -64,4 +64,16 @@ const size_t kEagerMadviseThreshold = EAGER_MADVISE_THRESHOLD;
 #define MAX_PARALLELISM 80
 #endif  // MAX_PARALLELISM
 
+
+namespace scalloc {
+
+enum LockMode {
+  kLocal = 0,
+  kSizeClassLocked
+};
+
+}  // namespace scalloc
+
+
+
 #endif  // SCALLOC_COMMON_H_
