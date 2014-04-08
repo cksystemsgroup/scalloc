@@ -435,10 +435,8 @@ void ScallocCore<MODE>::Refill(const size_t sc) {
 
   // Get a span from SP.
   PROFILER_SPANPOOL_GET(sc);
-  bool reusable = false;
-  span = SpanPool::Instance().Get(sc, id_, &reusable);
+  span = SpanPool::Instance().Get(sc, id_);
   ScallocAssert(span != 0);
-  span->Init(sc, id_, reusable);
   SetActiveSlab(sc, span);
   return;
 }

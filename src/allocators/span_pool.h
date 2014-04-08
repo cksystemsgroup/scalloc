@@ -26,7 +26,7 @@ class SpanPool {
   static inline SpanPool& Instance() { return span_pool_; }
 
   inline SpanPool() {}
-  SpanHeader* Get(size_t sc, uint32_t tid, bool* reusable);
+  SpanHeader* Get(size_t sc, uint32_t tid);
   void Put(SpanHeader* p, size_t sc, uint32_t tid);
 
  private:
@@ -64,7 +64,7 @@ inline void SpanPool::Put(SpanHeader* p, size_t sc, uint32_t tid) {
 }
 
 
-inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
+inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid) {
   LOG(kTrace, "[SpanPool] get request");
 
 #ifdef PROFILER_ON
@@ -76,7 +76,7 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   void* result;
   int index;
   size_t i;
-  *reusable = false;
+  bool reusable = false;
   const int qindex = tid % utils::Parallelism();
 
   for (i = 0; i < kNumClasses; i++) {
@@ -91,7 +91,9 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   }
 
   if (UNLIKELY(result == NULL)) {
-    return reinterpret_cast<SpanHeader*>(RefillOne());
+    SpanHeader* hdr = reinterpret_cast<SpanHeader*>(RefillOne());
+    hdr->Init(sc, tid, false);
+    return hdr;
   }
 
   i = static_cast<size_t>(index);
@@ -125,12 +127,14 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid, bool *reusable) {
   if (i == sc) {
 #endif  // EAGER_MADVISE
 #ifdef REUSE_FREE_LIST
-    *reusable = true;
+    reusable = true;
 #endif  // REUSE_FREE_LIST
   }
 
   LOG(kTrace, "[SpanPool] get: %p", result);
-  return reinterpret_cast<SpanHeader*>(result);
+  SpanHeader* hdr = reinterpret_cast<SpanHeader*>(result);
+  hdr->Init(sc, tid, reusable);
+  return hdr;
 }
 
 }  // namespace scalloc
