@@ -7,16 +7,12 @@
 
 #include <sys/mman.h>  // madvise
 
-#include "assert.h"
 #include "common.h"
 #include "distributed_queue.h"
 #include "headers.h"
+#include "scalloc_assert.h"
 #include "size_classes.h"
 #include "utils.h"
-
-#ifdef PROFILER_ON
-#include "profiler.h"
-#endif  // PROFILER_ON
 
 namespace scalloc {
 
@@ -42,12 +38,13 @@ class SpanPool {
 
 
 inline void SpanPool::Put(SpanHeader* p, size_t sc, uint32_t tid) {
-  LOG(kTrace, "[SpanPool] put: %p", p);
+  LOG_CAT("span-pool", kTrace, "put: %p", p);
 
 #ifdef EAGER_MADVISE
   if (ClassToSpanSize[sc] > kEagerMadviseThreshold) {
-    LOG(kTrace, "[SpanPool] madvise (eager): %p, class :%lu, spansize: %lu",
-        p, sc, ClassToSpanSize[sc]);
+    LOG_CAT("span-pool", kTrace,
+            "madvise (eager): %p, class :%lu, spansize: %lu",
+            p, sc, ClassToSpanSize[sc]);
     madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + kPageSize),
             kVirtualSpanSize - kPageSize,
             MADV_DONTNEED);
@@ -55,24 +52,11 @@ inline void SpanPool::Put(SpanHeader* p, size_t sc, uint32_t tid) {
 #endif  // EAGER_MADVISE
 
   size_class_pool_[sc].EnqueueAt(p, tid % utils::Parallelism());
-
-#ifdef PROFILER_ON
-  Profiler::GetProfiler().DecreaseRealSpanFragmentation(
-      sc, SizeMap::Instance().ClassToSpanSize(sc));
-  GlobalProfiler::Instance().LogSpanPoolPut(sc);
-#endif  // PROFILER_ON
 }
 
 
 inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid) {
-  LOG(kTrace, "[SpanPool] get request");
-
-#ifdef PROFILER_ON
-  Profiler::GetProfiler().IncreaseRealSpanFragmentation(
-      sc, SizeMap::Instance().ClassToSpanSize(sc));
-  GlobalProfiler::Instance().LogSpanPoolGet(sc);
-#endif  // PROFILER_ON
-
+  LOG_CAT("span-pool", kTrace, "get request");
   void* result;
   int index;
   size_t i;
@@ -102,22 +86,20 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid) {
   if ((i > sc) &&
       (ClassToSpanSize[i] != ClassToSpanSize[sc]) &&
       (ClassToSpanSize[sc] <= kEagerMadviseThreshold)) {
-    LOG(kTrace, "[SpanPool] madvise (eager): %p, class :%lu, spansize: %lu",
-        reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
+    LOG_CAT("span-pool", kTrace,
+            "madvise (eager): %p, class :%lu, spansize: %lu",
+            reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
 #else
   if ((i > sc) &&
       (ClassToSpanSize[i] != ClassToSpanSize[sc])) {
-    LOG(kTrace, "[SpanPool] madvise: %p, class :%lu, spansize: %lu",
-        reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
+    LOG_CAT("span-pool", kTrace,
+            "madvise: %p, class :%lu, spansize: %lu",
+            reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
 #endif  // EAGER_MADVISE
     madvise(reinterpret_cast<void*>(
                 reinterpret_cast<uintptr_t>(result) + ClassToSpanSize[sc]),
             kVirtualSpanSize - ClassToSpanSize[sc],
             MADV_DONTNEED);
-
-#ifdef PROFILER_ON
-    GlobalProfiler::Instance().LogSpanShrink(sc);
-#endif  // PROFILER_ON
   }
 
 #ifdef EAGER_MADVISE
@@ -131,7 +113,7 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid) {
 #endif  // REUSE_FREE_LIST
   }
 
-  LOG(kTrace, "[SpanPool] get: %p", result);
+  LOG_CAT("span-pool", kTrace, "get: %p", result);
   SpanHeader* hdr = reinterpret_cast<SpanHeader*>(result);
   hdr->Init(sc, tid, reusable);
   return hdr;
