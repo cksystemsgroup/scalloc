@@ -6,6 +6,13 @@
 
 #include "distributed_queue.h"
 #include "headers.h"
+#include "profiler.h"
+
+#ifdef POLICY_CORE_LOCAL
+#include "buffer/core.h"
+#else
+#include "thread_cache.h"
+#endif  // POLICY_CORE_LOCAL
 
 namespace scalloc {
 
@@ -21,9 +28,10 @@ void BlockPool::Init() {
 
 void* BlockPool::Allocate(const size_t sc,
                           const size_t tid,
+                          const size_t start_at,
                           SpanHeader** block) {
   *block = NULL;
-  void* p = dqs_[sc].DequeueStartAt(tid % utils::Parallelism());
+  void* p = dqs_[sc].DequeueStartAt(start_at % utils::Parallelism());
   if (p != NULL) {
     // We found an object, let's try to steal the whole block.
     SpanHeader* hdr = SpanHeader::GetFromObject(p);
@@ -35,6 +43,7 @@ void* BlockPool::Allocate(const size_t sc,
                                      would_steal.raw,
                                      my.raw)) {
       // Got it!
+      PROFILER_STEAL();
       *block = hdr;
       LOG(kTrace, "[BlockPool] steal successful: %p", hdr);
     }

@@ -7,13 +7,14 @@
 
 #ifndef PROFILER
 
-#define PROFILER_DECL 
+#define PROFILER_DECL
 #define PROFILER_GETTER
 #define PROFILER_SPANPOOL_PUT(sc)
 #define PROFILER_SPANPOOL_GET(sc)
 #define PROFILER_BLOCKPOOL_PUT(sc)
 #define PROFILER_BLOCKPOOL_GET(sc)
 #define PROFILER_BLOCKPOOL_EMPTY_GET(sc)
+#define PROFILER_STEAL
 
 #else  // PROFILER
 
@@ -38,6 +39,7 @@
 #define PROFILER_BLOCKPOOL_PUT(sc) PROFILER_.BlockPoolPut()
 #define PROFILER_BLOCKPOOL_GET(sc) PROFILER_.BlockPoolGet()
 #define PROFILER_BLOCKPOOL_EMPTY_GET(sc) PROFILER_.BlockPoolEmptyGet()
+#define PROFILER_STEAL() PROFILER_.Steal()
 
 namespace scalloc {
 
@@ -55,6 +57,7 @@ class Profiler {
   inline void BlockPoolPut();
   inline void BlockPoolGet();
   inline void BlockPoolEmptyGet();
+  inline void Steal();
   inline void Print();
 
  private:
@@ -68,6 +71,7 @@ class Profiler {
   uint64_t block_pool_put_;
   uint64_t block_pool_get_;
   uint64_t block_pool_empty_get_;
+  uint64_t steal_;
 };
 
 
@@ -76,7 +80,7 @@ void Profiler::Init(scalloc::Profiler* parent) {
     LOG_CAT("profiler", kTrace, "setting parent profiler %p", parent);
     parent_ = parent;
   }
-  parent_ = parent; 
+  parent_ = parent;
   Reset();
 }
 
@@ -87,6 +91,7 @@ void Profiler::Reset() {
   block_pool_put_ = 0;
   block_pool_get_ = 0;
   block_pool_empty_get_ = 0;
+  steal_ = 0;
   updates_ = 0;
 }
 
@@ -99,6 +104,7 @@ void Profiler::Update(Profiler* other) {
   block_pool_put_ += other->block_pool_put_;
   block_pool_get_ += other->block_pool_get_;
   block_pool_empty_get_ += other->block_pool_empty_get_;
+  steal_ += other->steal_;
 }
 
 
@@ -134,6 +140,12 @@ void Profiler::BlockPoolEmptyGet() {
   block_pool_empty_get_++;
 }
 
+
+void Profiler::Steal() {
+  steal_++;
+}
+
+
 void Profiler::Print() {
   printf(
       "{\n"
@@ -143,14 +155,15 @@ void Profiler::Print() {
       "  'block_pool_put': %lu,\n"
       "  'block_pool_get': %lu\n"
       "  'block_pool_empty_get': %lu\n"
+      "  'steal': %lu\n"
       "}\n",
       updates_,
       span_pool_put_,
       span_pool_get_,
       block_pool_put_,
       block_pool_get_,
-      block_pool_empty_get_
-      );
+      block_pool_empty_get_,
+      steal_);
 }
 
 }  // namespace scalloc

@@ -110,7 +110,6 @@ inline ScallocCore<MODE>::ScallocCore(const uint64_t id) : id_(id) {
     pthread_mutex_init(&size_class_lock_[i], NULL);
 #endif  // __linux__
   }
-
 }
 
 
@@ -371,25 +370,26 @@ void* ScallocCore<MODE>::AllocateNoSlab(const size_t sc) {
     return NULL;
   }
 
-  // if (hot_span_[sc] != NULL) {
-    // Only try to steal we had a span at least once.
-    SpanHeader* hdr;
-    PROFILER_BLOCKPOOL_GET(sc);
-    void* p = BlockPool::Instance().Allocate(sc, id_, &hdr);
-    if (p != NULL) {
-      if (hdr != NULL) {
-        SetActiveSlab(sc, hdr);
-      } else {
-        if ((SpanHeader::GetFromObject(p)->aowner.owner % utils::Parallelism()) !=
-                (id_ % utils::Parallelism())) {
-          Refill(sc);
-        }
-      }
-      return p;
+  SpanHeader* hdr;
+  PROFILER_BLOCKPOOL_GET(sc);
+  size_t stack_id = id_;
+  if (hot_span_[sc] != NULL) {
+    stack_id = hot_span_[sc]->remote_flist;
+  }
+  void* p = BlockPool::Instance().Allocate(sc, id_, stack_id, &hdr);
+  if (p != NULL) {
+    if (hdr != NULL) {
+      SetActiveSlab(sc, hdr);
     } else {
-      PROFILER_BLOCKPOOL_EMPTY_GET(sc);
+      if ((SpanHeader::GetFromObject(p)->aowner.owner % utils::Parallelism()) !=
+              (id_ % utils::Parallelism())) {
+        Refill(sc);
+      }
     }
-  // }
+    return p;
+  } else {
+    PROFILER_BLOCKPOOL_EMPTY_GET(sc);
+  }
 
   Refill(sc);
   return AllocateInSizeClass(sc);

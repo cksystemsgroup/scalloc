@@ -25,7 +25,7 @@ class BlockPool {
 
   inline BlockPool() {}
   void Free(void* p, const size_t sc, const size_t tid);
-  void* Allocate(const size_t sc, const size_t tid, SpanHeader** block);
+  void* Allocate(const size_t sc, const size_t tid, const size_t start_at, SpanHeader** block);
 
  private:
   static BlockPool block_pool_ cache_aligned;
