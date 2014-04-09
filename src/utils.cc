@@ -5,6 +5,7 @@
 #include "utils.h"
 
 #include <errno.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "common.h"
@@ -70,6 +71,54 @@ size_t Parallelism() {
     }
   }
   return parallelism;
+}
+
+
+namespace {
+
+void SkipUntil(const int fd, char until, char* buf) {
+  char c;
+  while (read(fd, &c, 1) == 1) {
+    if (c == until) {
+      return;
+    }
+    if (buf != NULL) {
+      strncat(buf, &c, 1);
+    }
+  }
+}
+
+}  // namespace
+
+
+// Read a proc entry without using fopen/fread and friends since they may call
+// malloc themselves.
+int64_t ReadProcEntry(const int fd, const char* entry_name) {
+  const size_t entry_len = strlen(entry_name);
+  char line[256] = { 0 };
+  size_t char_cnt = 0;
+  char c;
+
+  while (read(fd, &c, 1) == 1) {
+    line[char_cnt] = c;
+    char_cnt++;
+    if (char_cnt == entry_len) {
+      memset(&line, 0, char_cnt);  // Reset line buffer.
+      if (strcmp(line, entry_name) == 0) {
+        // Found entry.
+        if (read(fd, &c, 1) != 1) { // Read away ':'.
+          Fatal("unexpected eof");
+        }
+        SkipUntil(fd, '\n', line);
+        return strtoll(line, NULL, 10);
+      } else {
+        // Skip till newline.
+        SkipUntil(fd, '\n', NULL);
+        char_cnt = 0;
+      }
+    }
+  }
+  return -1;
 }
 
 }  // namespace utils

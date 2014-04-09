@@ -39,6 +39,10 @@
         ['OS=="linux"', {
           'ldflags': [ '-pthread' ],
           'cflags': [ '-mcx16' ],
+          'sources': [
+            'src/huge_page.cc',
+            'src/huge_page.h',
+          ],
         }],
         ['<(small_space)!=-1', {
           'defines': [

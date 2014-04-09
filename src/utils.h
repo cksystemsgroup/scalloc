@@ -6,6 +6,7 @@
 #define SCALLOC_UTILS_H_
 
 #include <stddef.h>  // size_t
+#include <stdint.h>
 
 namespace scalloc {
 namespace utils {
@@ -43,6 +44,8 @@ inline bool IsPowerOfTwo(size_t num) {
 size_t Cpus();
 
 size_t Parallelism();
+
+int64_t ReadProcEntry(const int fd, const char* entry_name);
 
 }  // namespace utils
 }  // namespace scalloc
