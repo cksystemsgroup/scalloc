@@ -8,7 +8,7 @@
 #include "log.h"
 
 #define Fatal(format, ...) do {                                                \
-  LogPrintf("" ,kFatal, format, ##__VA_ARGS__);                                \
+  LogPrintf("" , kFatal, format, ##__VA_ARGS__);                               \
   abort();                                                                     \
 } while (0)
 
