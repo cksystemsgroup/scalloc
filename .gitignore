@@ -12,3 +12,5 @@ plots/
 scalloc.Makefile
 scalloc.target.mk
 scalloc.xcodeproj/
+
+.clang_complete
