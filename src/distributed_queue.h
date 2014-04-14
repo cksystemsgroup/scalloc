@@ -19,6 +19,8 @@
 #define BACKEND_TYPE Stack
 #endif  // BACKEND_TYPE
 
+//#define DQ_NON_LIN 1
+
 namespace scalloc {
 
 class DistributedQueue {
@@ -78,6 +80,23 @@ inline void* DistributedQueue::DequeueOnlyAt(const size_t backend_id) {
 }
 
 
+#ifdef DQ_NON_LIN
+inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
+  void* result;
+  size_t start = first_backend_id % p_;
+  size_t i;
+  for (size_t _cnt = 0; _cnt < p_; _cnt++) {
+    i = (_cnt + start) % p_;
+    if ((result = backends_[i]->Pop()) != NULL) {
+      return result;
+    }
+  }
+  return NULL;
+}
+#endif  // DQ_NON_LIN
+
+
+#ifndef DQ_NON_LIN
 inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
   void* result;
   size_t start = first_backend_id % p_;
@@ -102,6 +121,7 @@ inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
     return NULL;
   }
 }
+#endif  // DQ_NON_LIN
 
 }  // namespace scalloc
 
