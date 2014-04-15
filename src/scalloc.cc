@@ -352,4 +352,11 @@ void scalloc_malloc_stats() __THROW {
 int scalloc_mallopt(int cmd, int value) __THROW {
   return scalloc::mallopt(cmd, value);
 }
+
+#ifdef POLICY_CORE_LOCAL
+size_t malloc_core_id() {
+  return scalloc::CoreBuffer::Id();
+}
+#endif  // POLICY_CORE_LOCAL
+
 }

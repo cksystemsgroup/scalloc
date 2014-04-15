@@ -23,7 +23,9 @@ namespace scalloc {
 namespace extension {
 
 }
+
   bool Ours(const void* p);
+
 }  // namespace scalloc
 
 #endif  // SCALLOC_SCALLOC_H_

@@ -22,10 +22,12 @@ class CoreBuffer {
   static void Init();
   static void DestroyBuffers();
   static CoreBuffer& GetBuffer();
+  static size_t Id();
 
   inline ScallocCore<LockMode::kSizeClassLocked>* Allocator() {
     return allocator_;
   }
+
 
   PROFILER_GETTER
 
@@ -63,6 +65,16 @@ inline CoreBuffer& CoreBuffer::GetBuffer() {
   buffer = NewIfNecessary(core_id);
   return *buffer;
 }
+
+
+inline size_t CoreBuffer::Id() {
+  uint64_t core_id = reinterpret_cast<uint64_t>(pthread_getspecific(core_key)) - 1;
+  if (core_id == static_cast<uint64_t>(-1)) {
+    return (size_t)-1;
+  }
+  return static_cast<size_t>(core_id);
+}
+
 
 }  // namespace scalloc
 
