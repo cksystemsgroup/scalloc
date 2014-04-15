@@ -124,7 +124,11 @@ class SpanHeader : public Header {
 #undef SYNC_SZ
 
   // thread-local read/write properties
-  scalloc::Freelist flist;
+#ifdef INCREMENTAL_FREELIST
+  scalloc::IncrementalFreelist flist;
+#else
+  scalloc::BatchedFreelist flist;
+#endif  // INCREMENTAL_FREELIST
 #define RW_SZ (sizeof(flist))
   char __pad3[CACHELINE_SIZE - (RW_SZ % CACHELINE_SIZE)];  // NOLINT
 #undef RW_SZ
