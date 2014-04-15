@@ -344,7 +344,7 @@ void ScallocCore<MODE>::RemoteFreeInSizeClass(
   LOG(kTrace, "[ScallocCore] remote free for %p, owner: %lu, me: %lu",
       p, hdr->aowner.owner, id_);
   PROFILER_BLOCKPOOL_PUT(sc);
-  BlockPool::Instance().Free(p, sc, hdr->remote_flist); 
+  BlockPool::Instance().Free(p, sc, hdr->remote_flist);
 }
 
 
@@ -457,7 +457,6 @@ void ScallocCore<MODE>::Destroy(ScallocCore* thiz) {
       cur = thiz->hot_span_[i];
       if (cur->flist.Full()) {
 #ifdef MADVISE_SAME_THREAD
-        // TODO: profiling
         SpanPool::Instance().Put(cur, cur->size_class, cur->aowner.owner);
 #else
         Collector::Put(cur);
