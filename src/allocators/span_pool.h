@@ -96,10 +96,12 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid) {
             "madvise: %p, class :%lu, spansize: %lu",
             reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
 #endif  // EAGER_MADVISE
+#ifndef HUGE_PAGE
     madvise(reinterpret_cast<void*>(
                 reinterpret_cast<uintptr_t>(result) + ClassToSpanSize[sc]),
             kVirtualSpanSize - ClassToSpanSize[sc],
             MADV_DONTNEED);
+#endif  // HUGE_PAGE
   }
 
 #ifdef EAGER_MADVISE

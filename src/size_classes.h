@@ -8,9 +8,9 @@
 #include <cinttypes>
 #include <cstdio>
 
-#include "scalloc_assert.h"
 #include "common.h"
 #include "utils.h"
+#include "scalloc_assert.h"
 
 namespace scalloc {
 

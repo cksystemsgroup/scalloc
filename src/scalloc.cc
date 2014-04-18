@@ -22,7 +22,6 @@
 #include "random.h"
 #include "scalloc_arenas.h"
 #include "scalloc_guard.h"
-#include "size_classes_raw.h"
 #include "size_classes.h"
 #include "utils.h"
 

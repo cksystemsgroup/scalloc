@@ -22,8 +22,13 @@ void* SystemAlloc_Mmap(size_t size, size_t* actual_size) {
     *actual_size = size;
   }
 
-  void* p = mmap(
-      0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  const int prot = PROT_READ | PROT_WRITE;
+  int flags = MAP_PRIVATE | MAP_ANONYMOUS;
+#ifdef HUGE_PAGE
+  flags |= MAP_HUGETLB;
+#endif  // HUGE_PAGE
+
+  void* p = mmap(0, size, prot, flags, -1, 0);
   if (reinterpret_cast<void*>(p) == MAP_FAILED) {
     Fatal("mmap failed. size: %lu, errno: %lu\n", size, errno);
   }

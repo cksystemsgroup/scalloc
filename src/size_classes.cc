@@ -5,7 +5,12 @@
 #include "size_classes.h"
 
 #include "headers.h"
+
+#ifdef HUGE_PAGE
+#include "size_classes_raw_hugepage.h"
+#else
 #include "size_classes_raw.h"
+#endif  // HUGE_PAGE
 
 namespace scalloc {
 

@@ -4,10 +4,12 @@
 # Please see the AUTHORS file for details.  Use of this source code is governed
 # by a BSD license that can be found in the LICENSE file.
 
+import os
+import sys
+
 # The size class with index 0 corresponds to a size of 0 bytes.
 # Size class format:
 #     (index, size, real span size, #objects)
-
 class SizeClass:
   def __init__(self, index, size, real_span, objs):
     self.size = size
@@ -67,32 +69,66 @@ def generate_size_classes():
   size_classes.extend(coarse)
   return size_classes
 
-def generate_size_class_file(size_classes):
-  return """\
+
+def generate_huge_size_classes():
+  size_classes =  [ SizeClass(0, 0, 0, 0) ]
+  sz_range = [ 0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224,
+      240, 256, 512, 1024, 2048, 4096 ]
+  for i in range(1, len(sz_range)):
+    size_classes.append(SizeClass(
+      i, sz_range[i],
+      "HUGEPAGE_SIZE",
+      "((HUGEPAGE_SIZE - sizeof(SpanHeader))/{0})".format(sz_range[i])))
+  return size_classes
+
+
+def write_size_classes(file_name, size_classes, cmd_args):
+  guard = os.path.basename(file_name).replace(".", "_").upper()
+  text = """\
 // Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
 //
-//                            DO NOT EDIT!
+//                          +----------------+
+//                          |  DO NOT EDIT!  |
+//                          +----------------+
 //
-// This file is auto-generated using ``python tools/gen_size_classes.py''
+// This file is auto-generated using ``tools/gen_size_classes.py {1}''
 
-#ifndef SCALLOC_SIZE_CLASSES_RAW_H_
-#define SCALLOC_SIZE_CLASSES_RAW_H_
+#ifndef SCALLOC_{2}_
+#define SCALLOC_{2}_
 
 #define SIZE_CLASSES \\
 {0}
 
-#endif  // SCALLOC_SIZE_CLASSES_RAW_H_
-""".format(" \\\n".join(str(sz) for sz in size_classes))
+#endif  // SCALLOC_{2}_
+""".format(" \\\n".join(str(sz) for sz in size_classes), cmd_args, guard)
+  f = open(file_name, "wt")
+  f.write(text)
+  f.close()
+
+
+def print_usage():
+  pass
+
 
 def main():
-  size_classes = generate_size_classes()
-  contents = generate_size_class_file(size_classes)
-  f = open("src/size_classes_raw.h", "wt")
-  f.write(contents)
-  f.close()
+  if len(sys.argv) > 2:
+    print_usage()
+    sys.exit(-1)
+
+  if len(sys.argv) == 1 :
+    size_classes = generate_size_classes()
+    write_size_classes("src/size_classes_raw.h", size_classes, "huge")
+  elif len(sys.argv) == 2 and sys.argv[1] == 'huge':
+    size_classes = generate_huge_size_classes()
+    write_size_classes("src/size_classes_raw_hugepage.h", size_classes, "huge")
+  else:
+    print_usage()
+    sys.exit(-1)
+
+  sys.exit(0)
 
 if __name__ == '__main__':
   main()

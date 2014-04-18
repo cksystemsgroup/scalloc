@@ -17,6 +17,7 @@
     'max_parallelism%': -1,
     'dq_backend%': "-1",
     'dq_non_lin_empty%': -1,
+    'huge_pages%': -1,
   },
   'conditions': [
     ['<(unit_tests)!=-1', {
@@ -100,6 +101,11 @@
         ['<(profile)!=0', {
           'defines': [
             'PROFILER'
+          ]
+        }],
+        ['<(huge_pages)!=-1', {
+          'defines': [
+            'HUGE_PAGE'
           ]
         }],
       ],

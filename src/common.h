@@ -10,17 +10,24 @@
 
 #include "platform.h"
 
-const size_t kMinAlignment = 16;
-const size_t kMaxSmallShift = 8;  // up to 2MiB
-const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
+#ifdef HUGE_PAGE
+
+#define HUGEPAGE_SIZE (1UL << 21)
+
+const size_t kMaxSmallShift = 8;  // up to 256B
+const size_t kMaxMediumShift = 10;  // up to 4k
+const size_t kVirtualSpanShift = 21;  // 2MiB
+#else  // no huge pages
+const size_t kMaxSmallShift = 8;  // up to 256B
 const size_t kMaxMediumShift = 21;  // up to 2MiB
-
-const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
-
 const size_t kVirtualSpanShift = 22;  // 4MiB
+#endif  // HUGE_PAGE
+
+const size_t kMinAlignment = 16;
+const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
+const size_t kMaxMediumSize = 1UL << kMaxMediumShift;
 const size_t kVirtualSpanSize = 1UL << kVirtualSpanShift;
 const uintptr_t kVirtualSpanMask = ~(kVirtualSpanSize - 1);
-
 const size_t kFineClasses = kMaxSmallSize / kMinAlignment + 1;
 const size_t kCoarseClasses = kMaxMediumShift - kMaxSmallShift;
 const size_t kNumClasses = kFineClasses + kCoarseClasses;
@@ -30,7 +37,11 @@ const size_t kNumClasses = kFineClasses + kCoarseClasses;
 #ifdef SMALL_SPACE
 const size_t kSmallSpace = SMALL_SPACE;
 #else
+#ifdef HUGE_PAGE
+const size_t kSmallSpace = 1UL << 34;  // 16GiB
+#else
 const size_t kSmallSpace = 1UL << 44;  // 16TiB
+#endif  // HUGE_PAGE
 #endif
 const size_t kInternalSpace = 1UL << 31;  // 2GiB
 
