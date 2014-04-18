@@ -163,7 +163,7 @@ void free(void* p) {
     ThreadCache::GetCache().Allocator()->Free(p, SpanHeader::GetFromObject(p));
 #endif  // POLICY_THREAD_LOCAL
 #ifdef POLICY_CORE_LOCAL
-    CoreBuffer::GetBuffer().Allocator()->Free(p, SpanHeader::GetFromObject(p));
+    CoreBuffer::GetBuffer(CoreBuffer::OwnerOf(p)).Allocator()->Free(p, SpanHeader::GetFromObject(p));
 #endif  // POLICY_CORE_LOCAL
   } else {
     LargeAllocator::Free(LargeObjectHeader::GetFromObject(p));
