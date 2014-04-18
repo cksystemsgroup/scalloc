@@ -56,21 +56,27 @@ inline CoreBuffer& CoreBuffer::GetBuffer(int64_t prefered_core) {
   if (core_id == static_cast<uint64_t>(-1)) {
     // New thread joins the system.
     __sync_fetch_and_add(&active_threads_, 1);
+#ifdef DYNAMIC_CLAB
     if ((prefered_core != -1) &&
         ((active_threads_*(100+kDrift)/100/num_cores_) > buffers_[prefered_core]->num_threads_)) {
       core_id = prefered_core;
       __sync_fetch_and_sub(&buffers_[core_id]->num_threads_, 1);
     } else {
+#endif  // DYNAMIC_CLAB
       core_id = __sync_fetch_and_add(&thread_counter_, 1) % num_cores_;
+#ifdef DYNAMIC_CLAB
     }
+#endif  // DYNAMIC_CLAB
     pthread_setspecific(core_key, (void*)(core_id+1));
   } else {
+#ifdef DYNAMIC_CLAB
     if (prefered_core != -1 && static_cast<uint64_t>(prefered_core) != core_id) {
       if ((active_threads_*(100+kDrift)/100/num_cores_) > buffers_[prefered_core]->num_threads_) {
         core_id = prefered_core;
         pthread_setspecific(core_key, (void*)(core_id+1));
       } 
     }
+#endif  // DYNAMIC_CLAB
   }
 
   CoreBuffer* buffer = buffers_[core_id];

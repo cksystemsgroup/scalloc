@@ -18,6 +18,7 @@
     'dq_backend%': "-1",
     'dq_non_lin_empty%': -1,
     'huge_pages%': -1,
+    'dynamic_clab_assignment%': 1,
   },
   'conditions': [
     ['<(unit_tests)!=-1', {
@@ -106,6 +107,11 @@
         ['<(huge_pages)!=-1', {
           'defines': [
             'HUGE_PAGE'
+          ]
+        }],
+        ['<(dynamic_clab_assignment)!=-1', {
+          'defines': [
+            'DYNAMIC_CLAB'
           ]
         }],
       ],
