@@ -1,14 +1,15 @@
 #include "buffer/core.h"
 
 #include "allocators/scalloc_core-inl.h"
+#include "common.h"
 #include "spinlock-inl.h"
 #include "typed_allocator.h"
 #include "utils.h"
 
 namespace {
 
-scalloc::TypedAllocator<scalloc::CoreBuffer> core_buffer_alloc;
-SpinLock new_buffer_lock(LINKER_INITIALIZED);
+cache_aligned scalloc::TypedAllocator<scalloc::CoreBuffer> core_buffer_alloc;
+cache_aligned FastLock new_buffer_lock;
 
 }
 
@@ -25,6 +26,7 @@ void CoreBuffer::Init() {
   for (uint64_t i = 0; i < kMaxCores; i++) {
     buffers_[i]  = NULL;
   }
+  new_buffer_lock.Init();
   num_cores_ = utils::Cpus();
   thread_counter_ = 0;
   active_threads_ = 0;
@@ -43,7 +45,7 @@ CoreBuffer::CoreBuffer(uint64_t core_id) {
 
 
 CoreBuffer* CoreBuffer::NewIfNecessary(uint64_t core_id) {
-  LockScope(new_buffer_lock);
+  FastLockScope(new_buffer_lock);
 
   if (buffers_[core_id] == NULL) {
     buffers_[core_id] = new(core_buffer_alloc.New()) CoreBuffer(core_id);
