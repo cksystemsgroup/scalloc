@@ -73,7 +73,7 @@ def generate_size_classes():
 def generate_huge_size_classes():
   size_classes =  [ SizeClass(0, 0, 0, 0) ]
   sz_range = [ 0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224,
-      240, 256, 512, 1024, 2048, 4096 ]
+      240, 256, 512, 1024, 2048, 4096, 8192, 16384 ]
   for i in range(1, len(sz_range)):
     size_classes.append(SizeClass(
       i, sz_range[i],
