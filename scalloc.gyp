@@ -9,6 +9,7 @@
     'local_reuse_threshold%': 80,
     'small_space%': -1,
     'eager_madvise_threshold%': -1,
+    'incremental_freelist%': -1,
     'madvise_strategy%': "same-thread",
     'enable_slow_span_reuse%': -1,
     'enable_free_list_reuse%': -1,
@@ -79,6 +80,11 @@
         ['<(dq_non_lin_empty)!=-1', {
           'defines': [
             'DQ_NON_LIN_EMPTY'
+          ]
+        }],
+        ['<(incremental_freelist)!=-1', {
+          'defines': [
+            'INCREMENTAL_FREELIST'
           ]
         }],
         ['<(core_local)!=-1', {
