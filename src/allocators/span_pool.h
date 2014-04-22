@@ -19,7 +19,9 @@ namespace scalloc {
 class SpanPool {
  public:
   static void Init();
-  static inline SpanPool& Instance() { return span_pool_; }
+  static inline SpanPool& Instance() {
+    return span_pool_;
+  }
 
   inline SpanPool() {}
   SpanHeader* Get(size_t sc, uint32_t tid);
@@ -45,6 +47,7 @@ inline void SpanPool::Put(SpanHeader* p, size_t sc, uint32_t tid) {
     LOG_CAT("span-pool", kTrace,
             "madvise (eager): %p, class :%lu, spansize: %lu",
             p, sc, ClassToSpanSize[sc]);
+    p->madvised = 1;
     madvise(reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(p) + kPageSize),
             kVirtualSpanSize - kPageSize,
             MADV_DONTNEED);
@@ -57,66 +60,49 @@ inline void SpanPool::Put(SpanHeader* p, size_t sc, uint32_t tid) {
 
 inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid) {
   LOG_CAT("span-pool", kTrace, "get request");
-  void* result;
-  int index;
-  size_t i;
+  void* result = NULL;
   bool reusable = false;
   const int qindex = tid % utils::Parallelism();
+  SpanHeader * hdr;
 
-  for (i = 0; i < kNumClasses; i++) {
-    index = sc - i;
+  int index;
+  for (size_t _i = 0; (_i < kNumClasses) && (result == NULL); _i++) {
+    index = sc - _i;
     if (index < 0) {
       index += kNumClasses;
     }
     result = size_class_pool_[index].DequeueStartAt(qindex);
-    if (result != NULL) {
-      break;
-    }
   }
 
   if (UNLIKELY(result == NULL)) {
-    SpanHeader* hdr = reinterpret_cast<SpanHeader*>(RefillOne());
+    hdr = reinterpret_cast<SpanHeader*>(RefillOne());
     hdr->Init(sc, tid, false);
     return hdr;
   }
+  hdr = reinterpret_cast<SpanHeader*>(result);
 
-  i = static_cast<size_t>(index);
-
-#ifdef EAGER_MADVISE
-  if ((i > sc) &&
-      (ClassToSpanSize[i] != ClassToSpanSize[sc]) &&
-      (ClassToSpanSize[sc] <= kEagerMadviseThreshold)) {
-    LOG_CAT("span-pool", kTrace,
-            "madvise (eager): %p, class :%lu, spansize: %lu",
-            reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
-#else
-  if ((i > sc) &&
-      (ClassToSpanSize[i] != ClassToSpanSize[sc])) {
-    LOG_CAT("span-pool", kTrace,
-            "madvise: %p, class :%lu, spansize: %lu",
-            reinterpret_cast<void*>(result), sc, ClassToSpanSize[sc]);
-#endif  // EAGER_MADVISE
-#ifndef HUGE_PAGE
+#if !defined(HUGE_PAGE)
+  // Let's do lazy madvising.
+  if ((static_cast<size_t>(index) > sc) &&
+      (ClassToSpanSize[index] != ClassToSpanSize[sc]) &&
+      (hdr->madvised == 0)) {
     madvise(reinterpret_cast<void*>(
                 reinterpret_cast<uintptr_t>(result) + ClassToSpanSize[sc]),
             kVirtualSpanSize - ClassToSpanSize[sc],
             MADV_DONTNEED);
-#endif  // HUGE_PAGE
-  }
 
-#ifdef EAGER_MADVISE
-  if ((i == sc) &&
-      (ClassToSpanSize[sc] <= kEagerMadviseThreshold)) {
-#else
-  if (i == sc) {
-#endif  // EAGER_MADVISE
-#ifdef REUSE_FREE_LIST
-    reusable = true;
-#endif  // REUSE_FREE_LIST
   }
+#endif  // !HUGE_PAGE
+
+#if !defined(EAGER_MADVISE) && defined(REUSE_FREE_LIST)
+  // With lazy madvising we can skip freelist initialization at the expense of
+  // sequential locality.
+  if (static_cast<size_t>(index) == sc) {
+    reusable = true;
+  }
+#endif  // !EAGER_MADVISE && REUSE_FREE_LIST
 
   LOG_CAT("span-pool", kTrace, "get: %p", result);
-  SpanHeader* hdr = reinterpret_cast<SpanHeader*>(result);
   hdr->Init(sc, tid, reusable);
   return hdr;
 }

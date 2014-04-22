@@ -86,6 +86,7 @@ class SpanHeader : public Header {
     this->flist_aligned_blocksize_offset =
         (reinterpret_cast<uintptr_t>(this) + sizeof(SpanHeader))
             % scalloc::ClassToSize[sc];
+    this->madvised = 0;
     this->aowner.owner = owner_id;
     this->aowner.active = true;
     if (!reuse_freelist) {
@@ -106,6 +107,7 @@ class SpanHeader : public Header {
   size_t size_class;
   size_t remote_flist;
   size_t flist_aligned_blocksize_offset;
+  size_t madvised;
 #define READ_SZ                            \
   (sizeof(next) +                          \
   sizeof(prev) +                           \
@@ -113,7 +115,8 @@ class SpanHeader : public Header {
   sizeof(__pad0) +                         \
   sizeof(size_class) +                     \
   sizeof(remote_flist) +                   \
-  sizeof(flist_aligned_blocksize_offset))
+  sizeof(flist_aligned_blocksize_offset)) +\
+  sizeof(madvised)
   char __pad1[CACHELINE_SIZE - (READ_SZ % CACHELINE_SIZE)];  // NOLINT
 #undef READ_SZ
 
@@ -156,6 +159,7 @@ class SpanHeader : public Header {
            "%lu\t%lu\tsize_class\n"
            "%lu\t%lu\tremote_flist\n"
            "%lu\t%lu\tflist_aligned_blocksize_offset\n"
+           "%lu\t%lu\tmadvised\n"
            "%lu\t%lu\t__pad1\n"
            "--- read/write sync ---\n"
            "%lu\t%lu\taowner\n"
@@ -171,6 +175,7 @@ class SpanHeader : public Header {
            FIELD_OFFSET_AND_SIZE(size_class),
            FIELD_OFFSET_AND_SIZE(remote_flist),
            FIELD_OFFSET_AND_SIZE(flist_aligned_blocksize_offset),
+           FIELD_OFFSET_AND_SIZE(madvised),
            FIELD_OFFSET_AND_SIZE(__pad1),
            FIELD_OFFSET_AND_SIZE(aowner),
            FIELD_OFFSET_AND_SIZE(__pad2),
