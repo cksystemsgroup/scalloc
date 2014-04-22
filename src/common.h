@@ -38,7 +38,11 @@ const size_t kNumClasses = kFineClasses + kCoarseClasses;
 const size_t kSmallSpace = SMALL_SPACE;
 #else
 #ifdef HUGE_PAGE
-const size_t kSmallSpace = 1UL << 34;  // 16GiB
+#ifdef HUGE_PAGE_SPACE
+const size_t kSmallSpace = HUGE_PAGE_SPACE;
+#else
+const size_t kSmallSpace = (1UL << 36) + (1UL << 35);  // 96GiB
+#endif  // HUGE_PAGE_SPACE
 #else
 const size_t kSmallSpace = 1UL << 44;  // 16TiB
 #endif  // HUGE_PAGE

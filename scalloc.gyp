@@ -19,6 +19,7 @@
     'dq_backend%': "-1",
     'dq_non_lin_empty%': -1,
     'huge_pages%': -1,
+    'huge_page_space%': -1,
     'dynamic_clab_assignment%': 1,
   },
   'conditions': [
@@ -113,6 +114,11 @@
         ['<(huge_pages)!=-1', {
           'defines': [
             'HUGE_PAGE'
+          ]
+        }],
+        ['<(huge_page_space)!=-1', {
+          'defines': [
+            'HUGE_PAGE_SPACE=<(huge_page_space)'
           ]
         }],
         ['<(dynamic_clab_assignment)!=-1', {
