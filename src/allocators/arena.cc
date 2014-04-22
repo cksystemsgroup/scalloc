@@ -4,6 +4,7 @@
 
 #include "allocators/arena.h"
 
+#include "common.h"
 #include "system-alloc.h"
 
 namespace scalloc {
@@ -11,10 +12,11 @@ namespace scalloc {
 void Arena::Init(const size_t size) {
   // Allocates an arena of size bytes also aligning the arena to size.
   size_ = size;
+  // Allocate and align start_ to kVirtualSpanSize.
   start_ = reinterpret_cast<uintptr_t>(SystemAlloc_Mmap(
-               2 * size_ - kPageSize, NULL));
+               size_ + kVirtualSpanSize, NULL));
   // Align the start address.
-  start_ += size_ - (start_ % size_);
+  start_ += kVirtualSpanSize - (start_ % kVirtualSpanSize);
   cur_.store(start_);
 }
 

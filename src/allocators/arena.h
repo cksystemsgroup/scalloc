@@ -33,7 +33,8 @@ class Arena {
 
 
 inline bool Arena::Contains(const void* p) {
-  return (reinterpret_cast<uintptr_t>(p) ^ start_) < size_;
+  return (reinterpret_cast<uintptr_t>(p) > start_) &&
+         (reinterpret_cast<uintptr_t>(p) < (start_ + size_));
 }
 
 
