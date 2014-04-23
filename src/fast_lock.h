@@ -28,6 +28,7 @@ class FastLock {
 
   inline void Init() {
     lockword_ = 0;
+    sleep_cnt_ = 0;
   }
 
   inline void Lock() {
@@ -38,7 +39,9 @@ class FastLock {
     do {
       if (lockword_ == 2 || __sync_bool_compare_and_swap(&lockword_, 1, 2)) {
         // contended
-        futex_wait((int*)&lockword_, 2);
+        __sync_fetch_and_add(&sleep_cnt_, 1);
+        futex_wait(reinterpret_cast<int*>(&lockword_), 2);
+        __sync_fetch_and_sub(&sleep_cnt_, 1);
       }
     } while (!__sync_bool_compare_and_swap(&lockword_, 0, 2));
     // 0->2 successful
@@ -48,8 +51,12 @@ class FastLock {
     if (__sync_fetch_and_sub(&lockword_, 1) != 1) {
       // lockword_ was 2.
       lockword_ = 0;  // Tricky: Can interleave with Lock() in do loop.
-      futex_wake((int*)&lockword_, 1);
+      futex_wake(reinterpret_cast<int*>(&lockword_), 1);
     }
+  }
+
+  inline uint64_t SleepingThreads() {
+    return sleep_cnt_;
   }
 
  private:
@@ -58,7 +65,9 @@ class FastLock {
   static const int kContended = 2;
 
   int64_t lockword_;
-  uint64_t __padding[7];  // Pad for 64 bytes cache line.
+  uint64_t __padding1[7];  // Pad for 64 bytes cache line.
+  uint64_t sleep_cnt_;
+  uint64_t __padding2[7];  // Pad for 64 bytes cache line.
 };
 
 

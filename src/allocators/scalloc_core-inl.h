@@ -43,6 +43,17 @@ class ScallocCore {
   void* Allocate(const size_t size);
   void Free(void* p, SpanHeader* hdr);
 
+#ifdef __linux__
+  // raceful
+  uint64_t SleepingThreads() {
+    uint64_t cnt = 0;
+    for (size_t i = 0; i < kNumClasses; i++) {
+      cnt += size_class_lock_[i].SleepingThreads();
+    }
+    return cnt;
+  }
+#endif  // __linux__
+
  private:
   explicit ScallocCore(const uint64_t id);
 

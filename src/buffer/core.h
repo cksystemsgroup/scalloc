@@ -10,6 +10,7 @@
 #include "common.h"
 #include "headers.h"
 #include "profiler.h"
+#include "random.h"
 
 namespace scalloc {
 
@@ -19,17 +20,25 @@ class ScallocCore;
 class CoreBuffer {
  public:
   static const uint64_t kMaxCores = 160;
-  static const uint64_t kDrift = 300;
+  static const uint64_t kDrift = 100;
 
   static void Init();
   static void DestroyBuffers();
   static CoreBuffer& GetBuffer(int64_t prefered_core = -1);
   static size_t Id();
   static uint64_t OwnerOf(void* block);
+  static uint64_t CalculateAverageSleeping();
 
   inline ScallocCore<LockMode::kSizeClassLocked>* Allocator() {
+#if defined(CLAB_UTILIZATION)
+    if (hwrand() % (kNumClasses * num_cores_) == 0) {
+      UpdateSleeping();
+    }
+#endif  // CLAB_UTILIZATION
     return allocator_;
   }
+
+  void UpdateSleeping();
 
   PROFILER_GETTER
 
@@ -42,11 +51,17 @@ class CoreBuffer {
   static uint64_t num_cores_;
   static uint64_t thread_counter_;
   static uint64_t active_threads_;
+  static uint64_t active_threads_threshold_;
   static pthread_key_t core_key;
   static CoreBuffer* buffers_[kMaxCores];
+  static uint64_t average_sleeping_threads_;
 
   ScallocCore<LockMode::kSizeClassLocked>* allocator_;
+
   uint64_t num_threads_;
+  uint64_t sleeping_threads_;
+  bool migratable_;
+
   PROFILER_DECL;
 };
 
@@ -56,23 +71,42 @@ inline CoreBuffer& CoreBuffer::GetBuffer(int64_t prefered_core) {
   if (core_id == static_cast<uint64_t>(-1)) {
     // New thread joins the system.
     __sync_fetch_and_add(&active_threads_, 1);
-#ifdef DYNAMIC_CLAB
+#if defined(CLAB_UTILIZATION)
+    if (prefered_core != -1 && buffers_[prefered_core]->migratable_) {
+      core_id = prefered_core;
+    } else {
+      core_id = __sync_fetch_and_add(&thread_counter_, 1) % num_cores_;
+    }
+#elif defined(CLAB_ACTIVE_THREADS)
+    active_threads_threshold_ = active_threads_ * (kDrift + 100)/num_cores;
     if ((prefered_core != -1) &&
-        ((active_threads_*(100+kDrift)/100/num_cores_) > buffers_[prefered_core]->num_threads_)) {
+        (active_threads_threshold_ >= (100 *buffers_[prefered_core]->num_threads_))) {
       core_id = prefered_core;
       __sync_fetch_and_sub(&buffers_[core_id]->num_threads_, 1);
+      __sync_fetch_and_add(&buffers_[prefered_core]->num_threads, 1);
     } else {
-#endif  // DYNAMIC_CLAB
       core_id = __sync_fetch_and_add(&thread_counter_, 1) % num_cores_;
-#ifdef DYNAMIC_CLAB
     }
-#endif  // DYNAMIC_CLAB
+#elif defined(CLAB_RR)
+    core_id = __sync_fetch_and_add(&thread_counter_, 1) % num_cores_;
+#else
+#error "unknown clab assignment policy"
+#endif
     pthread_setspecific(core_key, (void*)(core_id+1));
   } else {
-#ifdef DYNAMIC_CLAB
+#if defined(CLAB_UTILIZATION)
     if (prefered_core != -1 && static_cast<uint64_t>(prefered_core) != core_id) {
-      if ((active_threads_*(100+kDrift)/100/num_cores_) > buffers_[prefered_core]->num_threads_) {
+      if (buffers_[prefered_core]->migratable_) {
         core_id = prefered_core;
+        pthread_setspecific(core_key, (void*)(core_id+1));
+      }
+    }
+#elif defined(CLAB_ACTIVE_THREADS)
+    if (prefered_core != -1 && static_cast<uint64_t>(prefered_core) != core_id) {
+      if (active_threads_threshold_ >= (100*buffers_[prefered_core]->num_threads_)) {
+        core_id = prefered_core;
+        __sync_fetch_and_sub(&buffers_[core_id]->num_threads_, 1);
+        __sync_fetch_and_add(&buffers_[prefered_core]->num_threads, 1);
         pthread_setspecific(core_key, (void*)(core_id+1));
       } 
     }
@@ -99,6 +133,17 @@ inline size_t CoreBuffer::Id() {
 
 inline uint64_t CoreBuffer::OwnerOf(void* block) {
   return SpanHeader::GetFromObject(block)->aowner.owner;
+}
+
+
+inline uint64_t CoreBuffer::CalculateAverageSleeping() {
+  uint64_t sum = 0;
+  for (uint64_t i = 0; i < num_cores_; i++) {
+    if (buffers_[i] != NULL) {
+      sum += buffers_[i]->sleeping_threads_;
+    }
+  }
+  return sum;
 }
 
 }  // namespace scalloc

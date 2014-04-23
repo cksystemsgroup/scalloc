@@ -20,6 +20,7 @@ pthread_key_t CoreBuffer::core_key;
 uint64_t CoreBuffer::thread_counter_;
 uint64_t CoreBuffer::active_threads_;
 CoreBuffer* CoreBuffer::buffers_[CoreBuffer::kMaxCores];
+uint64_t CoreBuffer::average_sleeping_threads_;
 
 
 void CoreBuffer::Init() {
@@ -32,12 +33,15 @@ void CoreBuffer::Init() {
   active_threads_ = 0;
   core_buffer_alloc.Init(kPageSize, 64, "core_buffer_alloc");
   pthread_key_create(&core_key, CoreBuffer::ThreadDestructor);
+  average_sleeping_threads_ = 0;
 }
 
 
 CoreBuffer::CoreBuffer(uint64_t core_id) {
   allocator_ = ScallocCore<LockMode::kSizeClassLocked>::New(core_id);
   num_threads_ = 1;
+  migratable_ = false;
+  sleeping_threads_ = 0;
 #ifdef PROFILER
   profiler_.Init(&GlobalProfiler);
 #endif  // PROFILER
@@ -68,6 +72,16 @@ void CoreBuffer::DestroyBuffers() {
 
 void CoreBuffer::ThreadDestructor(void* core_buffer) {
   __sync_fetch_and_sub(&active_threads_, 1);
+#if defined(CLAB_ACTIVE_THREADS)
+  active_threads_threshold_ = active_threads_ * (kDrift + 100)/num_cores_;
+#endif  // CLAG_ACTIVE_THREADS
+}
+
+
+void CoreBuffer::UpdateSleeping() {
+  sleeping_threads_ = allocator_->SleepingThreads();
+  average_sleeping_threads_ = CalculateAverageSleeping() * (kDrift + 100) / num_cores_;
+  migratable_ = average_sleeping_threads_ >= (sleeping_threads_ * 100);
 }
 
 }

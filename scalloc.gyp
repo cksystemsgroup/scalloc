@@ -20,7 +20,8 @@
     'dq_non_lin_empty%': -1,
     'huge_pages%': -1,
     'huge_page_space%': -1,
-    'dynamic_clab_assignment%': 1,
+    'clab_utilization%': 1,
+    'clab_active_threads%': -1,
   },
   'conditions': [
     ['<(unit_tests)!=-1', {
@@ -121,9 +122,14 @@
             'HUGE_PAGE_SPACE=<(huge_page_space)'
           ]
         }],
-        ['<(dynamic_clab_assignment)!=-1', {
+        ['<(clab_utilization)!=-1', {
           'defines': [
-            'DYNAMIC_CLAB'
+            'CLAB_UTILIZATION'
+          ]
+        }],
+        ['<(clab_active_threads)!=-1', {
+          'defines': [
+            'CLAB_ACTIVE_THREADS'
           ]
         }],
       ],
