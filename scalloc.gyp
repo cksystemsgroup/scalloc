@@ -20,8 +20,8 @@
     'dq_non_lin_empty%': -1,
     'huge_pages%': -1,
     'huge_page_space%': -1,
-    'clab_utilization%': 1,
-    'clab_active_threads%': -1,
+    'clab_policy%': "utilization",
+    'clab_threshold%': -1,
   },
   'conditions': [
     ['<(unit_tests)!=-1', {
@@ -122,14 +122,24 @@
             'HUGE_PAGE_SPACE=<(huge_page_space)'
           ]
         }],
-        ['<(clab_utilization)!=-1', {
+        ['"<(clab_policy)"=="utilization"', {
           'defines': [
             'CLAB_UTILIZATION'
           ]
         }],
-        ['<(clab_active_threads)!=-1', {
+        ['"<(clab_policy)"=="threads"', {
           'defines': [
-            'CLAB_ACTIVE_THREADS'
+            'CLAB_THREADS'
+          ]
+        }],
+        ['"<(clab_policy)"=="rr"', {
+          'defines': [
+            'CLAB_RR'
+          ]
+        }],
+        ['<(clab_threshold)!=-1', {
+          'defines': [
+            'CLAB_THRESHOLD=<(clab_threshold)'
           ]
         }],
       ],
