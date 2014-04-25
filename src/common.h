@@ -14,13 +14,13 @@
 
 #define HUGEPAGE_SIZE (1UL << 21)
 
-const size_t kMaxSmallShift = 8;  // up to 256B
-const size_t kMaxMediumShift = 14;  // up to 16k
-const size_t kVirtualSpanShift = 21;  // 2MiB
+const size_t kMaxSmallShift = 8;  // 256B
+const size_t kMaxMediumShift = 14;  // 16k
+const size_t kVirtualSpanShift = 16;  // 64k
 #else  // no huge pages
-const size_t kMaxSmallShift = 8;  // up to 256B
-const size_t kMaxMediumShift = 21;  // up to 2MiB
-const size_t kVirtualSpanShift = 22;  // 4MiB
+const size_t kMaxSmallShift = 8;  // 256B
+const size_t kMaxMediumShift = 20;  // 1MiB
+const size_t kVirtualSpanShift = 21;  // 2MiB
 #endif  // HUGE_PAGE
 
 const size_t kMinAlignment = 16;

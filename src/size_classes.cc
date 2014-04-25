@@ -9,7 +9,11 @@
 #ifdef HUGE_PAGE
 #include "size_classes_raw_hugepage.h"
 #else
+#ifdef SZ_2MB
+#include "size_classes_raw_2MB.h"
+#else
 #include "size_classes_raw.h"
+#endif  // SZ_2MB
 #endif  // HUGE_PAGE
 
 namespace scalloc {

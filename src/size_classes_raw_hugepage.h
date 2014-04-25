@@ -14,33 +14,27 @@
 
 #define SIZE_CLASSES \
   SIZE_CLASS(0, 0, 0, 0) /* NOLINT */ \
-  SIZE_CLASS(1, 16, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/16)) /* NOLINT */ \
-  SIZE_CLASS(2, 32, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/32)) /* NOLINT */ \
-  SIZE_CLASS(3, 48, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/48)) /* NOLINT */ \
-  SIZE_CLASS(4, 64, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/64)) /* NOLINT */ \
-  SIZE_CLASS(5, 80, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/80)) /* NOLINT */ \
-  SIZE_CLASS(6, 96, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/96)) /* NOLINT */ \
-  SIZE_CLASS(7, 112, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/112)) /* NOLINT */ \
-  SIZE_CLASS(8, 128, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/128)) /* NOLINT */ \
-  SIZE_CLASS(9, 144, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/144)) /* NOLINT */ \
-  SIZE_CLASS(10, 160, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/160)) /* NOLINT */ \
-  SIZE_CLASS(11, 176, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/176)) /* NOLINT */ \
-  SIZE_CLASS(12, 192, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/192)) /* NOLINT */ \
-  SIZE_CLASS(13, 208, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/208)) /* NOLINT */ \
-  SIZE_CLASS(14, 224, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/224)) /* NOLINT */ \
-  SIZE_CLASS(15, 240, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/240)) /* NOLINT */ \
-  SIZE_CLASS(16, 256, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/256)) /* NOLINT */ \
-  SIZE_CLASS(17, 512, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/512)) /* NOLINT */ \
-  SIZE_CLASS(18, 1024, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/1024)) /* NOLINT */ \
-  SIZE_CLASS(19, 2048, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/2048)) /* NOLINT */ \
-  SIZE_CLASS(20, 4096, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/4096)) /* NOLINT */ \
-  SIZE_CLASS(21, 8192, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/8192)) /* NOLINT */ \
-  SIZE_CLASS(22, 16384, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/16384)) /* NOLINT */ \
-  SIZE_CLASS(23, 32768, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/32768)) /* NOLINT */ \
-  SIZE_CLASS(24, 65536, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/65536)) /* NOLINT */ \
-  SIZE_CLASS(25, 131072, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/131072)) /* NOLINT */ \
-  SIZE_CLASS(26, 262144, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/262144)) /* NOLINT */ \
-  SIZE_CLASS(27, 524228, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/524228)) /* NOLINT */ \
-  SIZE_CLASS(28, 1048576, HUGEPAGE_SIZE, ((HUGEPAGE_SIZE - sizeof(SpanHeader))/1048576)) /* NOLINT */
+  SIZE_CLASS(1, 16, 65536, ((65536 - sizeof(SpanHeader))/16)) /* NOLINT */ \
+  SIZE_CLASS(2, 32, 65536, ((65536 - sizeof(SpanHeader))/32)) /* NOLINT */ \
+  SIZE_CLASS(3, 48, 65536, ((65536 - sizeof(SpanHeader))/48)) /* NOLINT */ \
+  SIZE_CLASS(4, 64, 65536, ((65536 - sizeof(SpanHeader))/64)) /* NOLINT */ \
+  SIZE_CLASS(5, 80, 65536, ((65536 - sizeof(SpanHeader))/80)) /* NOLINT */ \
+  SIZE_CLASS(6, 96, 65536, ((65536 - sizeof(SpanHeader))/96)) /* NOLINT */ \
+  SIZE_CLASS(7, 112, 65536, ((65536 - sizeof(SpanHeader))/112)) /* NOLINT */ \
+  SIZE_CLASS(8, 128, 65536, ((65536 - sizeof(SpanHeader))/128)) /* NOLINT */ \
+  SIZE_CLASS(9, 144, 65536, ((65536 - sizeof(SpanHeader))/144)) /* NOLINT */ \
+  SIZE_CLASS(10, 160, 65536, ((65536 - sizeof(SpanHeader))/160)) /* NOLINT */ \
+  SIZE_CLASS(11, 176, 65536, ((65536 - sizeof(SpanHeader))/176)) /* NOLINT */ \
+  SIZE_CLASS(12, 192, 65536, ((65536 - sizeof(SpanHeader))/192)) /* NOLINT */ \
+  SIZE_CLASS(13, 208, 65536, ((65536 - sizeof(SpanHeader))/208)) /* NOLINT */ \
+  SIZE_CLASS(14, 224, 65536, ((65536 - sizeof(SpanHeader))/224)) /* NOLINT */ \
+  SIZE_CLASS(15, 240, 65536, ((65536 - sizeof(SpanHeader))/240)) /* NOLINT */ \
+  SIZE_CLASS(16, 256, 65536, ((65536 - sizeof(SpanHeader))/256)) /* NOLINT */ \
+  SIZE_CLASS(17, 512, 65536, ((65536 - sizeof(SpanHeader))/512)) /* NOLINT */ \
+  SIZE_CLASS(18, 1024, 65536, ((65536 - sizeof(SpanHeader))/1024)) /* NOLINT */ \
+  SIZE_CLASS(19, 2048, 65536, ((65536 - sizeof(SpanHeader))/2048)) /* NOLINT */ \
+  SIZE_CLASS(20, 4096, 65536, ((65536 - sizeof(SpanHeader))/4096)) /* NOLINT */ \
+  SIZE_CLASS(21, 8192, 65536, ((65536 - sizeof(SpanHeader))/8192)) /* NOLINT */ \
+  SIZE_CLASS(22, 16384, 65536, ((65536 - sizeof(SpanHeader))/16384)) /* NOLINT */
 
 #endif  // SCALLOC_SIZE_CLASSES_RAW_HUGEPAGE_H_

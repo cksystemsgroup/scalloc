@@ -24,7 +24,7 @@ class SizeClass:
 min_alignment = 16
 max_fine_shift = 8
 max_fine_size = 1 << max_fine_shift
-max_small_shift = 21
+max_small_shift = 20
 max_small_size = 1 << max_small_shift
 fine_classes = max_fine_size / min_alignment + 1
 coarse_classes = max_small_shift - max_fine_shift
@@ -56,8 +56,8 @@ def generate_size_classes():
 
   # For coarse grained objects we derive the span size from the number of
   # objects.
-  objs = [ 1 << 6, 1 << 5, 1 << 4, 1 << 3, 1 << 3, 1 << 3, 1 << 3, 1 << 2,
-           1 << 2, 1 << 2, 1 << 2, 1 << 1, 1 << 0 ]
+  objs = [ 1 << 5, 1 << 5, 1 << 4, 1 << 2, 1 << 2, 1 << 2, 1 << 2, 1 << 1,
+           1 << 1, 1 << 1, 1 << 1, 1 << 0, 1 << 0 ]
   coarse = []
   for i in range(fine_classes, num_classes):
     class_to_size.append(class_to_size[i-1] * 2)
@@ -74,11 +74,12 @@ def generate_huge_size_classes():
   size_classes =  [ SizeClass(0, 0, 0, 0) ]
   sz_range = [ 0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224,
       240, 256, 512, 1024, 2048, 4096, 8192, 16384 ]
+  span_sz = "65536"
   for i in range(1, len(sz_range)):
     size_classes.append(SizeClass(
       i, sz_range[i],
-      "HUGEPAGE_SIZE",
-      "((HUGEPAGE_SIZE - sizeof(SpanHeader))/{0})".format(sz_range[i])))
+      span_sz,
+      "(({1} - sizeof(SpanHeader))/{0})".format(sz_range[i], span_sz)))
   return size_classes
 
 

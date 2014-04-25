@@ -3,9 +3,11 @@
 // by a BSD license that can be found in the LICENSE file.
 
 //
-//                            DO NOT EDIT!
+//                          +----------------+
+//                          |  DO NOT EDIT!  |
+//                          +----------------+
 //
-// This file is auto-generated using ``python tools/gen_size_classes.py''
+// This file is auto-generated using ``tools/gen_size_classes.py huge''
 
 #ifndef SCALLOC_SIZE_CLASSES_RAW_H_
 #define SCALLOC_SIZE_CLASSES_RAW_H_
@@ -28,18 +30,17 @@
   SIZE_CLASS(14, 224, 32768, (32768 - sizeof(SpanHeader))/224) /* NOLINT */ \
   SIZE_CLASS(15, 240, 32768, (32768 - sizeof(SpanHeader))/240) /* NOLINT */ \
   SIZE_CLASS(16, 256, 32768, (32768 - sizeof(SpanHeader))/256) /* NOLINT */ \
-  SIZE_CLASS(17, 512, ((64 * 512 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 64) /* NOLINT */ \
+  SIZE_CLASS(17, 512, ((32 * 512 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 32) /* NOLINT */ \
   SIZE_CLASS(18, 1024, ((32 * 1024 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 32) /* NOLINT */ \
   SIZE_CLASS(19, 2048, ((16 * 2048 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 16) /* NOLINT */ \
-  SIZE_CLASS(20, 4096, ((8 * 4096 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 8) /* NOLINT */ \
-  SIZE_CLASS(21, 8192, ((8 * 8192 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 8) /* NOLINT */ \
-  SIZE_CLASS(22, 16384, ((8 * 16384 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 8) /* NOLINT */ \
-  SIZE_CLASS(23, 32768, ((8 * 32768 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 8) /* NOLINT */ \
-  SIZE_CLASS(24, 65536, ((4 * 65536 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 4) /* NOLINT */ \
-  SIZE_CLASS(25, 131072, ((4 * 131072 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 4) /* NOLINT */ \
-  SIZE_CLASS(26, 262144, ((4 * 262144 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 4) /* NOLINT */ \
-  SIZE_CLASS(27, 524288, ((4 * 524288 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 4) /* NOLINT */ \
-  SIZE_CLASS(28, 1048576, ((2 * 1048576 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 2) /* NOLINT */ \
-  SIZE_CLASS(29, 2097152, ((1 * 2097152 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 1) /* NOLINT */
+  SIZE_CLASS(20, 4096, ((4 * 4096 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 4) /* NOLINT */ \
+  SIZE_CLASS(21, 8192, ((4 * 8192 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 4) /* NOLINT */ \
+  SIZE_CLASS(22, 16384, ((4 * 16384 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 4) /* NOLINT */ \
+  SIZE_CLASS(23, 32768, ((4 * 32768 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 4) /* NOLINT */ \
+  SIZE_CLASS(24, 65536, ((2 * 65536 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 2) /* NOLINT */ \
+  SIZE_CLASS(25, 131072, ((2 * 131072 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 2) /* NOLINT */ \
+  SIZE_CLASS(26, 262144, ((2 * 262144 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 2) /* NOLINT */ \
+  SIZE_CLASS(27, 524288, ((2 * 524288 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 2) /* NOLINT */ \
+  SIZE_CLASS(28, 1048576, ((1 * 1048576 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 1) /* NOLINT */
 
 #endif  // SCALLOC_SIZE_CLASSES_RAW_H_

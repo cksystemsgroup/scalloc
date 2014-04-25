@@ -9,7 +9,7 @@
     'local_reuse_threshold%': 80,
     'small_space%': -1,
     'eager_madvise_threshold%': -1,
-    'incremental_freelist%': -1,
+    'incremental_freelist%': 1,
     'madvise_strategy%': "same-thread",
     'enable_slow_span_reuse%': -1,
     'enable_free_list_reuse%': -1,
@@ -22,6 +22,7 @@
     'huge_page_space%': -1,
     'clab_policy%': "utilization",
     'clab_threshold%': -1,
+    'size_classes_2mb%': -1,
   },
   'conditions': [
     ['<(unit_tests)!=-1', {
@@ -140,6 +141,11 @@
         ['<(clab_threshold)!=-1', {
           'defines': [
             'CLAB_THRESHOLD=<(clab_threshold)'
+          ]
+        }],
+        ['<(size_classes_2mb)!=-1', {
+          'defines': [
+            SZ_2MB
           ]
         }],
       ],
