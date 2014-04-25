@@ -12,7 +12,7 @@
 #ifndef SCALLOC_SIZE_CLASSES_RAW_TEST_
 #define SCALLOC_SIZE_CLASSES_RAW_TEST_
 
-#define RSPAN_SIZE (1UL << 21) 
+#define RSPAN_SIZE (1UL << 20) 
 
 #define SIZE_CLASSES \
   SIZE_CLASS(0, 0, 0, 0) /* NOLINT */ \

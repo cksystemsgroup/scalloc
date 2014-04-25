@@ -22,7 +22,7 @@
     'huge_page_space%': -1,
     'clab_policy%': "utilization",
     'clab_threshold%': -1,
-    'size_classes_2mb%': -1,
+    'size_classes_1mb%': -1,
   },
   'conditions': [
     ['<(unit_tests)!=-1', {
@@ -143,9 +143,9 @@
             'CLAB_THRESHOLD=<(clab_threshold)'
           ]
         }],
-        ['<(size_classes_2mb)!=-1', {
+        ['<(size_classes_1mb)!=-1', {
           'defines': [
-            'SZ_2MB'
+            'SZ_1MB'
           ]
         }],
       ],
