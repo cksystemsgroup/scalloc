@@ -145,7 +145,7 @@
         }],
         ['<(size_classes_2mb)!=-1', {
           'defines': [
-            SZ_2MB
+            'SZ_2MB'
           ]
         }],
       ],
