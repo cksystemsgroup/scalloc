@@ -10,6 +10,8 @@
 #include <linux/futex.h>
 #include <sys/syscall.h>
 
+#include "scalloc_assert.h"
+
 
 inline int futex_wait(int* uaddr, int val1) {
   return syscall(SYS_futex, uaddr, FUTEX_WAIT, val1, NULL, NULL, 0);
