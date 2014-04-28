@@ -36,7 +36,7 @@ inline void* LargeAllocator::Alloc(size_t size) {
   size = utils::PadSize(size + sizeof(LargeObjectHeader), kPageSize);
   size_t actual_size;
   uintptr_t p = reinterpret_cast<uintptr_t>(
-      scalloc::SystemAlloc_Mmap(size, &actual_size));
+      scalloc::SystemAlloc_Mmap(size, &actual_size, false));
   if (UNLIKELY(p % kPageSize != 0)) {
     Fatal("large malloc alignment failed");
   }

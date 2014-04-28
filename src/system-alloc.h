@@ -14,7 +14,7 @@ namespace scalloc {
 //
 // Also stores the actual allocation size in actual_size, if a non-NULL pointer
 // is provided.
-void* SystemAlloc_Mmap(size_t size, size_t* actual_size);
+void* SystemAlloc_Mmap(size_t size, size_t* actual_size, bool huge);
 
 // Frees a memory block that has previously been allocated with
 // SystemAlloc_Mmap().

@@ -14,7 +14,7 @@
 
 namespace scalloc {
 
-void* SystemAlloc_Mmap(size_t size, size_t* actual_size) {
+void* SystemAlloc_Mmap(size_t size, size_t* actual_size, bool huge=false) {
   // pad size to some multiple of the system page size
   size = utils::PadSize(size, kPageSize);
 
@@ -24,9 +24,14 @@ void* SystemAlloc_Mmap(size_t size, size_t* actual_size) {
 
   const int prot = PROT_READ | PROT_WRITE;
   int flags = MAP_PRIVATE | MAP_ANONYMOUS;
+  if (huge) {
+    flags |= MAP_HUGETLB;
+  }
+  /*
 #ifdef HUGE_PAGE
   flags |= MAP_HUGETLB;
 #endif  // HUGE_PAGE
+*/
 
   void* p = mmap(0, size, prot, flags, -1, 0);
   if (reinterpret_cast<void*>(p) == MAP_FAILED) {

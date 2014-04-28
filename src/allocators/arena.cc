@@ -13,8 +13,12 @@ void Arena::Init(const size_t size) {
   // Allocates an arena of size bytes also aligning the arena to size.
   size_ = size;
   // Allocate and align start_ to kVirtualSpanSize.
+  bool huge = false;
+#ifdef HUGE_PAGE
+  huge = true;
+#endif
   start_ = reinterpret_cast<uintptr_t>(SystemAlloc_Mmap(
-               size_ + kVirtualSpanSize, NULL));
+               size_ + kVirtualSpanSize, NULL, huge));
   // Align the start address.
   start_ += kVirtualSpanSize - (start_ % kVirtualSpanSize);
   cur_.store(start_);
