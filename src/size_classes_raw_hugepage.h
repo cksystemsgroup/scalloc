@@ -36,6 +36,7 @@
   SIZE_CLASS(20, 4096, VSPAN_SIZE, ((VSPAN_SIZE - sizeof(SpanHeader))/4096)) /* NOLINT */ \
   SIZE_CLASS(21, 8192, VSPAN_SIZE, ((VSPAN_SIZE - sizeof(SpanHeader))/8192)) /* NOLINT */ \
   SIZE_CLASS(22, 16384, VSPAN_SIZE, ((VSPAN_SIZE - sizeof(SpanHeader))/16384)) /* NOLINT */ \
-  SIZE_CLASS(23, 32768, VSPAN_SIZE, ((VSPAN_SIZE - sizeof(SpanHeader))/32768)) /* NOLINT */
+  SIZE_CLASS(23, 32768, VSPAN_SIZE, ((VSPAN_SIZE - sizeof(SpanHeader))/32768)) /* NOLINT */ \
+  SIZE_CLASS(24, 65536, VSPAN_SIZE, ((VSPAN_SIZE - sizeof(SpanHeader))/65536)) /* NOLINT */
 
 #endif  // SCALLOC_SIZE_CLASSES_RAW_HUGEPAGE_H_
