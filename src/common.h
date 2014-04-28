@@ -13,10 +13,11 @@
 #ifdef HUGE_PAGE
 
 #define HUGEPAGE_SIZE (1UL << 21)
+#define VSPAN_SIZE 65536
 
 const size_t kMaxSmallShift = 8;  // 256B
-const size_t kMaxMediumShift = 14;  // 16k
-const size_t kVirtualSpanShift = 16;  // 64k
+const size_t kMaxMediumShift = 15;  // 32k
+const size_t kVirtualSpanShift = 16;  // 2MiB
 #else  // no huge pages
 const size_t kMaxSmallShift = 8;  // 256B
 const size_t kMaxMediumShift = 20;  // 1MiB
