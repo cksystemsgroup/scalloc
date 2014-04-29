@@ -394,6 +394,7 @@ void* ScallocCore<MODE>::AllocateNoSlab(const size_t sc) {
     } else {
       if ((SpanHeader::GetFromObject(p)->aowner.owner % utils::Parallelism()) !=
               (id_ % utils::Parallelism())) {
+        PROFILER_NO_CLEANUP(sc);
         Refill(sc);
       }
     }

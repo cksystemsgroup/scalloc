@@ -15,6 +15,7 @@
 #define PROFILER_BLOCKPOOL_GET(sc)
 #define PROFILER_BLOCKPOOL_EMPTY_GET(sc)
 #define PROFILER_STEAL()
+#define PROFILER_NO_CLEANUP(sc)
 
 #else  // PROFILER
 
@@ -40,6 +41,7 @@
 #define PROFILER_BLOCKPOOL_GET(sc) PROFILER_.BlockPoolGet()
 #define PROFILER_BLOCKPOOL_EMPTY_GET(sc) PROFILER_.BlockPoolEmptyGet()
 #define PROFILER_STEAL() PROFILER_.Steal()
+#define PROFILER_NO_CLEANUP(sc) PROFILER_.NoCleanup()
 
 namespace scalloc {
 
@@ -57,6 +59,7 @@ class Profiler {
   inline void BlockPoolPut();
   inline void BlockPoolGet();
   inline void BlockPoolEmptyGet();
+  inline void NoCleanup();
   inline void Steal();
   inline void Print();
 
@@ -72,6 +75,7 @@ class Profiler {
   uint64_t block_pool_get_;
   uint64_t block_pool_empty_get_;
   uint64_t steal_;
+  uint64_t no_cleanup_;
 };
 
 
@@ -92,6 +96,7 @@ void Profiler::Reset() {
   block_pool_get_ = 0;
   block_pool_empty_get_ = 0;
   steal_ = 0;
+  no_cleanup_ = 0;
   updates_ = 0;
 }
 
@@ -105,6 +110,7 @@ void Profiler::Update(Profiler* other) {
   block_pool_get_ += other->block_pool_get_;
   block_pool_empty_get_ += other->block_pool_empty_get_;
   steal_ += other->steal_;
+  no_cleanup_ += other->no_cleanup_;
 }
 
 
@@ -120,6 +126,10 @@ void Profiler::SpanPoolPut() {
   span_pool_put_++;
 }
 
+
+void Profiler::NoCleanup() {
+  no_cleanup_++;
+}
 
 void Profiler::SpanPoolGet() {
   span_pool_get_++;
@@ -156,6 +166,7 @@ void Profiler::Print() {
       "  'block_pool_get': %lu\n"
       "  'block_pool_empty_get': %lu\n"
       "  'steal': %lu\n"
+      "  'no_cleanup': %lu\n"
       "}\n",
       updates_,
       span_pool_put_,
@@ -163,7 +174,8 @@ void Profiler::Print() {
       block_pool_put_,
       block_pool_get_,
       block_pool_empty_get_,
-      steal_);
+      steal_,
+      no_cleanup_);
 }
 
 }  // namespace scalloc
