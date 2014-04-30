@@ -32,7 +32,6 @@ void* BlockPool::Allocate(const size_t sc,
                           SpanHeader** block) {
   *block = NULL;
   void* p = dqs_[sc].DequeueStartAt(start_at % utils::Parallelism());
-  /*
   if (p != NULL) {
     // We found an object, let's try to steal the whole block.
     SpanHeader* hdr = SpanHeader::GetFromObject(p);
@@ -49,7 +48,6 @@ void* BlockPool::Allocate(const size_t sc,
       LOG(kTrace, "[BlockPool] steal successful: %p", hdr);
     }
   }
-  */
 
   return p;
 }
