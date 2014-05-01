@@ -37,6 +37,11 @@
   SIZE_CLASS(19, 2048, RSPAN_SIZE, ((RSPAN_SIZE - sizeof(SpanHeader))/2048)) /* NOLINT */ \
   SIZE_CLASS(20, 4096, RSPAN_SIZE, ((RSPAN_SIZE - sizeof(SpanHeader))/4096)) /* NOLINT */ \
   SIZE_CLASS(21, 8192, RSPAN_SIZE, ((RSPAN_SIZE - sizeof(SpanHeader))/8192)) /* NOLINT */ \
-  SIZE_CLASS(22, 16384, RSPAN_SIZE, ((RSPAN_SIZE - sizeof(SpanHeader))/16384)) /* NOLINT */
+  SIZE_CLASS(22, 16384, RSPAN_SIZE, ((RSPAN_SIZE - sizeof(SpanHeader))/16384)) /* NOLINT */ \
+  SIZE_CLASS(23, 32768, RSPAN_SIZE, ((RSPAN_SIZE - sizeof(SpanHeader))/32768)) /* NOLINT */ \
+  SIZE_CLASS(24, 65536, RSPAN_SIZE, ((RSPAN_SIZE - sizeof(SpanHeader))/65536)) /* NOLINT */ \
+  SIZE_CLASS(25, 131072, RSPAN_SIZE, ((RSPAN_SIZE - sizeof(SpanHeader))/131072)) /* NOLINT */ \
+  SIZE_CLASS(26, 262144, RSPAN_SIZE, ((RSPAN_SIZE - sizeof(SpanHeader))/262144)) /* NOLINT */ \
+  SIZE_CLASS(27, 524288, RSPAN_SIZE, ((RSPAN_SIZE - sizeof(SpanHeader))/524288)) /* NOLINT */
 
 #endif  // SCALLOC_SIZE_CLASSES_RAW_TEST_

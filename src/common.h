@@ -19,9 +19,15 @@ const size_t kMaxSmallShift = 8;  // 256B
 const size_t kMaxMediumShift = 16;  // 64k
 const size_t kVirtualSpanShift = 17;  // 128k
 #else  // no huge pages
+#ifdef SZ_1MB
+const size_t kMaxSmallShift = 8;  // 256B
+const size_t kMaxMediumShift = 19;  // 1MiB
+const size_t kVirtualSpanShift = 20;  // 2MiB
+#else
 const size_t kMaxSmallShift = 8;  // 256B
 const size_t kMaxMediumShift = 20;  // 1MiB
 const size_t kVirtualSpanShift = 21;  // 2MiB
+#endif  // SZ_1MB
 #endif  // HUGE_PAGE
 
 const size_t kMinAlignment = 16;

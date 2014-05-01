@@ -13,7 +13,7 @@
 #include "size_classes_raw_1mb.h"
 #else
 #include "size_classes_raw.h"
-#endif  // SZ_2MB
+#endif  // SZ_1MB
 #endif  // HUGE_PAGE
 
 namespace scalloc {
