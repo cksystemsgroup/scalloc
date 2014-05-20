@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset=utf-8 />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>scalloc</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+    <style type="text/css">
+
+      .ribbon-parent {
+        position:relative;
+        overflow:hidden
+      }
+
+      .ribbon {
+        background-color: #080;
+        overflow: hidden;
+        position: absolute;
+        top: 2.5em;
+        right: -3em;
+        -moz-transform: rotate(45deg);
+        -webkit-transform: rotate(45deg);
+        -moz-box-shadow: 0 0 1em #888;
+        -webkit-box-shadow: 0 0 1em #888;
+      }
+
+      .ribbon a {
+        border: 1px solid #8d8;
+        color: #fff;
+        display: block;
+        font: bold 81.25% 'Helvetiva Neue', Helvetica, Arial, sans-serif;
+        margin: 0.05em 0 0.075em 0;
+        padding: 0.5em 3.5em;
+        text-align: center;
+        text-decoration: none;
+        /* shadow */
+        text-shadow: 0 0 0.5em #444;
+      }
+
+      body { padding-top: 50px; }
+
+      footer {
+        font-size: small;
+        text-align: center;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+      }
+
+    </style>
+
+  </head>
+  <body>
+
+
+    <nav class="navbar navbar-default navbar-fixed-top navbar-inverse" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="http://scalloc.cs.uni-salzburg.at">scalloc</a>
+        </div><!-- /.navbar-header -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+            <li><a href="#people">People</a></li>
+            <li><a href="#code">Code</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="http://cs.uni-salzburg.at/~ck">Computational Systems Group</a></li>
+	        </ul>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container -->
+    </nav>
+
+
+    <div class="container">
+
+      <div class="page-header">
+        <h1>scalloc <small>A Fast, Multicore-Scalable, Low-Memory-Overhead Allocator</small></h1>
+      </div><!-- /.page-header -->
+
+      <div class="row">
+
+        <div class="col-md-12">
+
+          <p>
+Scalloc is a new concurrent memory allocator that actively utilizes recently
+developed efficient and scalable concurrent data structures. Global concurrent
+data structures have long been considered performance and scalability
+bottlenecks. Hence, many existing allocators aim at minimizing the use of such.
+Scalloc, in contrast, freely uses global data structures for reusing memory and
+benefits of the existence of new efficient and scalable ones. In terms of
+performance and scalability, scalloc is comparable to the best existing
+allocators. In terms of memory consumption, it outperforms the best scalable
+allocators. The improvement in memory consumption is enabled by the efficiency
+of the global data structures, which let scalloc do more work in less time.
+Scalloc also borrows commonly used concepts in memory management like
+size-class partitioned memory and private heaps. In addition, scalloc
+introduces a new idea of virtual spans for uniform treatment of small and big
+objects without increased memory fragmentation.
+          </p>
+
+          <h2 id="people">People</h2>
+          <ul>
+            <li><a href="http://cs.uni-salzburg.at/~maigner/">Martin Aigner</a></li>
+            <li><a href="http://cs.uni-salzburg.at/~ck/">Christoph Kirsch</a></li>
+            <li><a href="http://cs.uni-salzburg.at/~mlippautz/">Michael Lippautz</a></li>
+            <li><a href="http://cs.uni-salzburg.at/~anas/">Ana Sokolova</a></li>
+          </ul>
+
+          <h2 id="code">
+            Code
+            <a href="https://drone.io/github.com/cksystemsgroup/scalloc/latest">
+	            <img src="https://drone.io/github.com/cksystemsgroup/scalloc/status.png" />
+			      </a>
+          </h2>
+
+          <p>
+            All code is realeased under a
+            <a href="https://github.com/cksystemsgroup/scalloc/blob/master/LICENSE">
+            BSD style license</a> and can be found on
+            <a href="https://github.com/cksystemsgroup/scalloc">github</a>.
+            Consult the
+            <a href="https://github.com/cksystemsgroup/scalloc/blob/master/README.md">
+              README</a> file for instructions on how to build and integrate
+              scalloc.
+          </p>
+        </div><!-- /.col-md-12 -->
+      </div><!-- /.row -->
+
+
+      <footer>
+        <p> &copy;
+          <a href="http://cs.uni-salzburg.at/~ck">Computational Systems
+          Group</a> 2014.
+          Website built with <a href="http://getbootstrap.com/" target="_blank">
+          Bootstrap</a>.
+        </p>
+      </footer>
+
+
+    </div> <!-- /container -->
+  </body>
+</html>
