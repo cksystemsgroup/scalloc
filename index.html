@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>scalloc</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
@@ -45,7 +46,7 @@
       footer {
         font-size: small;
         text-align: center;
-        margin-top: 10px;
+        margin-top: 20px;
         padding-top: 10px;
         border-top: 1px solid #eee;
       }
@@ -70,8 +71,7 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
             <li class="active"><a href="#"><span class="glyphicon glyphicon-home"></span> Home</a></li>
-            <li><a href="#people">People</a></li>
-            <li><a href="#code">Code</a></li>
+            <li><a href="https://github.com/cksystemsgroup/scalloc"><span class="fa fa-github"></span> Code</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="http://cs.uni-salzburg.at/~ck">Computational Systems Group</a></li>
@@ -83,14 +83,14 @@
 
     <div class="container">
 
+
       <div class="page-header">
         <h1>scalloc <small>A Fast, Multicore-Scalable, Low-Memory-Overhead Allocator</small></h1>
       </div><!-- /.page-header -->
 
+
       <div class="row">
-
         <div class="col-md-12">
-
           <p>
 Scalloc is a new concurrent memory allocator that actively utilizes recently
 developed efficient and scalable concurrent data structures. Global concurrent
@@ -107,7 +107,49 @@ size-class partitioned memory and private heaps. In addition, scalloc
 introduces a new idea of virtual spans for uniform treatment of small and big
 objects without increased memory fragmentation.
           </p>
+        </div><!-- /.col-md-12 -->
+      </div><!-- /.row -->
 
+
+      <div class="row">
+        <div class="col-md-12">
+          <h2>Experiments</h2>
+          <p>
+            Among other workloads, we use
+            <a href="http://acdc.cs.uni-salzburg.at/">ACDC</a>
+            to evaluate various performance characteristics of scalloc and
+            state-of-the-art competitors. The figures below show the
+            performance and scalability (left) and memory consumption (right) in
+            a workloadd that involves allocation, deallocation, and sharing
+            among threads.
+          </p>
+        </div><!-- /.col-md-12 -->
+      </div><!-- /.row -->
+
+
+      <div class="row">
+        <div class="col-md-1">
+        </div>
+        <div class="col-md-5">
+          <h3 class="text-center">Performance</h3>
+          <img src="assets/benchmarks/combined.png" class="img-responsive" />
+        </div><!-- /.col-md-12 -->
+        <div class="col-md-5">
+          <h3 class="text-center">Memory Consumption</h3>
+          <img src="assets/benchmarks/memcons.png" class="img-responsive" />
+        </div><!-- /.col-md-12 -->
+      </div><!-- /.row -->
+
+
+      <div class="row">
+        <div class="col-md-12">
+          <img src="assets/benchmarks/legend.png" class="img-responsive" />
+        </div><!-- /.col-md-12 -->
+      </div><!-- /.row -->
+
+
+      <div class="row">
+        <div class="col-md-12">
           <h2 id="people">People</h2>
           <ul>
             <li><a href="http://cs.uni-salzburg.at/~maigner/">Martin Aigner</a></li>
@@ -115,14 +157,18 @@ objects without increased memory fragmentation.
             <li><a href="http://cs.uni-salzburg.at/~mlippautz/">Michael Lippautz</a></li>
             <li><a href="http://cs.uni-salzburg.at/~anas/">Ana Sokolova</a></li>
           </ul>
+        </div><!-- /.col-md-12 -->
+      </div><!-- /.row -->
 
+
+      <div class="row">
+        <div class="col-md-12">
           <h2 id="code">
             Code
             <a href="https://drone.io/github.com/cksystemsgroup/scalloc/latest">
-	            <img src="https://drone.io/github.com/cksystemsgroup/scalloc/status.png" />
-			      </a>
+              <img src="https://drone.io/github.com/cksystemsgroup/scalloc/status.png" />
+            </a>
           </h2>
-
           <p>
             All code is realeased under a
             <a href="https://github.com/cksystemsgroup/scalloc/blob/master/LICENSE">
@@ -141,12 +187,15 @@ objects without increased memory fragmentation.
         <p> &copy;
           <a href="http://cs.uni-salzburg.at/~ck">Computational Systems
           Group</a> 2014.
-          Website built with <a href="http://getbootstrap.com/" target="_blank">
-          Bootstrap</a>.
+          Website built with
+          <a href="http://getbootstrap.com/" target="_blank">Bootstrap</a>,
+          <a href="http://jquery.com/">jQuery</a>, and
+          <a href="http://fortawesome.github.io/">Font Awesome</a>.
         </p>
       </footer>
 
 
     </div> <!-- /container -->
+
   </body>
 </html>
