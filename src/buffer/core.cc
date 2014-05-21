@@ -74,11 +74,16 @@ void CoreBuffer::DestroyBuffers() {
 }
 
 
-void CoreBuffer::ThreadDestructor(void* core_buffer) {
+void CoreBuffer::ThreadDestructor(void* core_id) {
   __sync_fetch_and_sub(&active_threads_, 1);
 #if defined(CLAB_THREADS)
   active_threads_threshold_ = active_threads_ * (kDrift + 100)/num_cores_;
 #endif  // CLAG_ACTIVE_THREADS
+  CoreBuffer* buffer = buffers_[reinterpret_cast<uint64_t>(core_id) - 1];
+  uint64_t old = __sync_fetch_and_sub(&buffer->num_threads_, 1);
+  if (old == 1) {
+    buffer->ClearSpans(buffer->Allocator());
+  }
 }
 
 
@@ -86,6 +91,11 @@ void CoreBuffer::UpdateSleeping() {
   sleeping_threads_ = allocator_->SleepingThreads();
   average_sleeping_threads_ = CalculateAverageSleeping() * (kDrift + 100) / num_cores_;
   migratable_ = average_sleeping_threads_ >= (sleeping_threads_ * 100);
+}
+
+
+void CoreBuffer::ClearSpans(ScallocCore<LockMode::kSizeClassLocked>* allocator) {
+  allocator->FreeAllSizeClasses();
 }
 
 }

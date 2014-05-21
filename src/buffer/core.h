@@ -54,6 +54,7 @@ class CoreBuffer {
   static void ThreadDestructor(void* core_buffer);
 
   explicit CoreBuffer(uint64_t core_id);
+  void ClearSpans(ScallocCore<LockMode::kSizeClassLocked>* allocator);
 
   static uint64_t num_cores_;
   static uint64_t thread_counter_;
@@ -75,10 +76,13 @@ class CoreBuffer {
 
 
 inline CoreBuffer& CoreBuffer::GetBuffer(int64_t prefered_core) {
+  bool add_cnt = false;
+  int64_t remove_from = -1;
   uint64_t core_id = reinterpret_cast<uint64_t>(pthread_getspecific(core_key)) - 1;
   if (core_id == static_cast<uint64_t>(-1)) {
     // New thread joins the system.
     __sync_fetch_and_add(&active_threads_, 1);
+    add_cnt = true;
 
 #if defined(CLAB_UTILIZATION)
     if (prefered_core != -1 && buffers_[prefered_core]->migratable_) {
@@ -91,8 +95,6 @@ inline CoreBuffer& CoreBuffer::GetBuffer(int64_t prefered_core) {
     if ((prefered_core != -1) &&
         (active_threads_threshold_ >= (100 *buffers_[prefered_core]->num_threads_))) {
       core_id = prefered_core;
-      __sync_fetch_and_sub(&buffers_[core_id]->num_threads_, 1);
-      __sync_fetch_and_add(&buffers_[prefered_core]->num_threads_, 1);
     } else {
       core_id = __sync_fetch_and_add(&thread_counter_, 1) % num_cores_;
     }
@@ -108,7 +110,8 @@ inline CoreBuffer& CoreBuffer::GetBuffer(int64_t prefered_core) {
 #if defined(CLAB_UTILIZATION)
     if (prefered_core != -1 && static_cast<uint64_t>(prefered_core) != core_id) {
       if (buffers_[prefered_core]->migratable_) {
-        //LOG(kWarning, "migrating");
+        add_cnt = true;
+        remove_from = static_cast<int64_t>(core_id);
         core_id = prefered_core;
         pthread_setspecific(core_key, (void*)(core_id+1));
       }
@@ -116,9 +119,9 @@ inline CoreBuffer& CoreBuffer::GetBuffer(int64_t prefered_core) {
 #elif defined(CLAB_THREADS)
     if (prefered_core != -1 && static_cast<uint64_t>(prefered_core) != core_id) {
       if (active_threads_threshold_ >= (100*buffers_[prefered_core]->num_threads_)) {
+        add_cnt = true;
+        remove_from = static_cast<int64_t>(core_id);
         core_id = prefered_core;
-        __sync_fetch_and_sub(&buffers_[core_id]->num_threads_, 1);
-        __sync_fetch_and_add(&buffers_[prefered_core]->num_threads_, 1);
         pthread_setspecific(core_key, (void*)(core_id+1));
       } 
     }
@@ -130,6 +133,15 @@ inline CoreBuffer& CoreBuffer::GetBuffer(int64_t prefered_core) {
 
   CoreBuffer* buffer = buffers_[core_id];
   if (LIKELY(buffer != NULL)) {
+    if (add_cnt) {
+      __sync_fetch_and_add(&buffer->num_threads_, 1);
+      if (remove_from != -1) {
+        uint64_t old = __sync_fetch_and_sub(&buffers_[remove_from]->num_threads_, 1);
+        if (old == 1) {
+          buffers_[remove_from]->ClearSpans(buffers_[remove_from]->Allocator());
+        }
+      }
+    }
     return *buffer;
   }
   buffer = NewIfNecessary(core_id);

@@ -42,6 +42,9 @@ class ScallocCore {
 
   void* Allocate(const size_t size);
   void Free(void* p, SpanHeader* hdr);
+  void FreeSizeClass(size_t sc);
+  void FreeAllSizeClasses();
+  void LocalFreeSizeClass(size_t sc);
 
 #ifdef __linux__
   // raceful
@@ -126,8 +129,8 @@ inline ScallocCore<MODE>::ScallocCore(const uint64_t id) : id_(id) {
 
 template<LockMode MODE>
 inline void ScallocCore<MODE>::AddCoolSpan(const size_t sc,
-                                              SpanHeader* span) {
-  LOG(kTrace, "[ScallocCore] adding to list of cool spans %p", span);
+                                           SpanHeader* span) {
+  LOG_CAT("scalloc-core", kTrace, "adding to list of cool spans %p", span);
   span->prev = NULL;
   span->next = cool_spans_[sc];
   if (cool_spans_[sc] != NULL) {
@@ -139,8 +142,8 @@ inline void ScallocCore<MODE>::AddCoolSpan(const size_t sc,
 
 template<LockMode MODE>
 inline void ScallocCore<MODE>::RemoveCoolSpan(const size_t sc,
-                                                 SpanHeader* span) {
-  LOG(kTrace, "[ScallocCore] removing from list of cool spans %p", span);
+                                              SpanHeader* span) {
+  LOG_CAT("scalloc-core", kTrace, "removing from list of cool spans %p", span);
   if (span->prev != NULL) {
     reinterpret_cast<SpanHeader*>(span->prev)->next = span->next;
   }
@@ -157,7 +160,7 @@ inline void ScallocCore<MODE>::RemoveCoolSpan(const size_t sc,
 
 template<LockMode MODE>
 inline void ScallocCore<MODE>::AddSlowSpan(const size_t sc,
-                                              SpanHeader* span) {
+                                           SpanHeader* span) {
 #ifdef REUSE_SLOW_SPANS
   ListNode* n = node_allocator.New();
   n->prev = NULL;
@@ -173,7 +176,7 @@ inline void ScallocCore<MODE>::AddSlowSpan(const size_t sc,
 
 template<LockMode MODE>
 inline void ScallocCore<MODE>::RemoveSlowSpan(const size_t sc,
-                                                 SpanHeader* span) {
+                                              SpanHeader* span) {
 #ifdef REUSE_SLOW_SPANS
   ListNode* n = slow_spans_[sc];
   while (n != NULL) {
@@ -198,10 +201,10 @@ inline void ScallocCore<MODE>::RemoveSlowSpan(const size_t sc,
 
 template<LockMode MODE>
 inline void ScallocCore<MODE>::SetActiveSlab(const size_t sc,
-                                                const SpanHeader* hdr) {
+                                             const SpanHeader* hdr) {
   // Prepend current hot span to the list of cool spans.
   if (hot_span_[sc] != NULL) {
-    LOG(kTrace, "{%lu} hot span -> cool span %p, utilization: %lu",
+    LOG_CAT("scalloc-core", kTrace, "{%lu} hot span -> cool span %p, utilization: %lu",
         sc, hot_span_[sc], hot_span_[sc]->Utilization());
     AddCoolSpan(sc, hot_span_[sc]);
   }
@@ -273,6 +276,72 @@ inline void ScallocCore<LockMode::kSizeClassLocked>::Free(
   }
   if (!success) {
     RemoteFreeInSizeClass(sc, p, hdr);
+  }
+}
+
+
+template<LockMode MODE>
+inline void ScallocCore<MODE>::LocalFreeSizeClass(size_t sc) {
+  SpanHeader* cur;
+  // Hot span.
+  cur = hot_span_[sc];
+  if (cur != NULL) {
+    if (cur->flist.Full()) {
+      SpanPool::Instance().Put(cur, cur->size_class, cur->aowner.owner);
+    } else {
+      cur->aowner.active = false;
+    }
+    hot_span_[sc] = NULL;
+  }
+
+  // Cool spans.
+  cur = reinterpret_cast<SpanHeader*>(cool_spans_[sc]);
+  SpanHeader* tmp;
+  while (cur != NULL) {
+    tmp = cur;
+    cur = reinterpret_cast<SpanHeader*>(cur->next);
+    MemoryBarrier();
+    tmp->next = NULL;
+    tmp->prev = NULL;
+    tmp->aowner.active = false;
+  }
+  cool_spans_[sc] = NULL;
+
+#ifdef REUSE_SLOW_SPANS
+  // Slow spans.
+  ListNode* tmp2;
+  ListNode* n = slow_spans_[sc];
+  while (n != NULL) {
+    tmp2 = n;
+    n = n->next;
+    node_allocator.Delete(tmp2);
+  }
+  slow_spans_[sc]= NULL;
+#endif  // REUSE_SLOW_SPANS
+}
+
+
+template<>
+inline void ScallocCore<LockMode::kLocal>::FreeSizeClass(size_t sc) {
+  LocalFreeSizeClass(sc);
+}
+
+
+template<>
+inline void ScallocCore<LockMode::kSizeClassLocked>::FreeSizeClass(size_t sc) {
+#ifdef __linux__
+  FastLockScope(size_class_lock_[sc]);
+#else
+  LockScopePthread(size_class_lock_[sc]);
+#endif  // __linux__
+  LocalFreeSizeClass(sc);
+}
+
+
+template<LockMode MODE>
+inline void ScallocCore<MODE>::FreeAllSizeClasses() {
+  for (size_t i = 0; i < kNumClasses; i++) {
+    FreeSizeClass(i);
   }
 }
 
@@ -457,55 +526,7 @@ void ScallocCore<MODE>::Refill(const size_t sc) {
 template<LockMode MODE>
 void ScallocCore<MODE>::Destroy(ScallocCore* thiz) {
   LOG_CAT("scalloc-core", kTrace, "destroying allocator");
-  // Destroying basically means giving up hot and cool spans.  Remotely freed
-  // blocks keep the span in the system, i.e., it is not released from the
-  // allocator. This is similar to keeping a buffer of objects. Spans will
-  // eventually be reused, since they are globally available, i.e., stealable.
-
-  SpanHeader* cur;
-  for (size_t i = 0; i < kNumClasses; i++) {
-    // Hot spans.
-    if (thiz->hot_span_[i] != NULL) {
-      cur = thiz->hot_span_[i];
-      if (cur->flist.Full()) {
-#ifdef MADVISE_SAME_THREAD
-        SpanPool::Instance().Put(cur, cur->size_class, cur->aowner.owner);
-#else
-        Collector::Put(cur);
-#endif  // MADVISE_SAME_THREAD
-      } else {
-        thiz->hot_span_[i]->aowner.active = false;
-      }
-    }
-    thiz->hot_span_[i] = NULL;
-
-    // Cool spans.
-    cur = reinterpret_cast<SpanHeader*>(thiz->cool_spans_[i]);
-    SpanHeader* tmp;
-    while (cur != NULL) {
-      LOG_CAT("scalloc-core", kTrace, "making span global %p", cur);
-      tmp = cur;
-      cur = reinterpret_cast<SpanHeader*>(cur->next);
-      MemoryBarrier();
-      tmp->next = NULL;
-      tmp->prev = NULL;
-      tmp->aowner.active = false;
-    }
-    thiz->cool_spans_[i] = NULL;
-
-#ifdef REUSE_SLOW_SPANS
-    // Slow spans.
-    ListNode* tmp2;
-    ListNode* n = thiz->slow_spans_[i];
-    while (n != NULL) {
-      tmp2 = n;
-      n = n->next;
-      thiz->node_allocator.Delete(tmp2);
-    }
-    thiz->slow_spans_[i]= NULL;
-#endif  // REUSE_SLOW_SPANS
-  }
-
+  thiz->FreeAllSizeClasses();
   ScallocCore::allocator->Delete(thiz);
 }
 
