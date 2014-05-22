@@ -68,7 +68,7 @@ class TypedAllocator {
     void* result = free_list_.Pop();
 
     if (result == NULL) {
-      LockScope(refill_lock_);
+      SpinLockScope(refill_lock_);
 
       result = free_list_.Pop();
       if (result == NULL) {

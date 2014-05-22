@@ -168,6 +168,7 @@
         'src/fast_lock.h',
         'src/freelist-inl.h',
         'src/headers.h',
+        'src/lock_linux-inl.h',
         'src/lock_utils-inl.h',
         'src/log.cc',
         'src/log.h',

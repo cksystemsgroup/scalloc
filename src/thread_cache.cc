@@ -31,7 +31,7 @@ __thread TLS_MODE ThreadCache* ThreadCache::tl_cache_;
 
 
 void ThreadCache::Init() {
-  LockScope(g_threadcache_lock);
+  SpinLockScope(g_threadcache_lock);
 
   if (!module_init_) {
     g_threadcache_alloc.Init(kPageSize, 64, "thread_cache_alloc");
@@ -80,7 +80,7 @@ ThreadCache* ThreadCache::NewIfNecessary() {
   const pthread_t me = pthread_self();
   ThreadCache* cache = NULL;
   {
-    LockScope(g_threadcache_lock);
+    SpinLockScope(g_threadcache_lock);
 
     // pthread_setspecific may call into malloc.
     for (ThreadCache* c = thread_caches_; c != NULL; c = c->next_) {
@@ -138,7 +138,7 @@ void ThreadCache::DestroyThreadCache(void* p) {
 #endif  // PROFILER
 
   {
-    LockScope(g_threadcache_lock);
+    SpinLockScope(g_threadcache_lock);
 
     ThreadCache* prev = NULL;
     for (ThreadCache* c = thread_caches_; c != NULL; c = c->next_) {

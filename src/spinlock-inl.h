@@ -45,7 +45,7 @@ class SpinLock {
   DISALLOW_COPY_AND_ASSIGN(SpinLock);
 };
 
-#define LockScope(lock)                                                        \
+#define SpinLockScope(lock)                                                    \
   SpinLockHolder holder(&lock);                                                \
   __asm__ __volatile__("" : : : "memory");
 
