@@ -1,8 +1,8 @@
 #include "buffer/core.h"
 
 #include "allocators/scalloc_core-inl.h"
+#include "allocators/typed_allocator.h"
 #include "common.h"
-#include "typed_allocator.h"
 #include "utils.h"
 
 namespace {

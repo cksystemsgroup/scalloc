@@ -7,11 +7,11 @@
 
 #include <cstdlib>
 
+#include "allocators/typed_allocator.h"
 #include "common.h"
 #include "locked_stack-inl.h"  // Backend: LockedStack
 #include "random.h"
 #include "stack-inl.h"  // Backend: Stack
-#include "typed_allocator.h"
 
 #define MAX_BACKENDS 120
 

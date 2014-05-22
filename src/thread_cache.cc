@@ -7,9 +7,9 @@
 #include <new>
 
 #include "allocators/scalloc_core-inl.h"
+#include "allocators/typed_allocator.h"
 #include "lock_utils-inl.h"
 #include "scalloc_assert.h"
-#include "typed_allocator.h"
 
 namespace {
 

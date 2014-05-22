@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2013, the scalloc Project Authors.  All rights reserved.
+// Copyright (c) 2012-2014, the scalloc Project Authors.  All rights reserved.
 // Please see the AUTHORS file for details.  Use of this source code is governed
 // by a BSD license that can be found in the LICENSE file.
 
@@ -9,10 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "assert.h"
 #include "common.h"
 #include "lock_utils-inl.h"
 #include "scalloc_arenas.h"
+#include "scalloc_assert.h"
 #include "stack-inl.h"
 #include "utils.h"
 
@@ -54,7 +54,7 @@ class TypedAllocator {
   }
 
   void* Refill() {
-    LOG(kTrace, "[TypedAllocator:%s] refilling", name_);
+    LOG_CAT("typed-alloc", kTrace, "%s: refilling", name_);
     void* result = InternalArena.Allocate(alloc_increment_);
     uintptr_t ptr = reinterpret_cast<uintptr_t>(result) + tsize_;
     for (size_t i = 1; i < (alloc_increment_ / tsize_); i++) {
