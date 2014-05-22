@@ -204,8 +204,9 @@ inline void ScallocCore<MODE>::SetActiveSlab(const size_t sc,
                                              const SpanHeader* hdr) {
   // Prepend current hot span to the list of cool spans.
   if (hot_span_[sc] != NULL) {
-    LOG_CAT("scalloc-core", kTrace, "{%lu} hot span -> cool span %p, utilization: %lu",
-        sc, hot_span_[sc], hot_span_[sc]->Utilization());
+    LOG_CAT("scalloc-core", kTrace,
+            "{%lu} hot span -> cool span %p, utilization: %lu",
+            sc, hot_span_[sc], hot_span_[sc]->Utilization());
     AddCoolSpan(sc, hot_span_[sc]);
   }
 

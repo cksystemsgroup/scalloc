@@ -14,7 +14,7 @@
 
 namespace scalloc {
 
-void* SystemAlloc_Mmap(size_t size, size_t* actual_size, bool huge=false) {
+void* SystemAlloc_Mmap(size_t size, size_t* actual_size, bool huge = false) {
   // pad size to some multiple of the system page size
   size = utils::PadSize(size, kPageSize);
 

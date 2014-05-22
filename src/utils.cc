@@ -106,7 +106,7 @@ int64_t ReadProcEntry(const int fd, const char* entry_name) {
       memset(&line, 0, char_cnt);  // Reset line buffer.
       if (strcmp(line, entry_name) == 0) {
         // Found entry.
-        if (read(fd, &c, 1) != 1) { // Read away ':'.
+        if (read(fd, &c, 1) != 1) {  // Read away ':'.
           Fatal("unexpected eof");
         }
         SkipUntil(fd, '\n', line);
