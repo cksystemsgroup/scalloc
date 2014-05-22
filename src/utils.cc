@@ -6,6 +6,7 @@
 
 #include <errno.h>
 #include <string.h>
+#include <sys/mman.h>  // mmap
 #include <unistd.h>
 
 #include "common.h"
@@ -71,6 +72,37 @@ size_t Parallelism() {
     }
   }
   return parallelism;
+}
+
+
+void* SystemMmap(size_t size, size_t* actual_size, bool huge) {
+  // pad size to some multiple of the system page size
+  size = utils::PadSize(size, kPageSize);
+
+  if (actual_size) {
+    *actual_size = size;
+  }
+
+  const int prot = PROT_READ | PROT_WRITE;
+  int flags = MAP_PRIVATE | MAP_ANONYMOUS;
+  if (huge) {
+    flags |= MAP_HUGETLB;
+  }
+  void* p = mmap(0, size, prot, flags, -1, 0);
+  if (reinterpret_cast<void*>(p) == MAP_FAILED) {
+    Fatal("mmap failed. size: %lu, errno: %lu\n", size, errno);
+  }
+  ScallocAssert(reinterpret_cast<uintptr_t>(p) % kPageSize == 0);
+  return p;
+}
+
+
+void SystemMunmap(void* p, const size_t actual_size) {
+  if (munmap(p, actual_size) != 0) {
+    if (reinterpret_cast<void*>(p) == MAP_FAILED) {
+      Fatal("munmap failed. p: %p, errno: %lu\n", p, errno);
+    }
+  }
 }
 
 

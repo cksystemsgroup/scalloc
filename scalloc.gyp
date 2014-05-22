@@ -175,8 +175,6 @@
         'src/size_classes.h',
         'src/spinlock-inl.h',
         'src/stack-inl.h',
-        'src/system-alloc.cc',
-        'src/system-alloc.h',
         'src/thread_cache.cc',
         'src/thread_cache.h',
         'src/typed_allocator.h',

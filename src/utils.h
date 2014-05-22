@@ -47,6 +47,9 @@ size_t Parallelism();
 
 int64_t ReadProcEntry(const int fd, const char* entry_name);
 
+void* SystemMmap(size_t size, size_t* actual_size, bool huge = false);
+void SystemMunmap(void* p, const size_t actual_size);
+
 }  // namespace utils
 }  // namespace scalloc
 

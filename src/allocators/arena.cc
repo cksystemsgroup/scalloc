@@ -5,7 +5,7 @@
 #include "allocators/arena.h"
 
 #include "common.h"
-#include "system-alloc.h"
+#include "utils.h"
 
 namespace scalloc {
 
@@ -17,7 +17,7 @@ void Arena::Init(const size_t size) {
 #ifdef HUGE_PAGE
   huge = true;
 #endif
-  start_ = reinterpret_cast<uintptr_t>(SystemAlloc_Mmap(
+  start_ = reinterpret_cast<uintptr_t>(utils::SystemMmap(
                size_ + kVirtualSpanSize, NULL, huge));
   // Align the start address.
   start_ += kVirtualSpanSize - (start_ % kVirtualSpanSize);
