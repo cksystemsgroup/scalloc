@@ -1,108 +1,64 @@
 #!/bin/bash
 
-# Custom script for ACDC to build many different flavors of scalloc.
-#
-# Usage:
+# Setup:
 # * Check out and prepare ACDC as described in
 #     github.com/cksystemsgroup/acdc
-# * Download install_scalloc.sh into the top-level ACDC directory.
-#     https://github.com/cksystemsgroup/scalloc/blob/master/tools/install_scalloc.sh
-# * Run ./install_allocators scalloc
+# * Check out and prepare scalloc as described in 
+#     github.com/cksystemsgroup/scalloc
+# * Assuming assuming scalloc/ and acdc/ sub directories:
+#     cd acdc/
+#     ln -s ../scalloc/tools/install_scalloc.sh install_scalloc.sh
+#     ./install_allocators scalloc
 
-rm -rf scalloc
-git clone git@github.com:cksystemsgroup/scalloc.git
-cd scalloc/
+rm -rf libscalloc*
+
+if [ -d scalloc ]; then
+  cd scalloc
+  git pull
+  rm -rf out
+else
+  git clone https://github.com/cksystemsgroup/scalloc.git
+  cd scalloc/
+  rm -rf out
+fi
+
 tools/make_deps.sh
 
-build/gyp/gyp --depth=. -Deager_madvise_threshold=65536 scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-eager.so
+BUILD_OPTS="-j 80"
 
-build/gyp/gyp --depth=. -D core_local=1 scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-core-local.so
+export BUILDTYPE=Release
+export V=1
 
-build/gyp/gyp --depth=. -D max_backends=1 -D dq_backend=LockedStack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-1-locked.so
+function build_config() {
+  name=$1
+  params=$2
 
-build/gyp/gyp --depth=. -D max_backends=5 -D dq_backend=LockedStack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-5-locked.so
 
-build/gyp/gyp --depth=. -D max_backends=10 -D dq_backend=LockedStack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-10-locked.so
+  build/gyp/gyp --depth=. $params scalloc.gyp
+  make $BUILD_OPTS
+  cp out/Release/lib.target/libscalloc.so out/Release/${name}.so
+  ln -s scalloc/out/Release/${name}.so ../${name}.so
+  ln -s scalloc/out/Release/${name}.so ../${name}.so.0
+}
 
-build/gyp/gyp --depth=. -D max_backends=20 -D dq_backend=LockedStack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-20-locked.so
 
-build/gyp/gyp --depth=. -D max_backends=40 -D dq_backend=LockedStack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-40-locked.so
-
-build/gyp/gyp --depth=. -D max_backends=80 -D dq_backend=LockedStack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-80-locked.so
-
-build/gyp/gyp --depth=. -D max_backends=1 -D dq_backend=Stack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-1-lockfree.so
-
-build/gyp/gyp --depth=. -D max_backends=5 -D dq_backend=Stack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-5-lockfree.so
-
-build/gyp/gyp --depth=. -D max_backends=10 -D dq_backend=Stack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-10-lockfree.so
-
-build/gyp/gyp --depth=. -D max_backends=20 -D dq_backend=Stack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-20-lockfree.so
-
-build/gyp/gyp --depth=. -D max_backends=40 -D dq_backend=Stack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-40-lockfree.so
-
-build/gyp/gyp --depth=. -D max_backends=80 -D dq_backend=Stack scalloc.gyp
-BUILDTYPE=Release V=1 make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc-80-lockfree.so
-
-./build/gyp/gyp --depth=. scalloc.gyp
-BUILDTYPE=Release make
-cp out/Release/lib.target/libscalloc.so out/Release/libscalloc.so
+build_config "libscalloc-eager" "-D core_local=1 -D clab_policy=rr -D eager_madvise_threshold=4096 -D incremental_freelist=1"
+build_config "libscalloc-core-local" "-D core_local=1 -D clab_policy=utilization"
+build_config "libscalloc-core-local-1mb" "-D core_local=1 -D clab_policy=rr  -D size_classes_1mb=1 -D eager_madvise_threshold=4096"
+build_config "libscalloc-active-threads" "-D core_local=1 -D clab_policy=threads"
+build_config "libscalloc-static" "-D core_local=1 -D clab_policy=rr"
+build_config "libscalloc-hugepage" "-D core_local=1 -D clab_policy=rr -D huge_pages=1 -D incremental_freelist=1" 
+build_config "libscalloc-eager-reuse" "-D core_local=1 -D clab_policy=rr -D enable_slow_span_reuse=1"
+build_config "libscalloc-lazy-init" "-D core_local=1 -D clab_policy=rr -D enable_free_list_reuse=1"
+build_config "libscalloc-tlab" "-D core_local=-1 -D clab_policy=rr"
+for i in 1 2 4 8 16 32 64
+do
+  echo "test: $i"
+  build_config "libscalloc-$i-locked" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=LockedStack"
+  build_config "libscalloc-$i-lockfree" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=Stack"
+  build_config "libscalloc-$i-locked-profile" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=LockedStack -D profile=1"
+  build_config "libscalloc-$i-lockfree-profile" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=Stack -D profile=1"
+done
 
 cd ..
-rm -rf libscalloc*
-ln -s scalloc/out/Release/libscalloc.so libscalloc.so
-ln -s scalloc/out/Release/libscalloc.so libscalloc.so.0
-ln -s scalloc/out/Release/libscalloc-eager.so libscalloc-eager.so
-ln -s scalloc/out/Release/libscalloc-eager.so libscalloc-eager.so.0
-ln -s scalloc/out/Release/libscalloc-core-local.so libscalloc-core-local.so
-ln -s scalloc/out/Release/libscalloc-core-local.so libscalloc-core-local.so.0
-ln -s scalloc/out/Release/libscalloc-1-locked.so libscalloc-1-locked.so
-ln -s scalloc/out/Release/libscalloc-1-locked.so libscalloc-1-locked.so.0
-ln -s scalloc/out/Release/libscalloc-5-locked.so libscalloc-5-locked.so
-ln -s scalloc/out/Release/libscalloc-5-locked.so libscalloc-5-locked.so.0
-ln -s scalloc/out/Release/libscalloc-10-locked.so libscalloc-10-locked.so
-ln -s scalloc/out/Release/libscalloc-10-locked.so libscalloc-10-locked.so.0
-ln -s scalloc/out/Release/libscalloc-20-locked.so libscalloc-20-locked.so
-ln -s scalloc/out/Release/libscalloc-20-locked.so libscalloc-20-locked.so.0
-ln -s scalloc/out/Release/libscalloc-40-locked.so libscalloc-40-locked.so
-ln -s scalloc/out/Release/libscalloc-40-locked.so libscalloc-40-locked.so.0
-ln -s scalloc/out/Release/libscalloc-80-locked.so libscalloc-80-locked.so
-ln -s scalloc/out/Release/libscalloc-80-locked.so libscalloc-80-locked.so.0
-ln -s scalloc/out/Release/libscalloc-1-lockfree.so libscalloc-1-lockfree.so
-ln -s scalloc/out/Release/libscalloc-1-lockfree.so libscalloc-1-lockfree.so.0
-ln -s scalloc/out/Release/libscalloc-5-lockfree.so libscalloc-5-lockfree.so
-ln -s scalloc/out/Release/libscalloc-5-lockfree.so libscalloc-5-lockfree.so.0
-ln -s scalloc/out/Release/libscalloc-10-lockfree.so libscalloc-10-lockfree.so
-ln -s scalloc/out/Release/libscalloc-10-lockfree.so libscalloc-10-lockfree.so.0
-ln -s scalloc/out/Release/libscalloc-20-lockfree.so libscalloc-20-lockfree.so
-ln -s scalloc/out/Release/libscalloc-20-lockfree.so libscalloc-20-lockfree.so.0
-ln -s scalloc/out/Release/libscalloc-40-lockfree.so libscalloc-40-lockfree.so
-ln -s scalloc/out/Release/libscalloc-40-lockfree.so libscalloc-40-lockfree.so.0
-ln -s scalloc/out/Release/libscalloc-80-lockfree.so libscalloc-80-lockfree.so
-ln -s scalloc/out/Release/libscalloc-80-lockfree.so libscalloc-80-lockfree.so.0
+
