@@ -118,11 +118,21 @@ Similar to preloading on Linux, one can preload scalloc using
 
 ## Benchmarking
 
-Scalloc is tested and evaluated using several different benchmarks and
+scalloc is tested and evaluated using several different benchmarks and
 workloads:
-
+ˇ
 * [ACDC](acdc.cs.uni-salzburg.at)
 * https://github.com/cksystemsgroup/mm-harness
+
+### Building scalloc for ACDC
+
+To set up several configurations of scalloc within ACDC just execute the
+following commands
+
+    git clone https://github.com/cksystemsgroup/acdc
+    cd acdc/
+    curl -O https://raw.githubusercontent.com/cksystemsgroup/scalloc/master/tools/install_scalloc.sh
+    ./install_allocators.sh scalloc
 
 ## License
 
