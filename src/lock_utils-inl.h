@@ -5,6 +5,8 @@
 #ifndef SCALLOC_LOCK_UTILS_INL_H_
 #define SCALLOC_LOCK_UTILS_INL_H_
 
+#include "spinlock-inl.h"
+
 #ifdef __linux__
 
 #include "lock_linux-inl.h"

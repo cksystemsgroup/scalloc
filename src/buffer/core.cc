@@ -2,7 +2,6 @@
 
 #include "allocators/scalloc_core-inl.h"
 #include "common.h"
-#include "spinlock-inl.h"
 #include "typed_allocator.h"
 #include "utils.h"
 

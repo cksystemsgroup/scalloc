@@ -7,7 +7,7 @@
 #include <new>
 
 #include "allocators/scalloc_core-inl.h"
-#include "spinlock-inl.h"
+#include "lock_utils-inl.h"
 #include "scalloc_assert.h"
 #include "typed_allocator.h"
 
