@@ -87,7 +87,7 @@ const size_t kEagerMadviseThreshold = EAGER_MADVISE_THRESHOLD;
 #endif  // MAX_PARALLELISM
 
 #if !defined(CLAB_UTILIZATION) && !defined(CLAB_THREADS) && !defined(CLAB_RR)
-#define CLAB_UTILIZATION 1
+#define CLAB_RR 1
 #endif  // !CLAB_UTILIZATION && !CLAB_THREADS && !CLAB_RR
 
 namespace scalloc {
