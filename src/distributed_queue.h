@@ -19,8 +19,6 @@
 #define BACKEND_TYPE Stack
 #endif  // BACKEND_TYPE
 
-//#define DQ_NON_LIN 1
-
 namespace scalloc {
 
 class DistributedQueue {

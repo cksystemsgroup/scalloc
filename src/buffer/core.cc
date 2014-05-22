@@ -1,3 +1,7 @@
+// Copyright (c) 2014, the scalloc Project Authors.  All rights reserved.
+// Please see the AUTHORS file for details.  Use of this source code is governed
+// by a BSD license that can be found in the LICENSE file.
+//
 #include "buffer/core.h"
 
 #include "allocators/scalloc_core-inl.h"
@@ -64,7 +68,8 @@ CoreBuffer* CoreBuffer::NewIfNecessary(uint64_t core_id) {
 void CoreBuffer::DestroyBuffers() {
   for (uint64_t i = 0; i < kMaxCores; i++) {
     if (buffers_[i] != NULL) {
-      ScallocCore<LockMode::kSizeClassLocked>::Destroy(buffers_[i]->Allocator()); 
+      ScallocCore<LockMode::kSizeClassLocked>::Destroy(
+          buffers_[i]->Allocator());
 #ifdef PROFILER
       buffers_[i]->profiler_.Report();
 #endif  // PROFILER
@@ -88,13 +93,15 @@ void CoreBuffer::ThreadDestructor(void* core_id) {
 
 void CoreBuffer::UpdateSleeping() {
   sleeping_threads_ = allocator_->SleepingThreads();
-  average_sleeping_threads_ = CalculateAverageSleeping() * (kDrift + 100) / num_cores_;
+  average_sleeping_threads_ =
+      CalculateAverageSleeping() * (kDrift + 100) / num_cores_;
   migratable_ = average_sleeping_threads_ >= (sleeping_threads_ * 100);
 }
 
 
-void CoreBuffer::ClearSpans(ScallocCore<LockMode::kSizeClassLocked>* allocator) {
+void CoreBuffer::ClearSpans(
+    ScallocCore<LockMode::kSizeClassLocked>* allocator) {
   allocator->FreeAllSizeClasses();
 }
 
-}
+}  // namespace scalloc
