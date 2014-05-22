@@ -10,7 +10,6 @@
     'small_space%': -1,
     'eager_madvise_threshold%': -1,
     'incremental_freelist%': 1,
-    'madvise_strategy%': "same-thread",
     'enable_slow_span_reuse%': -1,
     'enable_free_list_reuse%': -1,
     'core_local%': -1,
@@ -99,15 +98,6 @@
             'src/buffer/core.h',
           ]
         }],
-        ['"<(madvise_strategy)"=="same-thread"', {
-          'defines': [
-            'MADVISE_SAME_THREAD'
-          ]
-        }, {
-          'defines': [
-            'MADVISE_SEPARATE_THREAD'
-          ]
-        }],
         ['<(profile)!=0', {
           'defines': [
             'PROFILER'
@@ -160,8 +150,6 @@
         'src/allocators/span_pool.h',
         'src/assert.h',
         'src/atomic.h',
-        'src/collector.cc',
-        'src/collector.h',
         'src/common.h',
         'src/distributed_queue.cc',
         'src/distributed_queue.h',

@@ -13,7 +13,6 @@
 #include "allocators/arena.h"
 #include "allocators/block_pool.h"
 #include "assert.h"
-#include "collector.h"
 #include "common.h"
 #include "headers.h"
 #include "list-inl.h"
@@ -350,12 +349,8 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
           (hdr->Utilization() < kSpanReuseThreshold)) {
         if (UNLIKELY(hdr->flist.Full())) {
           RemoveCoolSpan(sc, hdr);
-#ifdef MADVISE_SAME_THREAD
           PROFILER_SPANPOOL_PUT(sc);
           SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
-#else
-          Collector::Put(hdr);
-#endif  // MADVISE_SAME_THREAD
         } else {
           RemoveCoolSpan(sc, hdr);
           AddSlowSpan(sc, hdr);
@@ -380,12 +375,8 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
       if (hdr->flist.Full()) {
         LOG(kTrace, "{%lu}  returning span: %p", sc, hdr);
         RemoveSlowSpan(sc, hdr);
-#ifdef MADVISE_SAME_THREAD
         PROFILER_SPANPOOL_PUT(sc);
         SpanPool::Instance().Put(hdr, hdr->size_class, hdr->aowner.owner);
-#else
-        Collector::Put(hdr);
-#endif  // MADVISE_SAME_THREAD
         return true;
       }
 
