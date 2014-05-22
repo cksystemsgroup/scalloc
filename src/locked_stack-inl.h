@@ -5,7 +5,7 @@
 #ifndef SCALLOC_LOCKED_STACK_INL_H_
 #define SCALLOC_LOCKED_STACK_INL_H_
 
-#include "fast_lock.h"
+#include "lock_utils-inl.h"
 
 class LockedStack {
  public:
@@ -21,7 +21,7 @@ class LockedStack {
   uint64_t GetState();
 
  private:
-  FastLock stack_lock_;
+  Lock stack_lock_;
   void* top_;
   uint64_t tag_;
 };
@@ -45,7 +45,7 @@ inline void* LockedStack::Get() {
 
 
 inline void LockedStack::Push(void* p) {
-  FastLockScope(stack_lock_);
+  LockScope(stack_lock_);
 
   *(reinterpret_cast<void**>(p)) = top_;
   top_ = p;
@@ -54,7 +54,7 @@ inline void LockedStack::Push(void* p) {
 
 
 inline void* LockedStack::Pop() {
-  FastLockScope(stack_lock_);
+  LockScope(stack_lock_);
 
   if (top_ == NULL) {
     return NULL;
@@ -68,7 +68,7 @@ inline void* LockedStack::Pop() {
 
 
 inline void* LockedStack::PopRecordState(uint64_t* state) {
-  FastLockScope(stack_lock_);
+  LockScope(stack_lock_);
 
   if (top_ == NULL) {
     *state = tag_;

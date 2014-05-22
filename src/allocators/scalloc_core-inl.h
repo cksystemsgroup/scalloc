@@ -16,7 +16,6 @@
 #include "collector.h"
 #include "common.h"
 #include "headers.h"
-#include "fast_lock.h"
 #include "list-inl.h"
 #include "lock_utils-inl.h"
 #include "profiler.h"

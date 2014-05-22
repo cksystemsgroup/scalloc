@@ -8,7 +8,7 @@
 namespace {
 
 cache_aligned scalloc::TypedAllocator<scalloc::CoreBuffer> core_buffer_alloc;
-cache_aligned FastLock new_buffer_lock;
+cache_aligned Lock new_buffer_lock;
 
 }
 
@@ -52,7 +52,7 @@ CoreBuffer::CoreBuffer(uint64_t core_id) {
 
 
 CoreBuffer* CoreBuffer::NewIfNecessary(uint64_t core_id) {
-  FastLockScope(new_buffer_lock);
+  LockScope(new_buffer_lock);
 
   if (buffers_[core_id] == NULL) {
     buffers_[core_id] = new(core_buffer_alloc.New()) CoreBuffer(core_id);
