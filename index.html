@@ -92,20 +92,22 @@
       <div class="row">
         <div class="col-md-12">
           <p>
-Scalloc is a new concurrent memory allocator that actively utilizes recently
-developed efficient and scalable concurrent data structures. Global concurrent
-data structures have long been considered performance and scalability
-bottlenecks. Hence, many existing allocators aim at minimizing the use of such.
-Scalloc, in contrast, freely uses global data structures for reusing memory and
-benefits of the existence of new efficient and scalable ones. In terms of
-performance and scalability, scalloc is comparable to the best existing
-allocators. In terms of memory consumption, it outperforms the best scalable
-allocators. The improvement in memory consumption is enabled by the efficiency
-of the global data structures, which let scalloc do more work in less time.
-Scalloc also borrows commonly used concepts in memory management like
-size-class partitioned memory and private heaps. In addition, scalloc
-introduces a new idea of virtual spans for uniform treatment of small and big
-objects without increased memory fragmentation.
+Scalloc is a new, scalable memory allocator that utilizes recently developed
+efficient and scalable concurrent data structures. Global concurrent data 
+structures have long been considered performance and scalability bottlenecks. 
+Hence, many existing allocators minimize their use. Scalloc, in contrast, 
+incorporates concurrent data structures to manage free lists globally. Scalloc 
+performs comparable to the fastest allocators that we considered, for low 
+numbers of threads, and otherwise outperforms and outscales all allocators. In 
+terms of memory consumption, it outperforms the best scalable allocators. The 
+improvements in scalability and memory consumption are enabled by the scalable
+design of scalloc and the efficiency and scalability of the global data
+structures, which let scalloc do more work in less time. Scalloc also borrows
+commonly used concepts in memory management like size-class-partitioned memory
+and local allocation buffers. In addition, scalloc introduces a new idea 
+called virtual spans for uniform treatment of small and big objects without
+increased memory fragmentation and an experimental feature called allocator
+migration for dynamically balancing data structure contention.
           </p>
         </div><!-- /.col-md-12 -->
       </div><!-- /.row -->
