@@ -20,6 +20,7 @@
 #include "profiler.h"
 #include "span_pool.h"
 #include "size_classes.h"
+#include "utils.h"
 
 #ifdef POLICY_CORE_LOCAL
 #include "buffer/core.h"
@@ -49,7 +50,7 @@ class ScallocCore {
   uint64_t SleepingThreads() {
     uint64_t cnt = 0;
     for (size_t i = 0; i < kNumClasses; i++) {
-      cnt += size_class_lock_[i].SleepingThreads();
+      cnt += size_class_lock_[i].Waiting();
     }
     return cnt;
   }
@@ -336,8 +337,13 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
   // back to its block starting address.
   const uintptr_t blocksize_fixed_p =
       reinterpret_cast<uintptr_t>(p) - hdr->flist_aligned_blocksize_offset;
-  p = reinterpret_cast<void*>(
-      reinterpret_cast<uintptr_t>(p) - (blocksize_fixed_p % ClassToSize[sc]));
+  if (utils::IsPowerOfTwo(ClassToSize[sc])) {
+    p = reinterpret_cast<void*>(
+        reinterpret_cast<uintptr_t>(p) - (blocksize_fixed_p & (ClassToSize[sc]-1)));
+  } else {
+    p = reinterpret_cast<void*>(
+        reinterpret_cast<uintptr_t>(p) - (blocksize_fixed_p % ClassToSize[sc]));
+  }
 
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used span.
