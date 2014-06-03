@@ -13,7 +13,7 @@
 #include "random.h"
 #include "stack-inl.h"  // Backend: Stack
 
-#define MAX_BACKENDS 120
+#define MAX_BACKENDS 128
 
 #ifndef BACKEND_TYPE
 #define BACKEND_TYPE Stack
@@ -47,6 +47,7 @@ class DistributedQueue {
 
   // Number of backends.
   size_t p_;
+  size_t p_mask_;
 
   // The actual DQ backends.
   Backend* backends_[kMaxBackends];
@@ -57,34 +58,34 @@ class DistributedQueue {
 
 
 inline void DistributedQueue::Enqueue(void* p) {
-  size_t start = static_cast<size_t>(hwrand()) % p_;
+  size_t start = static_cast<size_t>(hwrand()) & p_mask_;
   EnqueueAt(p, start);
 }
 
 
 inline void DistributedQueue::EnqueueAt(void* p, const size_t backend_id) {
-  backends_[backend_id % p_]->Put(p);
+  backends_[backend_id & p_mask_]->Put(p);
 }
 
 
 inline void* DistributedQueue::Dequeue() {
-  size_t start = static_cast<size_t>(hwrand()) % p_;
+  size_t start = static_cast<size_t>(hwrand()) & p_mask_;
   return DequeueStartAt(start);
 }
 
 
 inline void* DistributedQueue::DequeueOnlyAt(const size_t backend_id) {
-  return backends_[backend_id % p_]->Pop();
+  return backends_[backend_id  & p_mask_]->Pop();
 }
 
 
 #ifdef DQ_NON_LIN
 inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
   void* result;
-  size_t start = first_backend_id % p_;
+  size_t start = first_backend_id & p_mask_;
   size_t i;
   for (size_t _cnt = 0; _cnt < p_; _cnt++) {
-    i = (_cnt + start) % p_;
+    i = (_cnt + start) & p_mask_;
     if ((result = backends_[i]->Pop()) != NULL) {
       return result;
     }
@@ -97,20 +98,20 @@ inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
 #ifndef DQ_NON_LIN
 inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
   void* result;
-  size_t start = first_backend_id % p_;
+  size_t start = first_backend_id & p_mask_;
   State state;
   size_t i;
   while (true) {
  GET_RETRY:
     for (size_t _cnt = 0; _cnt < p_; _cnt++) {
-      i = (_cnt + start) % p_;
+      i = (_cnt + start) & p_mask_;
       if ((result = backends_[i]->PopRecordState(
               &(state.backend_states[i]))) != NULL) {
         return result;
       }
     }
     for (size_t _cnt = 0; _cnt < p_; _cnt++) {
-      i = (_cnt + start) % p_;
+      i = (_cnt + start) & p_mask_;
       if (state.backend_states[i] != backends_[i]->GetState()) {
         start = i;
         goto GET_RETRY;
