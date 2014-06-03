@@ -57,6 +57,7 @@ size_t Cpus() {
     }
     cpus = static_cast<size_t>(ret);
   }
+  ScallocAssert(cpus != 0);
   return cpus;
 }
 
