@@ -16,23 +16,35 @@ typedef FutexLock Lock;
 #else
 
 #include <pthread.h>
+#include <atomic>
 
 class PthreadLock {
  public:
   inline void Init() {
-    pthread_mutex_init(&mutex, NULL);
+    pthread_mutex_init(&mutex_, NULL);
+    waiting_ = 0;
   }
 
   inline void Lock() {
-    pthread_mutex_lock(&mutex_);
+    if (pthread_mutex_trylock(&mutex_) != 0) {
+      waiting_.fetch_add(1, std::memory_order_relaxed);
+      pthread_mutex_lock(&mutex_);
+      waiting_.fetch_sub(1, std::memory_order_relaxed);
+    }
   }
 
   inline void Unlock() {
     pthread_mutex_unlock(&mutex_);
   }
 
+  inline uint_fast64_t Waiting() {
+    return waiting_.load(std::memory_order_relaxed);
+    return 0;
+  }
+
  private:
   pthread_mutex_t mutex_;
+  std::atomic<uint_fast64_t> waiting_;
 };
 
 typedef PthreadLock Lock;
