@@ -27,6 +27,7 @@ class CoreBuffer {
   static const uint64_t kDrift = CLAB_THRESHOLD;
 
   static void Init();
+  static bool Enabled() { return enabled_; }
   static void DestroyBuffers();
   static CoreBuffer& GetBuffer(int64_t prefered_core = -1);
   static size_t Id();
@@ -56,6 +57,7 @@ class CoreBuffer {
   explicit CoreBuffer(uint64_t core_id);
   void ClearSpans(ScallocCore<LockMode::kSizeClassLocked>* allocator);
 
+  static bool enabled_;
   static uint64_t num_cores_;
   static uint64_t thread_counter_;
   static uint64_t active_threads_;

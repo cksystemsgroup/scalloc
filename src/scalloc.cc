@@ -137,6 +137,7 @@ void* malloc(const size_t size) {
 #endif  // POLICY_THREAD_LOCAL
 #ifdef POLICY_CORE_LOCAL
   if (LIKELY(size <= kMaxMediumSize &&
+      CoreBuffer::Enabled() &&
       ScallocCore<LockMode::kSizeClassLocked>::Enabled())) {
     p = CoreBuffer::GetBuffer().Allocator()->Allocate(size);
 #endif  // POLICY_CORE_LOCAL

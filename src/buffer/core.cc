@@ -18,6 +18,7 @@ cache_aligned Lock new_buffer_lock;
 
 namespace scalloc {
 
+bool CoreBuffer::enabled_;
 uint64_t CoreBuffer::num_cores_;
 pthread_key_t CoreBuffer::core_key;
 pthread_key_t CoreBuffer::op_key;
@@ -41,6 +42,7 @@ void CoreBuffer::Init() {
   pthread_key_create(&core_key, CoreBuffer::ThreadDestructor);
   pthread_key_create(&op_key, NULL);
   average_sleeping_threads_ = 0;
+  enabled_ = true;
 }
 
 
