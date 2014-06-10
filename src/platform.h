@@ -10,6 +10,8 @@
 #define UNLIKELY(x)   __builtin_expect((x), 0)
 #define LIKELY(x)     __builtin_expect((x), 1)
 
+#define always_inline inline __attribute__((always_inline))
+
 #define CACHELINE_SIZE 64
 #define cache_aligned __attribute__((aligned(64)))
 
@@ -31,12 +33,12 @@ const size_t kPageShift = 12;
 const size_t kPageSize = 1UL << kPageShift;
 
 // Prohibit reordering of instructions by the compiler.
-inline void CompilerBarrier() {
+always_inline void CompilerBarrier() {
   __asm__ __volatile__("" : : : "memory");
 }
 
 // Full memory fence on x86-64
-inline void MemoryBarrier() {
+always_inline void MemoryBarrier() {
   __asm__ __volatile__("mfence" : : : "memory");
 }
 
