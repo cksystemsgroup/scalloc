@@ -208,6 +208,7 @@ inline void ScallocCore<MODE>::SetActiveSlab(const size_t sc,
 template<>
 inline void* ScallocCore<LockMode::kLocal>::Allocate(const size_t size) {
   const size_t sc = SizeToClass(size);
+  PROFILER_ALLOC(sc);
   return AllocateInSizeClass(sc);
 }
 
@@ -217,6 +218,7 @@ inline void* ScallocCore<LockMode::kSizeClassLocked>::Allocate(
     const size_t size) {
   const size_t sc = SizeToClass(size);
   LockScope(size_class_lock_[sc]);
+  PROFILER_ALLOC(sc);
   return AllocateInSizeClass(sc);
 }
 
@@ -347,6 +349,7 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
 
   if (hdr->aowner.raw == me_active_) {
       // Local free for the currently used span.
+      PROFILER_DEALLOC(sc, (hdr == cur_sc_hdr) ? 0 : 1);
       hdr->flist.Push(p);
       LOG(kTrace, "[ScallocCore] free in active local block at %p, "
                   "block: %p, sc: %lu, utilization: %lu",
@@ -365,6 +368,7 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
       }
       return true;
   } else if (hdr->aowner.raw == me_inactive_) {
+    PROFILER_DEALLOC(sc, 2);
     // Local free in already globally available span.
     if (__sync_bool_compare_and_swap(
           &hdr->aowner.raw, me_inactive_, me_active_)) {
