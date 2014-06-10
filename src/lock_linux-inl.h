@@ -24,7 +24,8 @@ class FutexLock {
   }
 
   inline void Lock() {
-    if (__sync_bool_compare_and_swap(&lockword_, kFree , kUncontended)) {
+    if (lockword_ == kFree && 
+        __sync_bool_compare_and_swap(&lockword_, kFree , kUncontended)) {
       // uncontended
       return;
     }
