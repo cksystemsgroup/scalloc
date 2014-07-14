@@ -25,7 +25,7 @@
 #include "utils.h"
 
 #ifdef POLICY_CORE_LOCAL
-#include "buffer/core.h"
+#include "buffer/lab.h"
 #endif  // POLICY_CORE_LOCAL
 
 #ifdef POLICY_THREAD_LOCAL
@@ -44,12 +44,13 @@ cache_aligned Profiler GlobalProfiler;
 // Allocators for internal data structures.
 cache_aligned TypedAllocator<DistributedQueue::Backend> dq_backend_allocator;
 #ifdef POLICY_THREAD_LOCAL
-cache_aligned TypedAllocator<ScallocCore<LockMode::kLocal>>
+cache_aligned TypedAllocator<ScallocCore>
     small_allocator_allocator;
 #endif  // POLICY_THREAD_LOCAL
 #ifdef POLICY_CORE_LOCAL
-cache_aligned TypedAllocator<ScallocCore<LockMode::kSizeClassLocked>>
+cache_aligned TypedAllocator<ScallocCore>
     small_allocator_allocator;
+cache_aligned RRAllocationBuffer ab;
 #endif  // POLICY_CORE_LOCAL
 
 
@@ -60,7 +61,7 @@ void exit_func() {
   scalloc::ThreadCache::DestroyRemainingCaches();
 #endif  // POLICY_THREAD_LOCAL
 #ifdef POLICY_CORE_LOCAL
-  scalloc::CoreBuffer::DestroyBuffers();
+  //scalloc::CoreBuffer::DestroyBuffers();
 #endif  // POLICY_CORE_LOCAL
 #ifdef PROFILER
   scalloc::GlobalProfiler.Print();
@@ -99,7 +100,7 @@ ScallocGuard::ScallocGuard() {
 #ifdef POLICY_THREAD_LOCAL
     scalloc::small_allocator_allocator.Init(
         kPageSize * 4, 64, "small_allocator_allocator");
-    scalloc::ScallocCore<scalloc::LockMode::kLocal>::Init(
+    scalloc::ScallocCore::Init(
         &scalloc::small_allocator_allocator);
     scalloc::ThreadCache::Init();
 #endif  // POLICY_THRAED_LOCAL
@@ -107,9 +108,10 @@ ScallocGuard::ScallocGuard() {
 #ifdef POLICY_CORE_LOCAL
     scalloc::small_allocator_allocator.Init(
         kPageSize * 4, 64, "small_allocator_allocator");
-    scalloc::ScallocCore<scalloc::LockMode::kSizeClassLocked>::Init(
+    scalloc::ScallocCore::Init(
         &scalloc::small_allocator_allocator);
-    scalloc::CoreBuffer::Init();
+    //scalloc::CoreBuffer::Init();
+    scalloc::ab.Init();
 #endif  // POLICY_CORE_LOCAL
 
     free(malloc(1));
@@ -132,14 +134,23 @@ void* malloc(const size_t size) {
   void* p;
 #ifdef POLICY_THREAD_LOCAL
   if (LIKELY(size <= kMaxMediumSize &&
-      ScallocCore<LockMode::kLocal>::Enabled())) {
-    p = ThreadCache::GetCache().Allocator()->Allocate(size);
+      ScallocCore::Enabled())) {
+    p = ThreadCache::GetCache().Allocator()->AllocateUnlocked(size);
 #endif  // POLICY_THREAD_LOCAL
 #ifdef POLICY_CORE_LOCAL
+    /*
   if (LIKELY(size <= kMaxMediumSize &&
       CoreBuffer::Enabled() &&
       ScallocCore<LockMode::kSizeClassLocked>::Enabled())) {
     p = CoreBuffer::GetBuffer().Allocator()->Allocate(size);
+    */
+  if (LIKELY(size <= kMaxMediumSize &&
+      ab.Enabled() &&
+      ScallocCore::Enabled())) {
+    AllocationBuffer& b = ab.GetAllocationBuffer(NULL);
+    p = b.Allocator()->Allocate(size);
+    b.Release();
+    //p = ab.GetAllocationBuffer(NULL).Allocator()->Allocate(size);
 #endif  // POLICY_CORE_LOCAL
   } else {
     p = LargeAllocator::Alloc(size);
@@ -159,10 +170,12 @@ void free(void* p) {
   LOG(kTrace, "free: %p", p);
   if (LIKELY(SmallArena.Contains(p))) {
 #ifdef POLICY_THREAD_LOCAL
-    ThreadCache::GetCache().Allocator()->Free(p, SpanHeader::GetFromObject(p));
+    ThreadCache::GetCache().Allocator()->FreeUnlocked(p, SpanHeader::GetFromObject(p));
 #endif  // POLICY_THREAD_LOCAL
 #ifdef POLICY_CORE_LOCAL
-    CoreBuffer::GetBuffer(CoreBuffer::OwnerOf(p)).Allocator()->Free(p, SpanHeader::GetFromObject(p));
+    AllocationBuffer& b = ab.GetAllocationBuffer(NULL);
+    b.Allocator()->Free(p,SpanHeader::GetFromObject(p));
+    b.Release();
 #endif  // POLICY_CORE_LOCAL
   } else {
     LargeAllocator::Free(LargeObjectHeader::GetFromObject(p));
@@ -353,9 +366,11 @@ int scalloc_mallopt(int cmd, int value) __THROW {
 }
 
 #ifdef POLICY_CORE_LOCAL
+/*
 size_t malloc_core_id() {
   return scalloc::CoreBuffer::Id();
 }
+*/
 #endif  // POLICY_CORE_LOCAL
 
 }

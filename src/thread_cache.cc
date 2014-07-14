@@ -54,7 +54,7 @@ void ThreadCache::Init() {
 ThreadCache* ThreadCache::New(pthread_t owner) {
   const uint64_t allocator_id = __sync_fetch_and_add(&g_thread_id, 1);
   ThreadCache* cache = new(g_threadcache_alloc.New()) ThreadCache(
-      ScallocCore<LockMode::kLocal>::New(allocator_id),
+      ScallocCore::New(allocator_id),
       owner,
       thread_caches_);
   thread_caches_ = cache;
@@ -62,7 +62,7 @@ ThreadCache* ThreadCache::New(pthread_t owner) {
 }
 
 
-ThreadCache::ThreadCache(ScallocCore<LockMode::kLocal>* allocator,
+ThreadCache::ThreadCache(ScallocCore* allocator,
                          pthread_t owner,
                          ThreadCache* next) {
   alloc_ = allocator;
@@ -132,7 +132,7 @@ void ThreadCache::DestroyThreadCache(void* p) {
 #endif  // HAVE_TLS
 
   ThreadCache* cache = reinterpret_cast<ThreadCache*>(p);
-  ScallocCore<LockMode::kLocal>::Destroy(cache->Allocator());
+  ScallocCore::Destroy(cache->Allocator());
 #ifdef PROFILER
   cache->profiler_.Report();
 #endif  // PROFILER

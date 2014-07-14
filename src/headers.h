@@ -22,11 +22,11 @@ enum BlockType {
 struct ActiveOwner {
   inline ActiveOwner() {}
 
-  inline ActiveOwner(const bool active, const uint64_t owner) {
+  always_inline ActiveOwner(const bool active, const uint64_t owner) {
     Reset(active, owner);
   }
 
-  inline void Reset(const bool active, const uint64_t owner) {
+  always_inline void Reset(const bool active, const uint64_t owner) {
     this->active = active;
     this->owner = owner;
   }
@@ -61,7 +61,7 @@ class Header {
 
 class SpanHeader : public Header {
  public:
-  static inline SpanHeader* GetFromObject(const void* p) {
+  static always_inline SpanHeader* GetFromObject(const void* p) {
     return reinterpret_cast<SpanHeader*>
         (reinterpret_cast<uintptr_t>(p) & kVirtualSpanMask);
   }

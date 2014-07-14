@@ -13,7 +13,6 @@
 
 namespace scalloc {
 
-template<LockMode MODE>
 class ScallocCore;
 
 // A threadlocal cache that may hold any allocator.  We use __thread as fast
@@ -26,7 +25,7 @@ class ThreadCache {
   static ThreadCache& GetCache();
   static void DestroyRemainingCaches();
 
-  inline ScallocCore<LockMode::kLocal>* Allocator() { return alloc_; }
+  inline ScallocCore* Allocator() { return alloc_; }
 
   PROFILER_GETTER
 
@@ -44,12 +43,12 @@ class ThreadCache {
   static ThreadCache* thread_caches_;
   static pthread_key_t cache_key_;
 
-  ThreadCache(ScallocCore<LockMode::kLocal>* allocator,
+  ThreadCache(ScallocCore* allocator,
               pthread_t owner,
               ThreadCache* next);
 
   // Actual thread-local data.
-  ScallocCore<LockMode::kLocal>* alloc_;
+  ScallocCore* alloc_;
   PROFILER_DECL;
 
   // House-keeping data.

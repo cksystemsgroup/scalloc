@@ -9,7 +9,7 @@
 #include "profiler.h"
 
 #ifdef POLICY_CORE_LOCAL
-#include "buffer/core.h"
+//#include "buffer/core.h"
 #else
 #include "thread_cache.h"
 #endif  // POLICY_CORE_LOCAL

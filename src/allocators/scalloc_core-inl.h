@@ -23,7 +23,6 @@
 #include "utils.h"
 
 #ifdef POLICY_CORE_LOCAL
-#include "buffer/core.h"
 #else
 #include "thread_cache.h"
 #endif  // POLICY_CORE_LOCAL
@@ -31,7 +30,6 @@
 
 namespace scalloc {
 
-template<LockMode MODE = kLocal>
 class ScallocCore {
  public:
   static void Init(TypedAllocator<ScallocCore>* alloc);
@@ -41,9 +39,17 @@ class ScallocCore {
 
   void* Allocate(const size_t size);
   void Free(void* p, SpanHeader* hdr);
-  void FreeSizeClass(size_t sc);
-  void FreeAllSizeClasses();
+
+  void* AllocateLocked(const size_t size);
+  void* AllocateUnlocked(const size_t size);
+  void FreeLocked(void* p, SpanHeader* hdr);
+  void FreeUnlocked(void* p, SpanHeader* hdr);
+  void FreeSizeClassLocked(size_t sc);
+  void FreeSizeClassUnlocked(size_t sc);
+  void FreeAllSizeClassesLocked();
   void LocalFreeSizeClass(size_t sc);
+  void MakeLocked();
+  void MakeUnlocked();
 
 #ifdef __linux__
   // raceful
@@ -57,6 +63,9 @@ class ScallocCore {
 #endif  // __linux__
 
  private:
+  typedef void (ScallocCore::*FreeFn)(void* p, SpanHeader* hdr);
+  typedef void* (ScallocCore::*AllocFn)(const size_t size);
+
   explicit ScallocCore(const uint64_t id);
 
   void AddCoolSpan(const size_t sc, SpanHeader* span);
@@ -72,11 +81,14 @@ class ScallocCore {
   void Refill(const size_t sc);
   void SetActiveSlab(const size_t sc, const SpanHeader* hdr);
 
-  static TypedAllocator<ScallocCore<MODE>>* allocator;
+  static TypedAllocator<ScallocCore>* allocator;
   static bool enabled_;
 
   // Only used with LockMode::kSizeClassLocked.
   Lock size_class_lock_[kNumClasses];
+
+  FreeFn Free_;
+  AllocFn Alloc_;
 
   uint64_t id_;
   uint64_t me_active_;
@@ -91,16 +103,19 @@ class ScallocCore {
 };
 
 
-template<LockMode MODE>
-TypedAllocator<ScallocCore<MODE>>* ScallocCore<MODE>::allocator;
+inline void ScallocCore::MakeLocked() {
+  Free_ = &ScallocCore::FreeLocked;
+  Alloc_ = &ScallocCore::AllocateLocked;
+}
 
 
-template<LockMode MODE>
-bool ScallocCore<MODE>::enabled_;
+inline void ScallocCore::MakeUnlocked() {
+  Free_ = &ScallocCore::FreeUnlocked;
+  Alloc_ = &ScallocCore::AllocateUnlocked;
+}
 
 
-template<LockMode MODE>
-inline ScallocCore<MODE>::ScallocCore(const uint64_t id) : id_(id) {
+inline ScallocCore::ScallocCore(const uint64_t id) : id_(id) {
   ActiveOwner dummy;
   dummy.Reset(true, id_);
   me_active_ = dummy.raw;
@@ -115,11 +130,21 @@ inline ScallocCore<MODE>::ScallocCore(const uint64_t id) : id_(id) {
     slow_spans_[i] = NULL;
     size_class_lock_[i].Init();
   }
+
+  Free_ = &ScallocCore::FreeUnlocked;
+  Alloc_ = &ScallocCore::AllocateUnlocked;
+}
+
+always_inline void* ScallocCore::Allocate(const size_t sc) {
+  return (this->*Alloc_)(sc);
+}
+
+always_inline void ScallocCore::Free(void* p, SpanHeader *span) {
+  (this->*Free_)(p, span);
 }
 
 
-template<LockMode MODE>
-inline void ScallocCore<MODE>::AddCoolSpan(const size_t sc,
+inline void ScallocCore::AddCoolSpan(const size_t sc,
                                            SpanHeader* span) {
   LOG_CAT("scalloc-core", kTrace, "adding to list of cool spans %p", span);
   span->prev = NULL;
@@ -131,8 +156,7 @@ inline void ScallocCore<MODE>::AddCoolSpan(const size_t sc,
 }
 
 
-template<LockMode MODE>
-inline void ScallocCore<MODE>::RemoveCoolSpan(const size_t sc,
+inline void ScallocCore::RemoveCoolSpan(const size_t sc,
                                               SpanHeader* span) {
   LOG_CAT("scalloc-core", kTrace, "removing from list of cool spans %p", span);
   if (span->prev != NULL) {
@@ -149,8 +173,7 @@ inline void ScallocCore<MODE>::RemoveCoolSpan(const size_t sc,
 }
 
 
-template<LockMode MODE>
-inline void ScallocCore<MODE>::AddSlowSpan(const size_t sc,
+inline void ScallocCore::AddSlowSpan(const size_t sc,
                                            SpanHeader* span) {
 #ifdef REUSE_SLOW_SPANS
   ListNode* n = node_allocator.New();
@@ -165,8 +188,7 @@ inline void ScallocCore<MODE>::AddSlowSpan(const size_t sc,
 }
 
 
-template<LockMode MODE>
-inline void ScallocCore<MODE>::RemoveSlowSpan(const size_t sc,
+inline void ScallocCore::RemoveSlowSpan(const size_t sc,
                                               SpanHeader* span) {
 #ifdef REUSE_SLOW_SPANS
   ListNode* n = slow_spans_[sc];
@@ -190,8 +212,7 @@ inline void ScallocCore<MODE>::RemoveSlowSpan(const size_t sc,
 }
 
 
-template<LockMode MODE>
-inline void ScallocCore<MODE>::SetActiveSlab(const size_t sc,
+inline void ScallocCore::SetActiveSlab(const size_t sc,
                                              const SpanHeader* hdr) {
   // Prepend current hot span to the list of cool spans.
   if (hot_span_[sc] != NULL) {
@@ -205,16 +226,14 @@ inline void ScallocCore<MODE>::SetActiveSlab(const size_t sc,
 }
 
 
-template<>
-inline void* ScallocCore<LockMode::kLocal>::Allocate(const size_t size) {
+inline void* ScallocCore::AllocateUnlocked(const size_t size) {
   const size_t sc = SizeToClass(size);
   PROFILER_ALLOC(sc);
   return AllocateInSizeClass(sc);
 }
 
 
-template<>
-inline void* ScallocCore<LockMode::kSizeClassLocked>::Allocate(
+inline void* ScallocCore::AllocateLocked(
     const size_t size) {
   const size_t sc = SizeToClass(size);
   LockScope(size_class_lock_[sc]);
@@ -223,8 +242,7 @@ inline void* ScallocCore<LockMode::kSizeClassLocked>::Allocate(
 }
 
 
-template<LockMode MODE>
-inline void* ScallocCore<MODE>::AllocateInSizeClass(const size_t sc) {
+always_inline void* ScallocCore::AllocateInSizeClass(const size_t sc) {
   void* result;
   SpanHeader* hdr = hot_span_[sc];
 
@@ -242,8 +260,7 @@ inline void* ScallocCore<MODE>::AllocateInSizeClass(const size_t sc) {
 }
 
 
-template<>
-inline void ScallocCore<LockMode::kLocal>::Free(void* p, SpanHeader* hdr) {
+inline void ScallocCore::FreeUnlocked(void* p, SpanHeader* hdr) {
   const size_t sc = hdr->size_class;
   if (!LocalFreeInSizeClass(sc, p, hdr)) {
     RemoteFreeInSizeClass(sc, p, hdr);
@@ -251,8 +268,7 @@ inline void ScallocCore<LockMode::kLocal>::Free(void* p, SpanHeader* hdr) {
 }
 
 
-template<>
-inline void ScallocCore<LockMode::kSizeClassLocked>::Free(
+inline void ScallocCore::FreeLocked(
     void* p, SpanHeader* hdr) {
   const size_t sc = hdr->size_class;
   bool success;
@@ -266,8 +282,7 @@ inline void ScallocCore<LockMode::kSizeClassLocked>::Free(
 }
 
 
-template<LockMode MODE>
-inline void ScallocCore<MODE>::LocalFreeSizeClass(size_t sc) {
+inline void ScallocCore::LocalFreeSizeClass(size_t sc) {
   SpanHeader* cur;
   // Hot span.
   cur = hot_span_[sc];
@@ -307,29 +322,25 @@ inline void ScallocCore<MODE>::LocalFreeSizeClass(size_t sc) {
 }
 
 
-template<>
-inline void ScallocCore<LockMode::kLocal>::FreeSizeClass(size_t sc) {
+inline void ScallocCore::FreeSizeClassUnlocked(size_t sc) {
   LocalFreeSizeClass(sc);
 }
 
 
-template<>
-inline void ScallocCore<LockMode::kSizeClassLocked>::FreeSizeClass(size_t sc) {
+inline void ScallocCore::FreeSizeClassLocked(size_t sc) {
   LockScope(size_class_lock_[sc]);
   LocalFreeSizeClass(sc);
 }
 
 
-template<LockMode MODE>
-inline void ScallocCore<MODE>::FreeAllSizeClasses() {
+inline void ScallocCore::FreeAllSizeClassesLocked() {
   for (size_t i = 0; i < kNumClasses; i++) {
-    FreeSizeClass(i);
+    FreeSizeClassLocked(i);
   }
 }
 
 
-template<LockMode MODE>
-inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
+always_inline bool ScallocCore::LocalFreeInSizeClass(
     const size_t sc, void* p, SpanHeader* hdr) {
   SpanHeader* const cur_sc_hdr = hot_span_[hdr->size_class];
 
@@ -376,7 +387,8 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
                   "sc: %lu", p, sc);
       hdr->flist.Push(p);
 
-      if (cur_sc_hdr->Utilization() > kLocalReuseThreshold) {
+      if (cur_sc_hdr != NULL &&
+          cur_sc_hdr->Utilization() > kLocalReuseThreshold) {
         RemoveSlowSpan(sc, hdr);
         SetActiveSlab(sc, hdr);
         return true;
@@ -399,8 +411,7 @@ inline bool ScallocCore<MODE>::LocalFreeInSizeClass(
 }
 
 
-template<LockMode MODE>
-void ScallocCore<MODE>::RemoteFreeInSizeClass(
+inline void ScallocCore::RemoteFreeInSizeClass(
     const size_t sc, void* p, SpanHeader* hdr) {
   LOG(kTrace, "[ScallocCore] remote free for %p, owner: %lu, me: %lu",
       p, hdr->aowner.owner, id_);
@@ -409,22 +420,19 @@ void ScallocCore<MODE>::RemoteFreeInSizeClass(
 }
 
 
-template<LockMode MODE>
-void ScallocCore<MODE>::Init(TypedAllocator<ScallocCore>* alloc) {
+inline void ScallocCore::Init(TypedAllocator<ScallocCore>* alloc) {
   enabled_ = true;
   allocator = alloc;
 }
 
 
-template<LockMode MODE>
-ScallocCore<MODE>* ScallocCore<MODE>::New(const uint64_t id) {
+inline ScallocCore* ScallocCore::New(const uint64_t id) {
   LOG(kTrace, "[ScallocCore] New; id: %lu", id);
-  return new(allocator->New()) ScallocCore<MODE>(id);
+  return new(allocator->New()) ScallocCore(id);
 }
 
 
-template<LockMode MODE>
-void* ScallocCore<MODE>::AllocateNoSlab(const size_t sc) {
+inline void* ScallocCore::AllocateNoSlab(const size_t sc) {
   // Size class 0 represents an object of size 0, which results in malloc()
   // returning NULL.
   if (sc == 0) {
@@ -458,8 +466,7 @@ void* ScallocCore<MODE>::AllocateNoSlab(const size_t sc) {
 }
 
 
-template<LockMode MODE>
-void ScallocCore<MODE>::Refill(const size_t sc) {
+inline void ScallocCore::Refill(const size_t sc) {
   LOG(kTrace, "[ScallocCore] refilling size class: %lu, object size: %lu",
       sc, ClassToSize[sc]);
 
@@ -504,10 +511,9 @@ void ScallocCore<MODE>::Refill(const size_t sc) {
 }
 
 
-template<LockMode MODE>
-void ScallocCore<MODE>::Destroy(ScallocCore* thiz) {
+inline void ScallocCore::Destroy(ScallocCore* thiz) {
   LOG_CAT("scalloc-core", kTrace, "destroying allocator");
-  thiz->FreeAllSizeClasses();
+  thiz->FreeAllSizeClassesLocked();
   ScallocCore::allocator->Delete(thiz);
 }
 

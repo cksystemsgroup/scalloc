@@ -17,39 +17,46 @@ class FreelistBase {
   virtual void Push(void* p) = 0;
   virtual void* Pop() = 0;
 
-  inline bool Empty() { return len_ == 0; }
-  inline bool Full() { return len_ == cap_; }
-  inline size_t Size() { return len_; }
-  inline size_t Utilization() { return 100 - ((len_ * 100) / cap_); }
+  always_inline bool Empty() { return len_ == 0; }
+  always_inline bool Full() { return len_ == cap_; }
+  always_inline size_t Size() { return len_; }
+  always_inline size_t Utilization() { return 100 - ((len_ * 100) / cap_); }
 
  protected:
   size_t cap_;
   size_t len_;
 
+  uintptr_t upper_;
 #ifdef DEBUG
   uintptr_t lower_;
-  uintptr_t upper_;
 #endif  // DEBUG
 };
 
 
 class IncrementalFreelist : public FreelistBase {
  public:
+  typedef void* (*pop_fcn)(IncrementalFreelist* thiz);
+
   inline void Init(const void* start, const size_t size_class) {
     size_class_ = size_class;
     len_ = ClassToObjects[size_class];
     cap_ = ClassToObjects[size_class];
+    increment_ = ClassToSize[size_class];
     list_ = NULL;
-#ifdef DEBUG
     const size_t size = ClassToSize[size_class];
     uintptr_t start_ptr = reinterpret_cast<uintptr_t>(start);
-    lower_ = start_ptr;
     upper_ = start_ptr + size * ClassToObjects[size_class];
+#ifdef DEBUG
+    lower_ = start_ptr;
 #endif  // DEBUG
     bp_ = const_cast<void*>(start);
+    done_ = false;
+    pop_ = PopBp;
+    bp_len_ = cap_;
   }
 
-  inline void* Pop() {
+
+  always_inline void* Pop() {
     void* result = list_;
     if (result != NULL) {
       ScallocAssert((reinterpret_cast<uintptr_t>(result) >= lower_) &&
@@ -64,13 +71,54 @@ class IncrementalFreelist : public FreelistBase {
       ScallocAssert((reinterpret_cast<uintptr_t>(result) >= lower_) &&
                     (reinterpret_cast<uintptr_t>(result) < upper_));
       bp_ = reinterpret_cast<void*>(
-          reinterpret_cast<uintptr_t>(bp_) + ClassToSize[size_class_]);
+          reinterpret_cast<uintptr_t>(bp_) + increment_);
       len_--;
+    }
+    return result;
+    /*
+    void* result;
+    if (done_) {
+      result = list_;
+      if (result != NULL) {
+        list_ = *(reinterpret_cast<void**>(list_));
+        len_--;
+      }
+    } else {
+      result = bp_;
+      bp_ = reinterpret_cast<void*>(
+          reinterpret_cast<uintptr_t>(bp_) + increment_);
+      len_--;
+      if (len_ == 0) {
+        done_ = true;
+      }
+    }
+    return result;
+    */
+    //return pop_(this);
+  }
+
+  static void* PopList(IncrementalFreelist* thiz) {
+    void* result = thiz->list_;
+    if (result != NULL) {
+      thiz->list_ = *(reinterpret_cast<void**>(thiz->list_));
+      thiz->len_--;
     }
     return result;
   }
 
-  inline void Push(void* p) {
+  static void* PopBp(IncrementalFreelist* thiz) {
+    void* result = thiz->bp_;
+    thiz->bp_ = reinterpret_cast<void*>(
+        reinterpret_cast<uintptr_t>(thiz->bp_) + thiz->increment_);
+    thiz->bp_len_--;
+    thiz->len_--;
+    if (thiz->bp_len_ == 0) {
+      thiz->pop_ = PopList;
+    }
+    return result;
+  }
+
+  always_inline void Push(void* p) {
     ScallocAssert((reinterpret_cast<uintptr_t>(p) >= lower_) &&
                   (reinterpret_cast<uintptr_t>(p) < upper_));
     *(reinterpret_cast<void**>(p)) = list_;
@@ -82,6 +130,10 @@ class IncrementalFreelist : public FreelistBase {
   void* list_;
   void* bp_;
   size_t size_class_;
+  size_t increment_;
+  bool done_; 
+  pop_fcn pop_;
+  size_t bp_len_;
 };
 
 
@@ -105,7 +157,7 @@ class BatchedFreelist : public FreelistBase {
     }
   }
 
-  inline void Push(void* p) {
+  always_inline void Push(void* p) {
     ScallocAssert((reinterpret_cast<uintptr_t>(p) >= lower_) &&
                   (reinterpret_cast<uintptr_t>(p) < upper_));
     *(reinterpret_cast<void**>(p)) = list_;
@@ -113,7 +165,7 @@ class BatchedFreelist : public FreelistBase {
     len_++;
   }
 
-  inline void* Pop() {
+  always_inline void* Pop() {
     void* result = list_;
     if (result != NULL) {
       ScallocAssert((reinterpret_cast<uintptr_t>(result) >= lower_) &&

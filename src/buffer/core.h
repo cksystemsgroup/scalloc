@@ -6,6 +6,7 @@
 #define SCALLOC_BUFFER_CORE_H_
 
 #include <pthread.h>
+#include <sched.h>
 
 #include "common.h"
 #include "headers.h"
@@ -64,6 +65,7 @@ class CoreBuffer {
   static uint64_t active_threads_threshold_;
   static pthread_key_t core_key;
   static pthread_key_t op_key;
+  static pthread_key_t id_key;
   static CoreBuffer* buffers_[kMaxCores];
   static uint64_t average_sleeping_threads_;
 
@@ -82,6 +84,12 @@ inline CoreBuffer& CoreBuffer::GetBuffer(int64_t prefered_core) {
   int64_t remove_from = -1;
   uint64_t core_id = reinterpret_cast<uint64_t>(
       pthread_getspecific(core_key)) - 1;
+  /*
+  int sched_id = sched_getcpu();
+  LOG(kWarning, "cpu: %d tid: %d", sched_id, pthread_self());
+  */
+
+
   if (core_id == static_cast<uint64_t>(-1)) {
     // New thread joins the system.
     __sync_fetch_and_add(&active_threads_, 1);
@@ -103,6 +111,7 @@ inline CoreBuffer& CoreBuffer::GetBuffer(int64_t prefered_core) {
     }
 #elif defined(CLAB_RR)
     core_id = __sync_fetch_and_add(&thread_counter_, 1) % num_cores_;
+    //core_id = sched_getcpu() % num_cores_;
 #else
 #error "unknown clab assignment policy"
 #endif

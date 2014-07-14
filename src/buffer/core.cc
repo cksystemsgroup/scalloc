@@ -22,6 +22,7 @@ bool CoreBuffer::enabled_;
 uint64_t CoreBuffer::num_cores_;
 pthread_key_t CoreBuffer::core_key;
 pthread_key_t CoreBuffer::op_key;
+pthread_key_t CoreBuffer::id_key;
 uint64_t CoreBuffer::thread_counter_;
 uint64_t CoreBuffer::active_threads_;
 uint64_t CoreBuffer::active_threads_threshold_;
@@ -41,6 +42,7 @@ void CoreBuffer::Init() {
   core_buffer_alloc.Init(kPageSize, 64, "core_buffer_alloc");
   pthread_key_create(&core_key, CoreBuffer::ThreadDestructor);
   pthread_key_create(&op_key, NULL);
+  pthread_key_create(&id_key, NULL);
   average_sleeping_threads_ = 0;
   enabled_ = true;
 }

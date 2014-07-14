@@ -94,8 +94,8 @@
             'POLICY_CORE_LOCAL'
           ],
           'sources': [
-            'src/buffer/core.cc',
-            'src/buffer/core.h',
+            'src/buffer/lab.cc',
+            'src/buffer/lab.h',
           ]
         }],
         ['<(profile)!=0', {
@@ -146,6 +146,7 @@
         'src/allocators/block_pool.h',
         'src/allocators/large-inl.h',
         'src/allocators/scalloc_core-inl.h',
+        'src/allocators/scalloc_core.cc',
         'src/allocators/span_pool.cc',
         'src/allocators/span_pool.h',
         'src/assert.h',
