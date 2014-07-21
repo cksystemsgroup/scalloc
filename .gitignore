@@ -6,6 +6,7 @@ build/
 out/
 data/
 plots/
+third_party/
 
 *.target.mk
 
