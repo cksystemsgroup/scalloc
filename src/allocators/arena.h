@@ -11,9 +11,9 @@
 
 #include <atomic>
 
-#include "scalloc_assert.h"
 #include "common.h"
 #include "log.h"
+#include "platform/assert.h"
 
 #define ARENA_LOG "arena"
 

@@ -10,7 +10,7 @@
 #include "common.h"
 #include "distributed_queue.h"
 #include "headers.h"
-#include "scalloc_assert.h"
+#include "platform/assert.h"
 #include "size_classes.h"
 #include "utils.h"
 

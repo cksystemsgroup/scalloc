@@ -9,8 +9,8 @@
 #include <cstdio>
 
 #include "common.h"
+#include "platform/assert.h"
 #include "utils.h"
-#include "scalloc_assert.h"
 
 namespace scalloc {
 

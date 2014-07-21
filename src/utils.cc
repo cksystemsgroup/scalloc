@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 #include "common.h"
-#include "scalloc_assert.h"
+#include "platform/assert.h"
 
 namespace {
 

@@ -6,7 +6,7 @@
 #define SCALLOC_FREELIST_H_
 
 #include "common.h"
-#include "scalloc_assert.h"
+#include "platform/assert.h"
 #include "size_classes.h"
 
 namespace scalloc {

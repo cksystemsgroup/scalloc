@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#include "scalloc_assert.h"
+#include "platform/assert.h"
 
 enum LinkerInitialized {
   LINKER_INITIALIZED

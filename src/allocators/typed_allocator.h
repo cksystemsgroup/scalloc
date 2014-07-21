@@ -11,8 +11,8 @@
 
 #include "common.h"
 #include "lock_utils-inl.h"
+#include "platform/assert.h"
 #include "scalloc_arenas.h"
-#include "scalloc_assert.h"
 #include "stack-inl.h"
 #include "utils.h"
 

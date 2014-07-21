@@ -60,4 +60,28 @@ void LogPrintf(const char* category,
 } while (0)
 
 
+#define Fatal(format, ...) do {                                                \
+  LogPrintf("" , kFatal, format, ##__VA_ARGS__);                               \
+  abort();                                                                     \
+  } while (0)
+
+
+#define QUOTEME(x) #x
+
+
+#ifdef DEBUG
+
+#define ScallocAssert(c) do {                                                  \
+  if (!(c)) {                                                                  \
+    Fatal("assertion failed: " QUOTEME((c)));                                  \
+  }                                                                            \
+} while (0)
+
+#else  // !DEBUG
+
+#define ScallocAssert(c) do {                                                  \
+} while (0)
+
+#endif  // DEBUG
+
 #endif  // SCALLOC_LOG_H_
