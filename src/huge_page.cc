@@ -6,7 +6,6 @@
 
 #include <fcntl.h>
 
-#include "scalloc_assert.h"
 #include "utils.h"
 
 namespace {
