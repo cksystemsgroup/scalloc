@@ -84,7 +84,6 @@ class ScallocCore {
   static TypedAllocator<ScallocCore>* allocator;
   static bool enabled_;
 
-  // Only used with LockMode::kSizeClassLocked.
   Lock size_class_lock_[kNumClasses];
 
   FreeFn Free_;

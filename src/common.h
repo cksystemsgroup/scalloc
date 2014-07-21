@@ -35,17 +35,8 @@ const size_t kNumClasses = kFineClasses + kCoarseClasses;
 #ifdef SMALL_SPACE
 const size_t kSmallSpace = SMALL_SPACE;
 #else
-#ifdef HUGE_PAGE
-#ifdef HUGE_PAGE_SPACE
-const size_t kSmallSpace = HUGE_PAGE_SPACE;
-#else
-const size_t kSmallSpace = (1UL << 36) + (1UL << 35);  // 96GiB
-#endif  // HUGE_PAGE_SPACE
-#else
 const size_t kSmallSpace = 1UL << 44;  // 16TiB
-#endif  // HUGE_PAGE
 #endif
-
 const size_t kInternalSpace = 1UL << 31;  // 2GiB
 
 #else
@@ -78,16 +69,5 @@ const size_t kEagerMadviseThreshold = EAGER_MADVISE_THRESHOLD;
 #if !defined(CLAB_UTILIZATION) && !defined(CLAB_THREADS) && !defined(CLAB_RR)
 #define CLAB_RR 1
 #endif  // !CLAB_UTILIZATION && !CLAB_THREADS && !CLAB_RR
-
-namespace scalloc {
-
-enum LockMode {
-  kLocal = 0,
-  kSizeClassLocked
-};
-
-}  // namespace scalloc
-
-
 
 #endif  // SCALLOC_COMMON_H_
