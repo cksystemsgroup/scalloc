@@ -4,17 +4,9 @@
 
 #include "size_classes.h"
 
+#include "common.h"
 #include "headers.h"
-
-#ifdef HUGE_PAGE
-#include "size_classes_raw_hugepage.h"
-#else
-#ifdef SZ_1MB
-#include "size_classes_raw_1mb.h"
-#else
-#include "size_classes_raw.h"
-#endif  // SZ_1MB
-#endif  // HUGE_PAGE
+#include SIZE_CLASSES_RAW
 
 namespace scalloc {
 

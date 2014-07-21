@@ -10,25 +10,16 @@
 
 #include "platform.h"
 
-#ifdef HUGE_PAGE
+#define __quote_me(x) #x
+#define __include_globals_header(x) __quote_me(x##_globals.h)
+#define __include_sc_header(x) __quote_me(x##_size_classes_raw.h)
+#define include_globals_header(x) __include_globals_header(x)
+#define include_sc_header(x) __include_sc_header(x)
 
-#define HUGEPAGE_SIZE (1UL << 21)
-#define VSPAN_SIZE 131072
+#define SIZE_CLASS_GLOBALS include_globals_header(SIZE_CLASS_CONFIG)
+#define SIZE_CLASSES_RAW include_sc_header(SIZE_CLASS_CONFIG)
 
-const size_t kMaxSmallShift = 8;  // 256B
-const size_t kMaxMediumShift = 16;  // 64k
-const size_t kVirtualSpanShift = 17;  // 128k
-#else  // no huge pages
-#ifdef SZ_1MB
-const size_t kMaxSmallShift = 8;  // 256B
-const size_t kMaxMediumShift = 19;  // 1MiB
-const size_t kVirtualSpanShift = 20;  // 2MiB
-#else
-const size_t kMaxSmallShift = 8;  // 256B
-const size_t kMaxMediumShift = 20;  // 1MiB
-const size_t kVirtualSpanShift = 21;  // 2MiB
-#endif  // SZ_1MB
-#endif  // HUGE_PAGE
+#include SIZE_CLASS_GLOBALS
 
 const size_t kMinAlignment = 16;
 const size_t kMaxSmallSize = 1UL << kMaxSmallShift;
@@ -54,6 +45,7 @@ const size_t kSmallSpace = (1UL << 36) + (1UL << 35);  // 96GiB
 const size_t kSmallSpace = 1UL << 44;  // 16TiB
 #endif  // HUGE_PAGE
 #endif
+
 const size_t kInternalSpace = 1UL << 31;  // 2GiB
 
 #else

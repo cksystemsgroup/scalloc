@@ -16,11 +16,10 @@
 #include "common.h"
 #include "distributed_queue.h"
 #include "list-inl.h"
-#include "override.h"
+#include "platform/override.h"
 #include "profiler.h"
 #include "random.h"
 #include "scalloc_arenas.h"
-#include "scalloc_guard.h"
 #include "size_classes.h"
 #include "utils.h"
 
@@ -33,6 +32,12 @@
 #endif  // POLICY_THREAD_LOCAL
 
 namespace scalloc {
+
+class ScallocGuard {
+public:
+  ScallocGuard();
+  ~ScallocGuard();
+};
 
 cache_aligned Arena InternalArena;
 cache_aligned Arena SmallArena;
@@ -53,7 +58,6 @@ cache_aligned TypedAllocator<ScallocCore>
 cache_aligned RRAllocationBuffer ab;
 #endif  // POLICY_CORE_LOCAL
 
-
 }  // namespace scalloc
 
 void exit_func() {
@@ -69,7 +73,7 @@ void exit_func() {
 }
 
 static int scallocguard_refcount = 0;
-ScallocGuard::ScallocGuard() {
+scalloc::ScallocGuard::ScallocGuard() {
   if (scallocguard_refcount++ == 0) {
 #ifdef DEBUG
     SpanHeader::CheckFieldAlignments();
@@ -120,12 +124,12 @@ ScallocGuard::ScallocGuard() {
   }
 }
 
-ScallocGuard::~ScallocGuard() {
+scalloc::ScallocGuard::~ScallocGuard() {
   if (--scallocguard_refcount == 0) {
   }
 }
 
-static ScallocGuard StartupExitHook;
+static scalloc::ScallocGuard StartupExitHook;
 
 namespace scalloc {
 
@@ -138,19 +142,12 @@ void* malloc(const size_t size) {
     p = ThreadCache::GetCache().Allocator()->AllocateUnlocked(size);
 #endif  // POLICY_THREAD_LOCAL
 #ifdef POLICY_CORE_LOCAL
-    /*
-  if (LIKELY(size <= kMaxMediumSize &&
-      CoreBuffer::Enabled() &&
-      ScallocCore<LockMode::kSizeClassLocked>::Enabled())) {
-    p = CoreBuffer::GetBuffer().Allocator()->Allocate(size);
-    */
   if (LIKELY(size <= kMaxMediumSize &&
       ab.Enabled() &&
       ScallocCore::Enabled())) {
     AllocationBuffer& b = ab.GetAllocationBuffer(NULL);
     p = b.Allocator()->Allocate(size);
     b.Release();
-    //p = ab.GetAllocationBuffer(NULL).Allocator()->Allocate(size);
 #endif  // POLICY_CORE_LOCAL
   } else {
     p = LargeAllocator::Alloc(size);
