@@ -166,6 +166,8 @@
         'src/distributed_queue.h',
         'src/freelist-inl.h',
         'src/headers.h',
+        'src/huge_page.cc',
+        'src/huge_page.h',
         'src/lock_linux-inl.h',
         'src/lock_utils-inl.h',
         'src/log.cc',
