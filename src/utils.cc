@@ -16,28 +16,28 @@ namespace {
 
 const size_t kMaxSizet = static_cast<size_t>(-1);
 
-inline void Swap(size_t& a, size_t& b) {
-  if (&a == &b) {
-    return;
-  }
-  a ^= b;
-  b ^= a;
-  a ^= b;
-}
+//inline void Swap(size_t& a, size_t& b) {
+//  if (&a == &b) {
+//    return;
+//  }
+//  a ^= b;
+//  b ^= a;
+//  a ^= b;
+//}
 
-inline size_t Gcd(size_t a, size_t b) {
-  if (b < a) {
-    Swap(a, b);
-  }
-
-  size_t t;
-  while (b != 0) {
-    t = b;
-    b = a % b;
-    a = t;
-  }
-  return a;
-}
+//inline size_t Gcd(size_t a, size_t b) {
+//  if (b < a) {
+//    Swap(a, b);
+//  }
+//
+//  size_t t;
+//  while (b != 0) {
+//    t = b;
+//    b = a % b;
+//    a = t;
+//  }
+//  return a;
+//}
 
 }  // namespace
 
@@ -86,9 +86,11 @@ void* SystemMmap(size_t size, size_t* actual_size, bool huge) {
 
   const int prot = PROT_READ | PROT_WRITE;
   int flags = MAP_PRIVATE | MAP_ANONYMOUS;
+#ifdef HAVE_HUGEPAGE
   if (huge) {
     flags |= MAP_HUGETLB;
   }
+#endif  // HAVE_HUGEPAGE
   void* p = mmap(0, size, prot, flags, -1, 0);
   if (reinterpret_cast<void*>(p) == MAP_FAILED) {
     Fatal("mmap failed. size: %lu, errno: %lu\n", size, errno);

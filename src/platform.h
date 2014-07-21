@@ -18,10 +18,14 @@
 #define HAVE_TLS 1
 #define TLS_MODE __attribute__((tls_model ("initial-exec")))
 
+#define HAVE_HUGEPAGE 1
+
 #if defined(__APPLE__)
 
 // TLS needs malloc, so don't use it.
 #undef HAVE_TLS
+
+#undef HAVE_HUGEPAGE
 
 #ifndef MAP_ANONYMOUS
 #define MAP_ANONYMOUS MAP_ANON

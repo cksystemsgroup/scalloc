@@ -24,7 +24,7 @@ void LogPrintf(const char* category,
   strncat(buffer, "] ", 2);
   rest -= 3;
   if (severity == kFatal) {
-    strncat(buffer, fatal_prefix, kLogLen);
+    strncat(buffer, fatal_prefix, kLogLen-rest);
     rest -= strlen(fatal_prefix);
   }
   va_start(args, format);
