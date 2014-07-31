@@ -60,8 +60,8 @@ do
   echo "test: $i"
   build_config "libscalloc-$i-locked" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=LockedStack"
   build_config "libscalloc-$i-lockfree" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=Stack"
-  build_config "libscalloc-$i-locked-profile" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=LockedStack -D profile=1"
-  build_config "libscalloc-$i-lockfree-profile" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=Stack -D profile=1"
+  #build_config "libscalloc-$i-locked-profile" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=LockedStack -D profile=1"
+  #build_config "libscalloc-$i-lockfree-profile" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=Stack -D profile=1"
 done
 
 cd ..
