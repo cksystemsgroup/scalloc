@@ -23,6 +23,7 @@ class Stack {
   void Init();
   void Push(void* p);
   void* Pop();
+  void PushBuffer(void* start, void* end);
 
   void Put(void* p);
   void* Get();
@@ -62,6 +63,17 @@ inline void Stack::Push(void* p) {
     top_old.raw = top_;
     *(reinterpret_cast<void**>(p)) = top_old.Value();
     top_new.Pack(p, top_old.Tag() + 1);
+  } while (!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
+}
+
+
+inline void Stack::PushBuffer(void* start, void* end) {
+  TaggedValue128<void*> top_old;
+  TaggedValue128<void*> top_new;
+  do {
+    top_old.raw = top_;
+    *(reinterpret_cast<void**>(end)) = top_old.Value();
+    top_new.Pack(start, top_old.Tag() + 1);
   } while (!__sync_bool_compare_and_swap(&top_, top_old.raw, top_new.raw));
 }
 
