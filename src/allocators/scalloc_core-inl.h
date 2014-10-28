@@ -404,6 +404,8 @@ always_inline bool ScallocCore::LocalFreeInSizeClass(
       MemoryBarrier();
       hdr->aowner.active = false;
       return true;
+    } else {
+      PROFILER_DEALLOC_CONTENDED(sc);
     }
   }
   return false;
@@ -438,7 +440,7 @@ inline void* ScallocCore::AllocateNoSlab(const size_t sc) {
     return NULL;
   }
 
-  SpanHeader* hdr;
+  SpanHeader* hdr = NULL;
   PROFILER_BLOCKPOOL_GET(sc);
   size_t stack_id = id_;
   if (hot_span_[sc] != NULL) {
@@ -453,7 +455,9 @@ inline void* ScallocCore::AllocateNoSlab(const size_t sc) {
               (id_ % utils::Parallelism())) {
         PROFILER_NO_CLEANUP(sc);
         Refill(sc);
+        return p;
       }
+      PROFILER_CLEANUP(sc);
     }
     return p;
   } else {

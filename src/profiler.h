@@ -16,8 +16,10 @@
 #define PROFILER_BLOCKPOOL_PUT(sc)
 #define PROFILER_BLOCKPOOL_GET(sc)
 #define PROFILER_BLOCKPOOL_EMPTY_GET(sc)
+#define PROFILER_DEALLOC_CONTENDED(sc)
 #define PROFILER_STEAL()
 #define PROFILER_NO_CLEANUP(sc)
+#define PROFILER_CLEANUP(sc)
 
 #else  // PROFILER
 
@@ -41,11 +43,13 @@
 #define PROFILER_DEALLOC(sc, type) PROFILER_.Dealloc(sc,type)
 #define PROFILER_SPANPOOL_PUT(sc) PROFILER_.SpanPoolPut(sc)
 #define PROFILER_SPANPOOL_GET(sc) PROFILER_.SpanPoolGet(sc)
-#define PROFILER_BLOCKPOOL_PUT(sc) PROFILER_.BlockPoolPut()
-#define PROFILER_BLOCKPOOL_GET(sc) PROFILER_.BlockPoolGet()
-#define PROFILER_BLOCKPOOL_EMPTY_GET(sc) PROFILER_.BlockPoolEmptyGet()
+#define PROFILER_BLOCKPOOL_PUT(sc) PROFILER_.BlockPoolPut(sc)
+#define PROFILER_BLOCKPOOL_GET(sc) PROFILER_.BlockPoolGet(sc)
+#define PROFILER_BLOCKPOOL_EMPTY_GET(sc) PROFILER_.BlockPoolEmptyGet(sc)
+#define PROFILER_DEALLOC_CONTENDED(sc) PROFILER_.DeallocContended(sc)
 #define PROFILER_STEAL() PROFILER_.Steal()
-#define PROFILER_NO_CLEANUP(sc) PROFILER_.NoCleanup()
+#define PROFILER_NO_CLEANUP(sc) PROFILER_.NoCleanup(sc)
+#define PROFILER_CLEANUP(sc) PROFILER_.Cleanup(sc)
 
 namespace scalloc {
 
@@ -60,12 +64,14 @@ class Profiler {
   inline void Report();
   inline void Alloc(uint64_t sc);
   inline void Dealloc(uint64_t sc, int type);
+  inline void DeallocContended(uint64_t sc);
   inline void SpanPoolPut(uint64_t sc);
   inline void SpanPoolGet(uint64_t sc);
-  inline void BlockPoolPut();
-  inline void BlockPoolGet();
-  inline void BlockPoolEmptyGet();
-  inline void NoCleanup();
+  inline void BlockPoolPut(uint64_t sc) { block_pool_put_[sc]++; }
+  inline void BlockPoolGet(uint64_t sc) { block_pool_get_[sc]++; }
+  inline void BlockPoolEmptyGet(uint64_t sc) { block_pool_empty_get_[sc]++; }
+  inline void NoCleanup(uint64_t sc) { no_cleanup_[sc]++; }
+  inline void Cleanup(uint64_t sc) { cleanup_[sc]++; }
   inline void Steal();
   inline void Print();
 
@@ -76,17 +82,19 @@ class Profiler {
 
   Profiler* parent_;
   uint64_t updates_;
-  uint64_t block_pool_put_;
-  uint64_t block_pool_get_;
-  uint64_t block_pool_empty_get_;
+  uint64_t block_pool_put_[kNumClasses];;
+  uint64_t block_pool_get_[kNumClasses];
+  uint64_t block_pool_empty_get_[kNumClasses];
   uint64_t steal_;
-  uint64_t no_cleanup_;
+  uint64_t no_cleanup_[kNumClasses];
+  uint64_t cleanup_[kNumClasses];
   uint64_t allocations_[kNumClasses];
   uint64_t hot_deallocations_[kNumClasses];
   uint64_t cool_deallocations_[kNumClasses];
   uint64_t slow_deallocations_[kNumClasses];
   uint64_t span_pool_get_[kNumClasses];
   uint64_t span_pool_put_[kNumClasses];
+  uint64_t dealloc_contended_[kNumClasses];
 };
 
 
@@ -108,12 +116,14 @@ void Profiler::Reset() {
     slow_deallocations_[i] = 0;
     span_pool_get_[i] = 0;
     span_pool_put_[i] = 0;
+    dealloc_contended_[i] = 0;
+    cleanup_[i] = 0;
+    no_cleanup_[i] = 0;
+    block_pool_get_[i] = 0;
+    block_pool_put_[i] = 0;
+    block_pool_empty_get_[i] = 0;
   }
-  block_pool_put_ = 0;
-  block_pool_get_ = 0;
-  block_pool_empty_get_ = 0;
   steal_ = 0;
-  no_cleanup_ = 0;
   updates_ = 0;
 }
 
@@ -128,12 +138,14 @@ void Profiler::Update(Profiler* other) {
     slow_deallocations_[i] += other->slow_deallocations_[i];
     span_pool_get_[i] += other->span_pool_get_[i];
     span_pool_put_[i] += other->span_pool_put_[i];
+    dealloc_contended_[i] += other->dealloc_contended_[i];
+    cleanup_[i] = other->cleanup_[i];
+    no_cleanup_[i] = other->no_cleanup_[i];
+    block_pool_get_[i] += other->block_pool_get_[i];
+    block_pool_put_[i] += other->block_pool_put_[i];
+    block_pool_empty_get_[i] += other->block_pool_empty_get_[i];
   }
-  block_pool_put_ += other->block_pool_put_;
-  block_pool_get_ += other->block_pool_get_;
-  block_pool_empty_get_ += other->block_pool_empty_get_;
   steal_ += other->steal_;
-  no_cleanup_ += other->no_cleanup_;
 }
 
 
@@ -165,32 +177,18 @@ void Profiler::Dealloc(uint64_t sc, int type) {
 }
 
 
+void Profiler::DeallocContended(uint64_t sc) {
+  dealloc_contended_[sc]++;
+}
+
+
 void Profiler::SpanPoolPut(uint64_t sc) {
   span_pool_put_[sc]++;
 }
 
 
-void Profiler::NoCleanup() {
-  no_cleanup_++;
-}
-
 void Profiler::SpanPoolGet(uint64_t sc) {
   span_pool_get_[sc]++;
-}
-
-
-void Profiler::BlockPoolPut() {
-  block_pool_put_++;
-}
-
-
-void Profiler::BlockPoolGet() {
-  block_pool_get_++;
-}
-
-
-void Profiler::BlockPoolEmptyGet() {
-  block_pool_empty_get_++;
 }
 
 
@@ -221,7 +219,12 @@ void Profiler::FillSizeClasses(char* buffer, size_t len) {
 void Profiler::Print() {
   uint64_t overall_span_pool_get = 0;
   uint64_t overall_span_pool_put = 0;
-  const size_t buffer_length = 1024 * 4;
+  uint64_t overall_cleanup = 0;
+  uint64_t overall_no_cleanup = 0;
+  uint64_t overall_blockpool_get = 0;
+  uint64_t overall_blockpool_put = 0;
+  uint64_t overall_blockpool_empty_get = 0;
+  const size_t buffer_length = 1024 * 8;
   char size_class_buffer[buffer_length] = {0};
   size_t start = 0;
   for (size_t i = 0; i < kNumClasses; i++) {
@@ -233,7 +236,13 @@ void Profiler::Print() {
         "\"SP.put\": %lu, "
         "\"hot deallocations\": %lu, "
         "\"cool deallocatons\": %lu, "
-        "\"slow deallocations\": %lu "
+        "\"slow deallocations\": %lu, "
+        "\"contended deallocations\": %lu, "
+        "\"BP.put\": %lu, "
+        "\"BP.get\": %lu, "
+        "\"BP.get (empty)\": %lu, "
+        "\"cleanup\": %lu, "
+        "\"no cleanup\": %lu "
         "}%c\n",
         i,
         allocations_[i],
@@ -242,16 +251,27 @@ void Profiler::Print() {
         hot_deallocations_[i],
         cool_deallocations_[i],
         slow_deallocations_[i],
+        dealloc_contended_[i],
+        block_pool_put_[i],
+        block_pool_get_[i],
+        block_pool_empty_get_[i],
+        cleanup_[i],
+        no_cleanup_[i],
         (i ==  (kNumClasses - 1)) ? ' ' : ',');
     ScallocAssert(start < buffer_length);
     overall_span_pool_get += span_pool_get_[i];
     overall_span_pool_put += span_pool_put_[i];
+    overall_cleanup += cleanup_[i];
+    overall_no_cleanup += no_cleanup_[i];
+    overall_blockpool_get += block_pool_get_[i];
+    overall_blockpool_put += block_pool_put_[i];
+    overall_blockpool_empty_get += block_pool_empty_get_[i];
   }
 
   char size_class_info[buffer_length] = { 0 };
   FillSizeClasses(size_class_info, buffer_length);
 
-  printf(
+  fprintf(stderr,
       "{\n"
       "  \"size_class_info\": {\n"
       "%s"
@@ -260,8 +280,9 @@ void Profiler::Print() {
       "  \"block_pool_put\": %lu,\n"
       "  \"block_pool_get\": %lu,\n"
       "  \"block_pool_empty_get\": %lu,\n"
-      "  \"steal\": %lu,\n"
+      "  \"cleanup\": %lu,\n"
       "  \"no_cleanup\": %lu,\n"
+      "  \"steal\": %lu,\n"
       "  \"overall\": {\n"
       "    \"SP.get\": %lu,\n"
       "    \"SP.put\": %lu\n"
@@ -272,11 +293,12 @@ void Profiler::Print() {
       "}\n",
       size_class_info,
       updates_,
-      block_pool_put_,
-      block_pool_get_,
-      block_pool_empty_get_,
+      overall_blockpool_put,
+      overall_blockpool_get,
+      overall_blockpool_empty_get,
+      overall_cleanup,
+      overall_no_cleanup,
       steal_,
-      no_cleanup_,
       overall_span_pool_get,
       overall_span_pool_put,
       size_class_buffer);

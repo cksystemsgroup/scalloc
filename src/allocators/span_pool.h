@@ -31,6 +31,7 @@ class SpanPool {
   static SpanPool span_pool_;
 
   void* RefillOne();
+  void* Refill(uint64_t sc, uint32_t tid);
 
   DistributedQueue size_class_pool_[kNumClasses];
 
@@ -75,7 +76,7 @@ inline SpanHeader* SpanPool::Get(size_t sc, uint32_t tid) {
   }
 
   if (UNLIKELY(result == NULL)) {
-    hdr = reinterpret_cast<SpanHeader*>(RefillOne());
+    hdr = reinterpret_cast<SpanHeader*>(Refill(sc, tid));
     hdr->Init(sc, tid, false);
     return hdr;
   }
