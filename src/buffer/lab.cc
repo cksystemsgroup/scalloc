@@ -33,6 +33,9 @@ void RRAllocationBuffer::Init() {
     labs_[i]->SetAllocator(ScallocCore::New(i+1));
     labs_[i]->threads = 0;
     labs_[i]->used_ = 0;
+    for (uint64_t j = 0; j < kNumClasses; j++) {
+      labs_[i]->span_refill_[j] = 1;
+    }
   }
   enabled_ = true;
 }

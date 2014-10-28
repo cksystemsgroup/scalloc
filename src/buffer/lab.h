@@ -24,8 +24,11 @@ class AllocationBuffer {
   void MakeLocked();
   void ResetAllocator();
 
+  inline uint64_t NextSpanRefill(uint64_t sc);
+
   uint_fast64_t threads;
   volatile int_fast8_t used_;
+  uint64_t span_refill_[kNumClasses];
 
  private:
   ScallocCore* allocator_;
@@ -38,6 +41,7 @@ class RRAllocationBuffer {
   void Init();
   inline bool Enabled() { return enabled_; }
   inline AllocationBuffer& GetAllocationBuffer(void* object);
+
 
  private:
   pthread_key_t lab_key_;
@@ -64,6 +68,13 @@ inline AllocationBuffer& RRAllocationBuffer::GetAllocationBuffer(void* object) {
   }
   lab->Acquire();
   return *lab;
+}
+
+
+inline uint64_t AllocationBuffer::NextSpanRefill(uint64_t sc) {
+  uint64_t ret = span_refill_[sc];
+  span_refill_[sc] *= 2;
+  return ret;
 }
 
 }  // namespace scalloc
