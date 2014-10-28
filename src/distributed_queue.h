@@ -38,6 +38,8 @@ class DistributedQueue {
   void Init(size_t p);
   void Enqueue(void* p);
   void EnqueueAt(void* p, const size_t backend_id);
+  void EnqueueBufferAt(void* start, void* end, const size_t backend_id);
+
   void* Dequeue();
   void* DequeueOnlyAt(const size_t backend_id);
   void* DequeueStartAt(const size_t first_backend_id);
@@ -57,30 +59,35 @@ class DistributedQueue {
 };
 
 
-inline void DistributedQueue::Enqueue(void* p) {
+always_inline void DistributedQueue::Enqueue(void* p) {
   size_t start = static_cast<size_t>(hwrand()) & p_mask_;
   EnqueueAt(p, start);
 }
 
 
-inline void DistributedQueue::EnqueueAt(void* p, const size_t backend_id) {
+always_inline void DistributedQueue::EnqueueAt(void* p, const size_t backend_id) {
   backends_[backend_id & p_mask_]->Put(p);
 }
 
 
-inline void* DistributedQueue::Dequeue() {
+always_inline void DistributedQueue::EnqueueBufferAt(void* start, void* end, const size_t backend_id) {
+  backends_[backend_id & p_mask_]->PushBuffer(start, end);
+}
+
+
+always_inline void* DistributedQueue::Dequeue() {
   size_t start = static_cast<size_t>(hwrand()) & p_mask_;
   return DequeueStartAt(start);
 }
 
 
-inline void* DistributedQueue::DequeueOnlyAt(const size_t backend_id) {
+always_inline void* DistributedQueue::DequeueOnlyAt(const size_t backend_id) {
   return backends_[backend_id  & p_mask_]->Pop();
 }
 
 
 #ifdef DQ_NON_LIN
-inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
+always_inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
   void* result;
   size_t start = first_backend_id & p_mask_;
   size_t i;
@@ -96,7 +103,7 @@ inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
 
 
 #ifndef DQ_NON_LIN
-inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
+always_inline void* DistributedQueue::DequeueStartAt(const size_t first_backend_id) {
   void* result;
   size_t start = first_backend_id & p_mask_;
   State state;
