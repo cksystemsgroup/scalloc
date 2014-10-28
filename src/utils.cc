@@ -14,7 +14,6 @@
 
 namespace {
 
-const size_t kMaxSizet = static_cast<size_t>(-1);
 
 //inline void Swap(size_t& a, size_t& b) {
 //  if (&a == &b) {
@@ -62,6 +61,7 @@ size_t Cpus() {
 }
 
 
+/*
 size_t Parallelism() {
   static size_t parallelism = kMaxSizet;
   if (parallelism == kMaxSizet) {
@@ -74,7 +74,7 @@ size_t Parallelism() {
   }
   return parallelism;
 }
-
+*/
 
 void* SystemMmap(size_t size, size_t* actual_size, bool huge) {
   // pad size to some multiple of the system page size

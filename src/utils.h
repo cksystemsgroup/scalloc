@@ -11,6 +11,8 @@
 namespace scalloc {
 namespace utils {
 
+const size_t kMaxSizet = static_cast<size_t>(-1);
+
 inline size_t PadSize(size_t size, size_t multiple) {
   return (size + multiple - 1) / multiple * multiple;
 }
@@ -43,7 +45,21 @@ inline bool IsPowerOfTwo(size_t num) {
 
 size_t Cpus();
 
-size_t Parallelism();
+//size_t Parallelism();
+inline size_t Parallelism() {
+  static size_t parallelism = kMaxSizet;
+  if (parallelism == kMaxSizet) {
+#ifdef MAX_PARALLELISM
+    parallelism = MAX_PARALLELISM;
+#endif  // MAX_PARALLELISM
+    /*
+    if (Cpus() < parallelism) {
+      parallelism = Cpus();
+    }
+    */
+  }
+  return parallelism;
+}
 
 int64_t ReadProcEntry(const int fd, const char* entry_name);
 
