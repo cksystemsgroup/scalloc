@@ -38,8 +38,8 @@ class FreelistBase {
   // this free list.
   size_t len_;
 
-#ifdef DEBUG
   uintptr_t upper_;
+#ifdef DEBUG
   uintptr_t lower_;
 #endif  // DEBUG
 };
@@ -57,8 +57,8 @@ class IncrementalFreelist : public FreelistBase {
     list_ = NULL;
     const size_t size = ClassToSize[size_class];
     uintptr_t start_ptr = reinterpret_cast<uintptr_t>(start);
-#ifdef DEBUG
     upper_ = start_ptr + size * ClassToObjects[size_class];
+#ifdef DEBUG
     lower_ = start_ptr;
 #endif  // DEBUG
     bp_ = const_cast<void*>(start);
