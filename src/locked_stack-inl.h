@@ -11,6 +11,7 @@ class LockedStack {
  public:
   void Init();
   void Push(void* p);
+  void PushBuffer(void* start, void* end);
   void* Pop();
   void Put(void* p);
   void* Get();
@@ -49,6 +50,15 @@ inline void LockedStack::Push(void* p) {
 
   *(reinterpret_cast<void**>(p)) = top_;
   top_ = p;
+  tag_++;
+}
+
+
+inline void LockedStack::PushBuffer(void* start, void* end) {
+  LockScope(stack_lock_);
+
+  *(reinterpret_cast<void**>(end)) = top_;
+  top_ = start_;
   tag_++;
 }
 
