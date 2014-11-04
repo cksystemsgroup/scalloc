@@ -58,7 +58,7 @@ inline void LockedStack::PushBuffer(void* start, void* end) {
   LockScope(stack_lock_);
 
   *(reinterpret_cast<void**>(end)) = top_;
-  top_ = start_;
+  top_ = start;
   tag_++;
 }
 
