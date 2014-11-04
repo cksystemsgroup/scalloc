@@ -12,7 +12,10 @@
 
 namespace scalloc {
 
+#ifdef ADAPT_SPAN_REFILL
 extern cache_aligned RRAllocationBuffer ab;
+#endif  // ADAPT_SPAN_REFILL
+
 cache_aligned SpanPool SpanPool::span_pool_;
 
 
@@ -28,6 +31,7 @@ void* SpanPool::RefillOne() {
 }
 
 
+#ifdef ADAPT_SPAN_REFILL
 void* SpanPool::Refill(uint64_t sc, uint32_t tid) {
   uint64_t num = ab.GetAllocationBuffer(NULL).NextSpanRefill(sc);
   uint64_t sz  = num * kVirtualSpanSize;
@@ -46,5 +50,6 @@ void* SpanPool::Refill(uint64_t sc, uint32_t tid) {
   }
   return p;
 }
+#endif  // ADAPT_SPAN_REFILL
 
 }  // namespace scalloc

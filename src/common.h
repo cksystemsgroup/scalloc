@@ -66,8 +66,4 @@ const size_t kEagerMadviseThreshold = EAGER_MADVISE_THRESHOLD;
 #define MAX_PARALLELISM 80
 #endif  // MAX_PARALLELISM
 
-#if !defined(CLAB_UTILIZATION) && !defined(CLAB_THREADS) && !defined(CLAB_RR)
-#define CLAB_RR 1
-#endif  // !CLAB_UTILIZATION && !CLAB_THREADS && !CLAB_RR
-
 #endif  // SCALLOC_COMMON_H_

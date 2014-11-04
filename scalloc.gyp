@@ -17,12 +17,8 @@
     'max_parallelism%': -1,
     'dq_backend%': "-1",
     'dq_non_lin_empty%': -1,
-    'huge_pages%': -1,
-    'huge_page_space%': -1,
-    'clab_policy%': "utilization",
-    'clab_threshold%': -1,
-    'size_classes_1mb%': -1,
-    'size_class_config%': "default",
+    'adapt_span_refill%': -1,
+    'size_class_config%': "optimized",
   },
   'conditions': [
     ['<(unit_tests)!=-1', {
@@ -105,39 +101,9 @@
             'PROFILER'
           ]
         }],
-        ['<(huge_pages)!=-1', {
+        ['<(adapt_span_refill)!=-1', {
           'defines': [
-            'HUGE_PAGE'
-          ]
-        }],
-        ['<(huge_page_space)!=-1', {
-          'defines': [
-            'HUGE_PAGE_SPACE=<(huge_page_space)'
-          ]
-        }],
-        ['"<(clab_policy)"=="utilization"', {
-          'defines': [
-            'CLAB_UTILIZATION'
-          ]
-        }],
-        ['"<(clab_policy)"=="threads"', {
-          'defines': [
-            'CLAB_THREADS'
-          ]
-        }],
-        ['"<(clab_policy)"=="rr"', {
-          'defines': [
-            'CLAB_RR'
-          ]
-        }],
-        ['<(clab_threshold)!=-1', {
-          'defines': [
-            'CLAB_THRESHOLD=<(clab_threshold)'
-          ]
-        }],
-        ['<(size_classes_1mb)!=-1', {
-          'defines': [
-            'SZ_1MB'
+            'ADAPT_SPAN_REFILL'
           ]
         }],
       ],
