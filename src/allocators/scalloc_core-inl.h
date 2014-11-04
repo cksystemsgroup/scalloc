@@ -364,7 +364,7 @@ always_inline bool ScallocCore::LocalFreeInSizeClass(
       LOG(kTrace, "[ScallocCore] free in active local block at %p, "
                   "block: %p, sc: %lu, utilization: %lu",
           p, hdr, sc, hdr->Utilization());
-      if (hdr != cur_sc_hdr &&
+      if ((hdr != cur_sc_hdr) &&
           (hdr->Utilization() < kSpanReuseThreshold)) {
         if (UNLIKELY(hdr->flist.Full())) {
           RemoveCoolSpan(sc, hdr);

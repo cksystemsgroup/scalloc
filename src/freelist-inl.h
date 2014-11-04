@@ -17,17 +17,29 @@ class FreelistBase {
   virtual void Push(void* p) = 0;
   virtual void* Pop() = 0;
 
+  // Returns true if the free list is empty.
   always_inline bool Empty() { return len_ == 0; }
+
+  // Returns true if the free list if full.
   always_inline bool Full() { return len_ == cap_; }
+
+  // Returns the current number of free objects in this free list.
   always_inline size_t Size() { return len_; }
+
+  // The utilization in percent (%) of this free list. For zero allocated
+  // objects the utilization is 0%.
   always_inline size_t Utilization() { return 100 - ((len_ * 100) / cap_); }
 
  protected:
+  // The capacity, i.e., the overall number of objects of this free list.
   size_t cap_;
+  
+  // The current length of the free list, i.e., the number of free objects in
+  // this free list.
   size_t len_;
 
-  uintptr_t upper_;
 #ifdef DEBUG
+  uintptr_t upper_;
   uintptr_t lower_;
 #endif  // DEBUG
 };
@@ -55,7 +67,6 @@ class IncrementalFreelist : public FreelistBase {
     bp_len_ = cap_;
   }
 
-
   always_inline void* Pop() {
     void* result = list_;
     if (result != NULL) {
@@ -75,26 +86,6 @@ class IncrementalFreelist : public FreelistBase {
       len_--;
     }
     return result;
-    /*
-    void* result;
-    if (done_) {
-      result = list_;
-      if (result != NULL) {
-        list_ = *(reinterpret_cast<void**>(list_));
-        len_--;
-      }
-    } else {
-      result = bp_;
-      bp_ = reinterpret_cast<void*>(
-          reinterpret_cast<uintptr_t>(bp_) + increment_);
-      len_--;
-      if (len_ == 0) {
-        done_ = true;
-      }
-    }
-    return result;
-    */
-    //return pop_(this);
   }
 
   static void* PopList(IncrementalFreelist* thiz) {

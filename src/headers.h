@@ -99,9 +99,7 @@ class SpanHeader : public Header {
   }
 
   // The utilization of the span in percent.
-  inline size_t Utilization() {
-    return flist.Utilization();
-  }
+  always_inline size_t Utilization() { return flist.Utilization(); }
 
   // read-only properties
   size_t size_class;
