@@ -41,9 +41,9 @@ function build_config() {
   ln -s scalloc/out/Release/${name}.so ../${name}.so.0
 }
 
-build_config "libscalloc-hlab" "-D core_local=1 -D clab_policy=rr -D incremental_freelist=1"
-build_config "libscalloc-tlab" "-D core_local=-1 -D incremental_freelist=1"
-build_config "libscalloc-eager" "-D core_local=1 -D clab_policy=rr -D eager_madvise_threshold=4096 -D incremental_freelist=1"
+build_config "libscalloc-clab" "-D core_local=1 -D incremental_freelist=1 -D size_class_config=optimized"
+build_config "libscalloc-tlab" "-D core_local=-1 -D incremental_freelist=1 -D size_class_config=optimized"
+build_config "libscalloc-eager" "-D core_local=1 -D eager_madvise_threshold=4096 -D incremental_freelist=1 -D size_class_config=optimized"
 build_config "libscalloc-hugepage" "-D core_local=1 -D clab_policy=rr -D size_class_config=hugepage -D incremental_freelist=1" 
 
 #build_config "libscalloc-eager" "-D core_local=1 -D clab_policy=rr -D eager_madvise_threshold=4096 -D incremental_freelist=1"
@@ -58,8 +58,8 @@ build_config "libscalloc-hugepage" "-D core_local=1 -D clab_policy=rr -D size_cl
 for i in 1 2 4 8 16 32 64
 do
   echo "test: $i"
-  build_config "libscalloc-$i-locked" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=LockedStack"
-  build_config "libscalloc-$i-lockfree" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=Stack"
+  build_config "libscalloc-$i-locked" "-D core_local=1 -D max_parallelism=$i -D dq_backend=LockedStack"
+  build_config "libscalloc-$i-lockfree" "-D core_local=1 -D max_parallelism=$i -D dq_backend=Stack"
   #build_config "libscalloc-$i-locked-profile" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=LockedStack -D profile=1"
   #build_config "libscalloc-$i-lockfree-profile" "-D core_local=1 -D clab_policy=rr -D max_parallelism=$i -D dq_backend=Stack -D profile=1"
 done
