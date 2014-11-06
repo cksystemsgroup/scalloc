@@ -39,8 +39,8 @@
   SIZE_CLASS(23, 32768, ((16 * 32768 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 16) /* NOLINT */ \
   SIZE_CLASS(24, 65536, ((16 * 65536 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 16) /* NOLINT */ \
   SIZE_CLASS(25, 131072, ((8 * 131072 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 8) /* NOLINT */ \
-  SIZE_CLASS(26, 262144, ((8 * 262144 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 8) /* NOLINT */ \
-  SIZE_CLASS(27, 524288, ((4 * 524288 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 4) /* NOLINT */ \
-  SIZE_CLASS(28, 1048576, ((2 * 1048576 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 2) /* NOLINT */
+  SIZE_CLASS(26, 262144, ((4 * 262144 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 4) /* NOLINT */ \
+  SIZE_CLASS(27, 524288, ((2 * 524288 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 2) /* NOLINT */ \
+  SIZE_CLASS(28, 1048576, ((1 * 1048576 + sizeof(SpanHeader))/kPageSize + 1) * kPageSize, 1) /* NOLINT */
 
 #endif  // SCALLOC_SIZE_CLASSES_RAW_H_
