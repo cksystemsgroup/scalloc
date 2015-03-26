@@ -117,7 +117,7 @@ class Span {
   std::atomic<int32_t> epoch_;
 
   int32_t size_class_;
-  __attribute__((unused))  char padding_[8];
+  UNUSED  char padding_[8];
   IncrementalFreeList local_free_list_;
 
   RemoteFreeList remote_free_list_;
