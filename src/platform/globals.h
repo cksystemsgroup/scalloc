@@ -19,7 +19,7 @@
 
 const int32_t kCacheLineSize = CACHELINE_SIZE;
 
-#define UNUSED __attribute__((unused))
+#define UNUSED
 
 // Generally use TLS.
 #define HAVE_TLS 1
@@ -31,6 +31,9 @@ const int32_t kCacheLineSize = CACHELINE_SIZE;
 // OSX
 //
 #if defined(__APPLE__)
+
+#undef UNUSED
+#define UNUSED __attribute__((unused))
 
 #ifndef MAP_ANONYMOUS
 #define MAP_ANONYMOUS MAP_ANON
