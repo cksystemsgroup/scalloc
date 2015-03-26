@@ -32,7 +32,8 @@ environment)](http://en.wikipedia.org/wiki/Pareto_principle).
 
 ## Binaries
 
-We do not explicitly provide pre-built binaries.
+We do not explicitly provide pre-built binaries. However, binaries for Linux (x86_64) can be found 
+on [scalloc's drone.io downloads page](https://drone.io/github.com/cksystemsgroup/scalloc/files).  Note that these binaries are generated on every code change and may not be very stable.
 
 ## Building from source
 
