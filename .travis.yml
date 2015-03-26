@@ -1,0 +1,4 @@
+language: cpp
+
+before_install:
+  - tools/make_deps.sh
