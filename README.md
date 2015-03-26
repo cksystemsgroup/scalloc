@@ -61,9 +61,9 @@ build/gyp/gyp --depth=. scalloc.gyp
 
 Additionally, scalloc provides some compile-time configuration flags:
 * log_level: Log level that is used through the allocator. [default: kWarning]
-* reuse_threshold: Utilization of spans that should be revived before they actually 
-  get empty (i.e. all objects have been returned). A threshold of 100 corresponds to disabling 
-  this feature at compile time. [default: 80]
+* reuse_threshold: Utilization of spans that should be revived before they
+  actually get empty (i.e. all objects have been returned). A threshold of 100
+  corresponds to disabling this feature at compile time. [default: 80]
 
 Flags may be set when creating the build files using `gyp` by passing them as flags, i.e.,
 `-Dflag=value`. For example, `-Dreuse_threshold=20`.
