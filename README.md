@@ -37,7 +37,8 @@ on [scalloc's drone.io downloads page](https://drone.io/github.com/cksystemsgrou
 
 ## Building from source
 
-We support building on OS X (>10.6) and Linux-based systems using gyp.
+We support building on OS X (>10.6) and Linux-based systems using gyp. The only
+requirement to actually get started is a working `git` installation.
 
 ### Setting up a build environment
 
