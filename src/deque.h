@@ -49,6 +49,7 @@ class Deque {
 
   always_inline void Open(core_id owner);
   always_inline void Close();
+
  private:
   typedef SpinLock<0> Lock;
 

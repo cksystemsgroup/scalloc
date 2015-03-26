@@ -176,24 +176,23 @@ void Core::Free(void* p) {
 
   if (UNLIKELY((free_objects == ClassToObjects[size_class]) &&
       Span::IsFloatingOrReusable(old_epoch))) {
-
       if (s->NewMarkFull(old_epoch)) {
         if (Span::IsReusable(old_epoch)) {
-          old_owner.value()->r_spans_[size_class].Remove(old_owner, s->SpanLink());
+          old_owner.value()->r_spans_[size_class].Remove(
+              old_owner, s->SpanLink());
         }
         ScallocAssert(!Span::IsHot(s->epoch()));
         Span::Delete(s);
       }
-
   } else if (UNLIKELY((free_objects > ClassToReuseThreshold[size_class]) &&
              !Span::IsReusable(old_epoch))) {
       // For a terminated owner that is waiting we will still add it to the list
       // to keep the code paths simple. (Yep, that's overhead in this rare
       // case.)
       if (s->NewMarkReuse(old_epoch)) {
-        old_owner.value()->r_spans_[size_class].PushFront(old_owner, s->SpanLink());
+        old_owner.value()->r_spans_[size_class].PushFront(
+            old_owner, s->SpanLink());
       }
-
   }
 }
 

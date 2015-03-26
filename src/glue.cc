@@ -74,7 +74,6 @@ scalloc::ScallocGuard::ScallocGuard() {
     ab_scheduler.GetMeALAB();
     ReplaceSystemAllocator();
     atexit(exitHandler);
-    //PrintSizeclasses();
   }
 }
 
@@ -153,5 +152,4 @@ void* scalloc_thread_start(void* arg) {
   delete reinterpret_cast<ScallocStartArgs*>(arg);
   return fake_args.real_start(fake_args.real_args);
 }
-
 }

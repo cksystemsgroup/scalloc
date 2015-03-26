@@ -5,8 +5,6 @@
 #ifndef SCALLOC_PLATFORM_PTHREAD_INTERCEPT_H_
 #define SCALLOC_PLATFORM_PTHREAD_INTERCEPT_H_
 
-//#include <bits/pthreadtypes.h>
-//#include <sys/_pthread/_pthread_types.h>
 #include <pthread.h>
 
 typedef void* (*StartFunc)(void*);
