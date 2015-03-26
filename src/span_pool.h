@@ -45,7 +45,7 @@ class SpanPool {
 
   std::atomic<int32_t> limit_;
   std::atomic<int32_t> current_;
-  uint8_t pad_[64 - ((sizeof(limit_) + sizeof(current_))  % 64)];  // NOLINT
+  UNUSED uint8_t pad_[64 - ((sizeof(limit_) + sizeof(current_))  % 64)];  // NOLINT
 
   Backend* spans_[kSizeClassSlots];
 

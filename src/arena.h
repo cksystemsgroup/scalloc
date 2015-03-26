@@ -30,14 +30,14 @@ class Arena {
   uintptr_t end_;
   uintptr_t len_;
 
-  uint8_t pad1_[64 -
+  UNUSED uint8_t pad1_[64 -
       ((sizeof(name_) +
         sizeof(start_) +
         sizeof(end_) +
         sizeof(len_)) % 64)];
 
   std::atomic<uintptr_t> current_;
-  uint8_t pad2_[64  -
+  UNUSED uint8_t pad2_[64  -
       ((sizeof(current_)) % 64)];
 };
 

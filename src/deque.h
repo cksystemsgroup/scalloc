@@ -58,7 +58,7 @@ class Deque {
   core_id owner_;
   DoubleListNode sentinel_;
 
-  char pad_[64 - ((
+  UNUSED char pad_[64 - ((
       sizeof(lock_) +
       sizeof(sentinel_)) % 64)];
 };

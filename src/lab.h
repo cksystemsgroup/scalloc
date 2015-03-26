@@ -48,7 +48,7 @@ T* TLSBase<T>::GetTLS() {
 #ifdef HAVE_TLS
   return ab_;
 #else
-  return pthread_getspecific(tls_key_);
+  return static_cast<T*>(pthread_getspecific(tls_key_));
 #endif  // HAVE_TLS
 }
 

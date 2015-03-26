@@ -23,7 +23,7 @@
         ['OS=="linux"', {
           'ldflags': [ '-pthread' ],
           'libraries': ['-ldl'],
-          'cflags': [ '-mcx16' ],
+          'cflags': [ '-mcx16', '-Wl,--as-needed' ],
           'sources': [
             'src/platform/pthread_intercept.cc'
           ]
@@ -42,6 +42,8 @@
         'src/platform/override.h',
         'src/platform/override_gcc_weak.h',
         'src/platform/override_osx.h',
+        'src/platform/pthread_intercept.h',
+        'src/platform/pthread_intercept.cc',
         'src/size_classes.h',
         'src/span.h',
         'src/span_pool.h',

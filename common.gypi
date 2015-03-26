@@ -3,7 +3,6 @@
     'default_cflags' : [
       '-Wall',
       '-Werror',
-      '-Wl,--as-needed',
       '-fPIC',
       '-m64',
       '-std=c++11',

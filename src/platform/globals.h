@@ -19,6 +19,8 @@
 
 const int32_t kCacheLineSize = CACHELINE_SIZE;
 
+#define UNUSED __attribute__((unused))
+
 // Generally use TLS.
 #define HAVE_TLS 1
 

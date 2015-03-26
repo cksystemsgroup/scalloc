@@ -11,6 +11,7 @@
 
 #elif defined(__APPLE__)
 #include "platform/override_osx.h"
+#include "platform/pthread_intercept.h"
 
 #else
 #error unsupported lib/OS.

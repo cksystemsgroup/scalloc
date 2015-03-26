@@ -144,12 +144,14 @@ void scalloc_malloc_stats() __THROW {
 int scalloc_mallopt(int cmd, int value) __THROW {
   return scalloc::mallopt(cmd, value);
 }
-}
 
-extern "C" void* scalloc_thread_start(void* arg) {
+
+void* scalloc_thread_start(void* arg) {
   scalloc::ab_scheduler.GetMeALAB();
 
   ScallocStartArgs fake_args = *(reinterpret_cast<ScallocStartArgs*>(arg));
   delete reinterpret_cast<ScallocStartArgs*>(arg);
   return fake_args.real_start(fake_args.real_args);
+}
+
 }
