@@ -4,14 +4,9 @@
 Makefile
 build/
 out/
-data/
-plots/
-third_party/
 
 *.target.mk
 
 scalloc.Makefile
 scalloc.target.mk
 scalloc.xcodeproj/
-
-.clang_complete
