@@ -2,7 +2,6 @@ notifications:
     email: false
 
 language:
-  - objective-c # enabling osx
   - cpp
 
 os:
