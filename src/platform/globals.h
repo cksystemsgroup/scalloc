@@ -19,8 +19,6 @@
 
 const int32_t kCacheLineSize = CACHELINE_SIZE;
 
-#define UNUSED
-
 #ifdef __clang__
 #define UNUSED __attribute__((unused))
 #else
