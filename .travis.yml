@@ -17,7 +17,7 @@ before_install:
   - tools/travis_before_install.sh
 
 install:
-  - tool/travis_install.sh
+  - tools/travis_install.sh
   - tools/make_deps.sh
 
 script:
