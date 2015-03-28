@@ -13,14 +13,8 @@ compiler:
   - clang
   - gcc
 
-before_install:
-  - tools/travis_before_install.sh
+before_install: tools/travis_before_install.sh
 
-install:
-  - tools/travis_install.sh
-  - tools/make_deps.sh
+install: tools/travis_install.sh
 
-script:
-  - build/gyp/gyp --depth=. scalloc.gyp
-  - V=1 make
-  - V=1 BUILDTYPE=Release make
+script: tools/travis_script.sh
