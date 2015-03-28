@@ -23,7 +23,7 @@
         ['OS=="linux"', {
           'ldflags': [ '-pthread' ],
           'libraries': ['-ldl'],
-          'cflags': [ '-mcx16', '-Wl,--as-needed' ],
+          'cflags': [ '-mcx16' ],
           'sources': [
             'src/platform/pthread_intercept.cc'
           ]
