@@ -5,7 +5,7 @@
 We completely rewrote the allocator from scratch. Please use the current version to
 obtain benchmarking numbers for scalloc. See [Benchmarking](#benchmarking).
 
-**A Fast, Multicore-Scalable, Low-Memory-Overhead Allocator**
+**A Fast, Multicore-Scalable, Low-Fragmentation Memory Allocator**
 
 The problem of concurrent memory allocation is to find the right balance between
 temporal and spatial performance and scalability across a large range of
