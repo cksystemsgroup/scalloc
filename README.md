@@ -45,7 +45,7 @@ requirement to actually get started is a working `git` installation.
 
 Checkout the latest version
 ```sh
-git clone git clone https://github.com/cksystemsgroup/scalloc.git
+git clone https://github.com/cksystemsgroup/scalloc.git
 cd scalloc
 ```
 
