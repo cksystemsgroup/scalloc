@@ -41,6 +41,7 @@ private:                                                                       \
 #else  // !DEBUG
 
 #define ScallocAssert(c) do {                                                  \
+  if (c) {}                                                                    \
 } while (0)
 
 #endif  // DEBUG
