@@ -43,6 +43,7 @@ function build_config() {
 
 build_config "libscalloc" ""
 build_config "libscalloc-no-madvise" "-Dmadvise=no"
+build_config "libscalloc-sp-1-backend" "-Dspan_pool_backend_limit=1"
 
 cd ..
 
