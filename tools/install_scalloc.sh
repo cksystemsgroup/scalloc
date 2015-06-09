@@ -24,9 +24,8 @@ fi
 
 tools/make_deps.sh
 
-BUILD_OPTS="-j 80"
+BUILD_OPTS="-j 24"
 
-export BUILDTYPE=Release
 export V=1
 
 function build_config() {
@@ -34,19 +33,16 @@ function build_config() {
   params=$2
 
   build/gyp/gyp --depth=. $params scalloc.gyp
-  make $BUILD_OPTS
+  BUILDTYPE=Release make $BUILD_OPTS
+  BUILDTYPE=Debug make $BUILD_OPTS
   cp out/Release/lib.target/libscalloc.so out/Release/${name}.so
+  cp out/Debug/lib.target/libscalloc.so out/Debug/${name}.so
   ln -s scalloc/out/Release/${name}.so ../${name}.so
   ln -s scalloc/out/Release/${name}.so ../${name}.so.0
 }
 
 build_config "libscalloc" ""
-build_config "libscalloc-reuse-0" "-D lab_model=SCALLOC_LAB_MODEL_TLAB -Dreuse_threshold=0 "
-build_config "libscalloc-reuse-20" "-D lab_model=SCALLOC_LAB_MODEL_TLAB -Dreuse_threshold=20"
-build_config "libscalloc-reuse-40" "-D lab_model=SCALLOC_LAB_MODEL_TLAB -Dreuse_threshold=40"
-build_config "libscalloc-reuse-60" "-D lab_model=SCALLOC_LAB_MODEL_TLAB -Dreuse_threshold=60"
-build_config "libscalloc-reuse-80" "-D lab_model=SCALLOC_LAB_MODEL_TLAB -Dreuse_threshold=80"
-build_config "libscalloc-reuse-100" "-D lab_model=SCALLOC_LAB_MODEL_TLAB -Dreuse_threshold=100"
+build_config "libscalloc-no-madvise" "-Dmadvise=no"
 
 cd ..
 

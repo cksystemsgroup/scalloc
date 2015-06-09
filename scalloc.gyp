@@ -6,6 +6,9 @@
     'log_level%': "kWarning",
     'reuse_threshold%': "80",
     'lab_model%': "SCALLOC_LAB_MODEL_TLAB",
+    'madvise%': 'yes',
+    'madvise_eager%': 'yes',
+    'span_pool_backend_limit%': 'cpu',
   },
   'conditions': [
   ],
@@ -26,6 +29,21 @@
           'cflags': [ '-mcx16' ],
           'sources': [
             'src/platform/pthread_intercept.cc'
+          ]
+        }],
+        ['"no"=="<(madvise)"', {
+          'defines': [
+            'SCALLOC_NO_MADVISE'
+          ]
+        }],
+        ['"no"=="<(madvise_eager)"', {
+          'defines': [
+            'SCALLOC_NO_MADVISE_EAGER'
+          ]
+        }],
+        ['"cpu"!="<(span_pool_backend_limit)"', {
+          'defines': [
+            'SCALLOC_SPAN_POOL_BACKEND_LIMIT=<(span_pool_backend_limit)'
           ]
         }],
       ],
