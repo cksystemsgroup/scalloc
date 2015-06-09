@@ -9,6 +9,7 @@
     'madvise%': 'yes',
     'madvise_eager%': 'yes',
     'span_pool_backend_limit%': 'cpu',
+    'cleanup_in_free%': 'yes',
   },
   'conditions': [
   ],
@@ -44,6 +45,11 @@
         ['"cpu"!="<(span_pool_backend_limit)"', {
           'defines': [
             'SCALLOC_SPAN_POOL_BACKEND_LIMIT=<(span_pool_backend_limit)'
+          ]
+        }],
+        ['"yes"!="<(cleanup_in_free)"', {
+          'defines': [
+            'SCALLOC_NO_CLEANUP_IN_FREE'
           ]
         }],
       ],

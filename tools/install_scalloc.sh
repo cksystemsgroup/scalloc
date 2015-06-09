@@ -41,9 +41,14 @@ function build_config() {
   ln -s scalloc/out/Release/${name}.so ../${name}.so.0
 }
 
-build_config "libscalloc" ""
-build_config "libscalloc-no-madvise" "-Dmadvise=no"
-build_config "libscalloc-sp-1-backend" "-Dspan_pool_backend_limit=1"
+build_config "libscalloc" \
+             ""
+build_config "libscalloc-no-madvise" \
+             "-Dmadvise=no"
+build_config "libscalloc-sp-1-backend" \
+             "-Dspan_pool_backend_limit=1"
+build_config "libscalloc-no-cleanup-in-free" \
+             "-Dcleanup_in_free=no"
 
 cd ..
 

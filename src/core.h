@@ -118,6 +118,18 @@ Span* Core::GetSpan(int32_t sc) {
   if (newspan == nullptr) {
     newspan = Span::New(sc, id());
   }
+#if defined(SCALLOC_NO_CLEANUP_IN_FREE)
+  Span* cleanup_span = nullptr;
+  while ((node = r_spans_[sc].RemoveBack()) != nullptr) {
+    cleanup_span = Span::FromSpanLink(node);
+    const int32_t epoch = cleanup_span->epoch();
+    if (cleanup_span->NrFreeObjects() == ClassToObjects[cleanup_span->size_class()]) {
+      const bool success = cleanup_span->NewMarkFull(epoch);
+      ScallocAssert(success);  // should always work
+      Span::Delete(cleanup_span);
+    }
+  }
+#endif  // SCALLOC_NO_CLEANUP_IN_FREE
   return newspan;
 }
 
@@ -174,6 +186,7 @@ void Core::Free(void* p) {
   }
 
 
+#if !defined(SCALLOC_NO_CLEANUP_IN_FREE)
   if (UNLIKELY((free_objects == ClassToObjects[size_class]) &&
       Span::IsFloatingOrReusable(old_epoch))) {
       if (s->NewMarkFull(old_epoch)) {
@@ -184,6 +197,9 @@ void Core::Free(void* p) {
         ScallocAssert(!Span::IsHot(s->epoch()));
         Span::Delete(s);
       }
+#else
+  if (false) {
+#endif  // !SCALLOC_NO_CLEANUP_IN_FREE
   } else if (UNLIKELY((free_objects > ClassToReuseThreshold[size_class]) &&
              !Span::IsReusable(old_epoch))) {
       // For a terminated owner that is waiting we will still add it to the list
