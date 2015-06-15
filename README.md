@@ -101,14 +101,16 @@ LD_PRELOAD=/path/to/libscalloc.so ./foo
 ```
 
 scalloc heavily makes use of 64bit address space. If you run into mmap limits
-you  need to disable overcommit accounting. On recent versions of Linux
+you  need to disable overcommit accounting. Additionally, make sure that
+transparent huge pages are disabled. On recent versions of Linux
 you can do this by
 ```sh
 sudo sh -c "echo 1 > /proc/sys/vm/overcommit_memory"
+sudo sh -c "echo never > /sys/kernel/mm/transparent_hugepage/enabled"
 ```
 
-See the [kernel docs](https://www.kernel.org/doc/Documentation/vm/overcommit-accounting)
-for more information.
+See the kernel docs on [overcommit accounting](https://www.kernel.org/doc/Documentation/vm/overcommit-accounting)
+and [transparent hugepages](https://www.kernel.org/doc/Documentation/vm/transhuge.txt) for more information.
 
 ### ... on OSX
 
