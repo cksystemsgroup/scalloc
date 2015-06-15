@@ -12,12 +12,12 @@ before_install: tools/travis_before_install.sh
 install: tools/travis_install.sh
 script: tools/travis_script.sh
 
+before_deploy: tools/travis_before_deploy.sh
 deploy:
   provider: releases
   api_key:
     secure: IHhS/mO6hOTxpro4nRVRzrZ4VKs9jCs09PyXhV8UWXTmlZ9Ch7gHDKmHGrV4gP9ypWF8ULCzWKJ+4sIviWuUQpBUQn9sjLWc+nguHSd+tt8JSZWMIAK/bYJKhsF+c67eqoVsYuJNwArF/V4iZVkjUNk+nYJ57GQS5GJtKx3wXAA=
-  file:
-    - out/Release/lib.target/libscalloc.so
-    - out/Debug/lib.target/libscalloc.so
+  file_glob: true
+  file: binaries-*
   on:
     tags: true
