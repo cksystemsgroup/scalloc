@@ -1,4 +1,4 @@
-# scalloc [![Build Status](https://drone.io/github.com/cksystemsgroup/scalloc/status.png)](https://drone.io/github.com/cksystemsgroup/scalloc/latest)
+# scalloc [![Build Status](https://travis-ci.org/cksystemsgroup/scalloc.svg?branch=master)](https://travis-ci.org/cksystemsgroup/scalloc)
 
 **Note** 
 
