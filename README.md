@@ -119,9 +119,6 @@ DYLD_INSERT_LIBRARIES=/path/to/libscalloc.dylib DYLD_FORCE_FLAT_NAMESPACE=1 ./fo
 
 ## Benchmarking
 
-Use the following environment for obtaining  benchmark numbers for scalloc.
+See [cksystemsgroup/scalloc-artifact](https://github.com/cksystemsgroup/scalloc-artifact) for
+setting up a benchmarking environment to compare scalloc against other allocators.
 
-* Configuration: Release
-* OS: Linux 3.8.x
-* Platform: x86-64
-* Compiler: `gcc`&ge; 4.8
