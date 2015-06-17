@@ -50,5 +50,8 @@ build_config "libscalloc-sp-1-backend" \
 build_config "libscalloc-no-cleanup-in-free" \
              "-Dcleanup_in_free=no"
 
+build_config "libscalloc-no-reuse" \
+             "-Dreuse_threshold=100"
+
 cd ..
 
