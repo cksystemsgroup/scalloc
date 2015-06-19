@@ -10,6 +10,7 @@
     'madvise_eager%': 'yes',
     'span_pool_backend_limit%': 'cpu',
     'cleanup_in_free%': 'yes',
+    'safe_global_construction%': 'no',
   },
   'conditions': [
   ],
@@ -50,6 +51,11 @@
         ['"yes"!="<(cleanup_in_free)"', {
           'defines': [
             'SCALLOC_NO_CLEANUP_IN_FREE'
+          ]
+        }],
+        ['"no"=="<(safe_global_construction)"', {
+          'defines': [
+            'SCALLOC_NO_SAFE_GLOBAL_CONSTRUCTION'
           ]
         }],
       ],

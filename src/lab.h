@@ -23,7 +23,10 @@ class TLSBase {
  protected:
   typedef void (*TLSDestructor)(void*);
 
-  always_inline TLSBase(TLSDestructor dtor);
+  // Globally constructed, hence we use staged construction.
+  always_inline TLSBase() { }
+
+  always_inline void Init(TLSDestructor dtor);
   always_inline void SetTLS(T* t);
   always_inline T* GetTLS();
 
@@ -38,7 +41,7 @@ TLS_ATTRIBUTE T* TLSBase<T>::ab_ = NULL;
 
 
 template<class T>
-TLSBase<T>::TLSBase(TLSDestructor dtor) {
+void TLSBase<T>::Init(TLSDestructor dtor) {
   pthread_key_create(&tls_key_, dtor);
 }
 
@@ -65,7 +68,10 @@ void TLSBase<T>::SetTLS(T* t) {
 
 class ThreadLocalAllocationBuffer : public TLSBase<Core> {
  public:
-  always_inline ThreadLocalAllocationBuffer();
+  // Globally constructed, hence we use staged construction.
+  always_inline ThreadLocalAllocationBuffer() { }
+
+  always_inline void Init();
   always_inline Core& GetAB();
   always_inline void GetMeALAB();
 
@@ -85,8 +91,8 @@ std::atomic<int_fast32_t> ThreadLocalAllocationBuffer::thread_ids_;
 Stack<128> ThreadLocalAllocationBuffer::free_abs_;
 
 
-ThreadLocalAllocationBuffer::ThreadLocalAllocationBuffer()
-    : TLSBase<Core>(ThreadDestructor) {
+void ThreadLocalAllocationBuffer::Init() {
+  TLSBase<Core>::Init(ThreadDestructor);
 }
 
 
@@ -142,7 +148,10 @@ Core& ThreadLocalAllocationBuffer::GetAB() {
 
 class RoundRobinAllocationBuffer : public TLSBase<GuardedCore> {
  public:
-  always_inline RoundRobinAllocationBuffer();
+  // Globally constructed, hence we use staged construction.
+  always_inline RoundRobinAllocationBuffer() { }
+
+  always_inline void Init();
   always_inline GuardedCore& GetAB();
 
  private:
@@ -156,9 +165,9 @@ class RoundRobinAllocationBuffer : public TLSBase<GuardedCore> {
 GuardedCore RoundRobinAllocationBuffer::allocation_buffers_[kMaxThreads];
 
 
-RoundRobinAllocationBuffer::RoundRobinAllocationBuffer()
-    : TLSBase<scalloc::GuardedCore>(ThreadDestructor)
-    , thread_counter_(0) {
+void RoundRobinAllocationBuffer::Init() {
+  TLSBase<scalloc::GuardedCore>::Init(ThreadDestructor);
+  thread_counter_ = 0;
 }
 
 

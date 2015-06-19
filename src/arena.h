@@ -16,7 +16,10 @@ namespace scalloc {
 
 class Arena {
  public:
-  always_inline Arena(size_t size, size_t alignment, const char* name);
+  // Globally constructed, hence we use staged construction.
+  always_inline Arena() {}
+
+  always_inline void Init(size_t size, size_t alignment, const char* name);
   always_inline bool Contains(const void* p);
   always_inline void* Allocate(size_t size);
   always_inline void* AllocateVirtualSpan();
@@ -42,9 +45,9 @@ class Arena {
 };
 
 
-Arena::Arena(size_t size, size_t alignment, const char* name)
-    : name_(name)
-    , len_(size) {
+void Arena::Init(size_t size, size_t alignment, const char* name) {
+  name_ = name;
+  len_ = size;
   bool needs_aligning = false;
   start_ = reinterpret_cast<uintptr_t>(
       SystemMmapGuided(reinterpret_cast<void*>(alignment), size));

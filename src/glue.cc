@@ -47,13 +47,13 @@ FOR_ALL_SIZE_CLASSES(REUSE_TH)
 // Be careful with order here! Since we define all globals in a single
 // translation unit we can rely on order.
 
-cache_aligned int32_t ScallocGuardRefcount;
-cache_aligned int32_t seen_memalign;
-cache_aligned Arena core_space(kLABSpaceSize, kPageSize, "LAB");
-cache_aligned Arena object_space(kObjectSpaceSize, kObjectSpaceSize, "object");
+cache_aligned Arena core_space;
+cache_aligned Arena object_space;
 cache_aligned SpanPool span_pool;
 cache_aligned ABProvider ab_scheduler;
 cache_aligned ScallocGuard StartupExitHook;
+/*cache_aligned*/ int32_t ScallocGuardRefcount;
+/*cache_aligned*/ int32_t seen_memalign;
 
 #ifdef PROFILE
 cache_aligned std::atomic<int32_t> local_frees;
@@ -69,17 +69,25 @@ void exitHandler() {
 }
 
 
+static void ScallocInit() {
+  core_space.Init(kLABSpaceSize, kPageSize, "LAB");
+  object_space.Init(kObjectSpaceSize, kObjectSpaceSize, "object");
+  span_pool.Init();
+  ab_scheduler.Init();
+
+  ab_scheduler.GetMeALAB();
+  ReplaceSystemAllocator();
+  atexit(exitHandler);
+}
+
+
 scalloc::ScallocGuard::ScallocGuard() {
   if (ScallocGuardRefcount++ == 0) {
-    ab_scheduler.GetMeALAB();
-    ReplaceSystemAllocator();
-    atexit(exitHandler);
+    ScallocInit();
   }
 }
 
 scalloc::ScallocGuard::~ScallocGuard() {
-  if (--ScallocGuardRefcount == 0) {
-  }
 }
 
 }  // namespace scalloc
@@ -91,6 +99,16 @@ scalloc::ScallocGuard::~ScallocGuard() {
 
 extern "C" {
 void* scalloc_malloc(size_t size) __THROW {
+#ifdef SCALLOC_NO_SAFE_GLOBAL_CONSTRUCTION
+  // Since we don't have global initialization dependencies we need to make sure
+  // to check whether all components already have been initialized. (e.g. in C++
+  // a global variable in a different translation unit can call a runtime
+  // function, effectively yielding in an allocation call)
+  if (UNLIKELY(scalloc::ScallocGuardRefcount == 0)) {
+    scalloc::ScallocGuardRefcount++;
+    scalloc::ScallocInit();
+  }
+#endif  // SCALLOC_NO_SAFE_GLOBAL_CONSTRUCTION
   return scalloc::malloc(size);
 }
 

@@ -19,7 +19,10 @@ namespace scalloc {
 
 class SpanPool {
  public:
-  always_inline SpanPool();
+  // Globally constructed, hence we use staged construction.
+  always_inline SpanPool() {}
+
+  always_inline void Init();
   always_inline void* Allocate(size_t size_class, int32_t id);
   always_inline void Free(size_t size_class, void* p, int32_t id);
 
@@ -65,15 +68,14 @@ class SpanPool {
 };
 
 
-SpanPool::SpanPool() 
-    : current_threads_(0)
-    , limit_(0) 
+void SpanPool::Init() {
+  current_threads_ = 0;
+  limit_ = 0;
 #ifdef PROFILE
-    , nr_allocate_(0)
-    , nr_free_(0)
-    , nr_madvise_(0)
+  nr_allocate_ = 0;
+  nr_free_ = 0;
+  nr_madvise_ = 0;
 #endif  // PROFILE
-{
   //LOG(kWarning, "SP constructor");
   for (size_t i = 0; i < kSizeClassSlots; i++) {
     spans_[i] = reinterpret_cast<Backend*>(

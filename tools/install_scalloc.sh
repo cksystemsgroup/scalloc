@@ -42,16 +42,16 @@ function build_config() {
 }
 
 build_config "libscalloc" \
-             ""
+             "-Dsafe_global_construction=yes"
 build_config "libscalloc-no-madvise" \
-             "-Dmadvise=no"
+             "-Dmadvise=no -Dsafe_global_construction=yes"
 build_config "libscalloc-sp-1-backend" \
-             "-Dspan_pool_backend_limit=1"
+             "-Dspan_pool_backend_limit=1 -Dsafe_global_construction=yes"
 build_config "libscalloc-no-cleanup-in-free" \
-             "-Dcleanup_in_free=no"
+             "-Dcleanup_in_free=no -Dsafe_global_construction=yes"
 
 build_config "libscalloc-no-reuse" \
-             "-Dreuse_threshold=100"
+             "-Dreuse_threshold=100 -Dsafe_global_construction=yes"
 
 cd ..
 
