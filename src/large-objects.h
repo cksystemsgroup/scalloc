@@ -21,12 +21,35 @@ class LargeObject {
   static always_inline size_t ObjectSize(void* p);
 
  private:
+  static const uint64_t kMagic = 0xAAAAAAAAAAAAAAAA;
+
+  static always_inline LargeObject* FromMutatorPtr(void* p);
+
   always_inline explicit LargeObject(size_t size);
   always_inline void* ObjectStart();
+  always_inline bool Validate();
 
   always_inline size_t size() { return actual_size_; }
+
   size_t actual_size_;
+  uint64_t magic_;
 };
+
+
+bool LargeObject::Validate() {
+  return magic_ == kMagic;
+}
+
+
+LargeObject* LargeObject::FromMutatorPtr(void* p) {
+  // LargeObject is always allocated using mmap, hence it is page aligned.
+  LargeObject* obj = reinterpret_cast<LargeObject*>(
+      reinterpret_cast<intptr_t>(p) & kPageNrMask);
+  if (!obj->Validate()) {
+    Fatal("invalid large object: %p", p);
+  }
+  return obj;
+}
 
 
 void* LargeObject::Allocate(size_t size) {
@@ -37,8 +60,7 @@ void* LargeObject::Allocate(size_t size) {
 
 
 void LargeObject::Free(void* p) {
-  LargeObject* obj = reinterpret_cast<LargeObject*>(
-      reinterpret_cast<intptr_t>(p) - sizeof(LargeObject));
+  LargeObject* obj = FromMutatorPtr(p);
   if (munmap(obj, obj->size()) != 0) {
     Fatal("munmap failed");
   }
@@ -46,14 +68,14 @@ void LargeObject::Free(void* p) {
 
 
 size_t LargeObject::ObjectSize(void* p) {
-  LargeObject* obj = reinterpret_cast<LargeObject*>(
-      reinterpret_cast<intptr_t>(p) - sizeof(LargeObject));
+  LargeObject* obj = FromMutatorPtr(p);
   return obj->size();
 }
 
 
 LargeObject::LargeObject(size_t size)
-    : actual_size_(size) {
+    : actual_size_(size)
+    , magic_(kMagic) {
 }
 
 

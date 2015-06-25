@@ -8,6 +8,9 @@
 #include "platform/globals.h"
 
 const size_t kPageSize = 4096;
+const uint64_t kPageNrMask = ~(static_cast<uint64_t>(kPageSize) - 1);
+const uint64_t kPageOffsetMask = static_cast<uint64_t>(kPageSize) - 1;
+
 const size_t kMaxThreads = 128;
 
 const uint64_t kKilo = 1UL << 10;
