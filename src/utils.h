@@ -29,6 +29,11 @@ always_inline void* SystemMmapGuided(void* hint, size_t size) {
     munmap(p, size);
     return nullptr;
   }
+#if defined(SCALLOC_DISABLE_TRANSPARENT_HUGEPAGES) && defined(MADV_NOHUGEPAGE)
+  if (madvise(p, size, MADV_NOHUGEPAGE) != 0) {
+    Fatal("madvise MADV_NOHUGEPAGE failed");
+  }
+#endif  // SCALLOC_DISABLE_TRANSPARENT_HUGEPAGES && MADV_NOHUGEPAGE
   return p;
 }
 
@@ -40,6 +45,11 @@ always_inline void* SystemMmap(size_t size) {
   if (UNLIKELY(reinterpret_cast<void*>(p) == MAP_FAILED)) {
     return nullptr;
   }
+#if defined(SCALLOC_DISABLE_TRANSPARENT_HUGEPAGES) && defined(MADV_NOHUGEPAGE)
+  if (madvise(p, size, MADV_NOHUGEPAGE) != 0) {
+    Fatal("madvise MADV_NOHUGEPAGE failed");
+  }
+#endif  // SCALLOC_DISABLE_TRANSPARENT_HUGEPAGES && MADV_NOHUGEPAGE
   return p;
 }
 

@@ -12,6 +12,7 @@
     'cleanup_in_free%': 'yes',
     'safe_global_construction%': 'no',
     'strict_memory%': 'no',
+    'disable_transparent_hugepages%': 'no' ,
   },
   'conditions': [
   ],
@@ -63,6 +64,11 @@
           'defines': [
             'SCALLOC_STRICT_DUMP',
             'SCALLOC_STRICT_PROTECT',
+          ]
+        }],
+        ['"yes"=="<(disable_transparent_hugepages)"', {
+          'defines': [
+            'SCALLOC_DISABLE_TRANSPARENT_HUGEPAGES',
           ]
         }],
       ],
