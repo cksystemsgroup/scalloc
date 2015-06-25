@@ -11,6 +11,7 @@
     'span_pool_backend_limit%': 'cpu',
     'cleanup_in_free%': 'yes',
     'safe_global_construction%': 'no',
+    'strict_memory%': 'no',
   },
   'conditions': [
   ],
@@ -56,6 +57,12 @@
         ['"no"=="<(safe_global_construction)"', {
           'defines': [
             'SCALLOC_NO_SAFE_GLOBAL_CONSTRUCTION'
+          ]
+        }],
+        ['"yes"=="<(strict_memory)"', {
+          'defines': [
+            'SCALLOC_STRICT_DUMP',
+            'SCALLOC_STRICT_PROTECT',
           ]
         }],
       ],

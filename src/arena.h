@@ -65,6 +65,9 @@ void Arena::Init(size_t size, size_t alignment, const char* name) {
   ScallocAssert((start_ % alignment) == 0);
   end_ = start_ + size;
   current_.store(start_);
+#if defined(SCALLOC_STRICT_DUMP) && defined(MADV_DONTDUMP)
+  madvise(reinterpret_cast<void*>(start_), len_, MADV_DONTDUMP);
+#endif  // DEBUG && MADV_DONTDUMP
 
   LOG(kTrace, "arena at %p", this);
 }
@@ -84,6 +87,11 @@ void* Arena::Allocate(size_t size) {
         name_, start_, end_, current_.load());
   }
   LOG(kTrace, "%s: obj: %p", name_, obj);
+#if defined(SCALLOC_STRICT_DUMP) && defined(MADV_DODUMP)
+  madvise(reinterpret_cast<void*>(obj & kPageNrMask),
+          ((size / kPageSize) + 1) * kPageSize,
+          MADV_DODUMP);
+#endif  // DEBUG && MADV_DODUMP
   return reinterpret_cast<void*>(obj);
 }
 
@@ -96,6 +104,9 @@ void* Arena::AllocateVirtualSpan() {
         name_, start_, end_, current_.load());
   }
   LOG(kTrace, "%s: obj: %p", name_, obj);
+#if defined(SCALLOC_STRICT_DUMP) && defined(MADV_DODUMP)
+  madvise(reinterpret_cast<void*>(obj), kVirtualSpanSize, MADV_DODUMP);
+#endif  // DEBUG && MADV_DODUMP
   return reinterpret_cast<void*>(obj);
 }
 

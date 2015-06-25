@@ -76,7 +76,6 @@ void SpanPool::Init() {
   nr_free_ = 0;
   nr_madvise_ = 0;
 #endif  // PROFILE
-  //LOG(kWarning, "SP constructor");
   for (size_t i = 0; i < kSizeClassSlots; i++) {
     spans_[i] = reinterpret_cast<Backend*>(
         SystemMmapFail(sizeof(Backend) * CpusOnline()));
@@ -90,18 +89,14 @@ void SpanPool::AnnounceNewThread() {
   int32_t old_limit;
   int32_t new_limit = current_threads_.fetch_add(1) + 1;
   if ((new_limit > cpus) || (new_limit > kHardLimit)) {
-    //LOG(kWarning, "return bc of cpu or hard limit");
     return;
   }
   do {
     old_limit = limit();
     if (new_limit <= old_limit)  {
-    //LOG(kWarning, "return bc limit <= old limit");
-    //LOG(kWarning, "new limit: %d, old_limit: %d", new_limit, old_limit);
       return;
     }
   } while (!limit_.compare_exchange_weak(old_limit, old_limit + 1));
-  //LOG(kWarning, "new limit: %d", old_limit + 1);
 }
 
 
@@ -117,15 +112,16 @@ void*  SpanPool::Allocate(size_t size_class, int32_t id) {
   LOG(kTrace, "allocate size class: %lu, limit: %d, id: %d",
       size_class, limit(), id);
   ScallocAssert(limit() != 0);
+  size_t size_class_slot;
   if (size_class  <= kFineClasses) {
-    size_class = 0;
+    size_class_slot = 0;
   } else {
-    size_class -= kFineClasses;
+    size_class_slot = size_class - kFineClasses;
   }
-  int32_t i = size_class;
-  void* s = spans_[size_class][id % limit()].Pop();
+  int32_t i = size_class_slot;
+  void* s = spans_[size_class_slot][id % limit()].Pop();
   for (size_t _i = 0; (s == nullptr) && (_i < kSizeClassSlots); _i++) {
-    i = size_class - _i;
+    i  = size_class_slot - _i;
     if (i < 0) { i += kSizeClassSlots; }
 
     const uint64_t start = hwrand() % limit();
@@ -136,24 +132,30 @@ void*  SpanPool::Allocate(size_t size_class, int32_t id) {
   }
 
   if (s == NULL) {
-    return object_space.AllocateVirtualSpan();
-  }
-
+    s =  object_space.AllocateVirtualSpan();
+  } else {
 #if defined(SCALLOC_MADVISE) && !defined(SCALLOC_MADVISE_EAGER)
-  // Madvising
-  if ((static_cast<size_t>(i) > size_class) &&
-      (ClassToSpanSize[i] < ClassToSpanSize[size_class])) {
-    LOG(kWarning, "MADVISING sc old: %lu, new: %lu", size_class, i);
-    madvise(
-        reinterpret_cast<void*>(
-            reinterpret_cast<uintptr_t>(s) + ClassToSpanSize[size_class]),
-        kVirtualSpanSize - ClassToSpanSize[size_class],
-        MADV_DONTNEED);
+    // madvise for any of the non-fine size classes
+    if ((i > 0) && (ClassToSpanSize[i + kFineClasses] > ClassToSpanSize[size_class])) {
+      madvise(
+          reinterpret_cast<void*>(
+              reinterpret_cast<uintptr_t>(s) + ClassToSpanSize[size_class]),
+          kVirtualSpanSize - ClassToSpanSize[size_class],
+          MADV_DONTNEED);
 #ifdef PROFILE
-    nr_madvise_.fetch_add(1);
+      nr_madvise_.fetch_add(1);
 #endif  // PROFILE
-  }
+    }
 #endif  // MADVISE && !MADVISE_EAGER
+  }
+#if defined(SCALLOC_STRICT_PROTECT)
+  if (mprotect(
+          s,
+          ClassToSpanSize[size_class],
+          PROT_READ | PROT_WRITE) != 0) {
+    Fatal("mprotect failed");
+  }
+#endif  // SCALLOC_STRICT_PROTECT
   return s;
 }
 
@@ -181,6 +183,14 @@ void SpanPool::Free(size_t size_class, void* p, int32_t id) {
   } else {
     size_class -= kFineClasses;
   }
+#if defined(SCALLOC_STRICT_PROTECT)
+  if (mprotect(
+          reinterpret_cast<void*>(reinterpret_cast<intptr_t>(p) + kPageSize),
+          kVirtualSpanSize - kPageSize,
+          PROT_NONE) != 0) {
+    Fatal("mprotect failed");
+  }
+#endif  // SCALLOC_STRICT_PROTECT
   spans_[size_class][id % limit()].Push(p);
 }
 
