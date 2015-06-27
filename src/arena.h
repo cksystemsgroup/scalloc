@@ -18,6 +18,7 @@ class Arena {
  public:
   // Globally constructed, hence we use staged construction.
   always_inline Arena() {}
+  always_inline ~Arena() {}
 
   always_inline void Init(size_t size, size_t alignment, const char* name);
   always_inline bool Contains(const void* p);

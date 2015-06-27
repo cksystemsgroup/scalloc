@@ -180,6 +180,7 @@ Span::Span(size_t size_class, core_id owner)
     , remote_free_list_() {
   ScallocAssert(local_free_list_.Length() == ClassToObjects[size_class]);
   ScallocAssert(remote_free_list_.Length() == 0);
+  ScallocAssert(owner.value() != nullptr);
 
   // Mark span as hot.
   NewMarkHot(epoch());
@@ -196,17 +197,9 @@ int32_t Span::epoch() { return epoch_.load(); }
 
 
 bool Span::TryReviveNew(core_id old_owner, core_id caller) {
+  ScallocAssert(caller.value() != nullptr);
   bool ok = owner_.swap(old_owner, caller);
-  /*
-  if (ok) {
-    LOG(kWarning, "reusing span from terminated thread: utilization: %d, %p",
-        100*NrFreeObjects()/ClassToObjects[size_class_], this
-        );
-  }
-  */
   return ok;
-
-  return  owner_.swap(old_owner, caller);
 }
 
 

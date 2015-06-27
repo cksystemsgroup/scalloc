@@ -24,14 +24,18 @@ class TLSBase {
   typedef void (*TLSDestructor)(void*);
 
   // Globally constructed, hence we use staged construction.
-  always_inline TLSBase() { }
+  always_inline TLSBase() {}
+  always_inline ~TLSBase() {}
 
   always_inline void Init(TLSDestructor dtor);
   always_inline void SetTLS(T* t);
   always_inline T* GetTLS();
 
  private:
+  static inline void TLSBaseDestructor(void* t);
+
   static TLS_ATTRIBUTE T* ab_ __attribute__((aligned(4 * 128)));
+  static TLSDestructor dtor_;
   pthread_key_t tls_key_;
 };
 
@@ -41,8 +45,13 @@ TLS_ATTRIBUTE T* TLSBase<T>::ab_ = NULL;
 
 
 template<class T>
+typename TLSBase<T>::TLSDestructor TLSBase<T>::dtor_ = nullptr;
+
+
+template<class T>
 void TLSBase<T>::Init(TLSDestructor dtor) {
-  pthread_key_create(&tls_key_, dtor);
+  dtor_ = dtor;
+  pthread_key_create(&tls_key_, TLSBaseDestructor);
 }
 
 
@@ -66,10 +75,18 @@ void TLSBase<T>::SetTLS(T* t) {
 }
 
 
+template<class T>
+void TLSBase<T>::TLSBaseDestructor(void* t) {
+  dtor_(ab_);
+  ab_ = nullptr;
+}
+
+
 class ThreadLocalAllocationBuffer : public TLSBase<Core> {
  public:
   // Globally constructed, hence we use staged construction.
-  always_inline ThreadLocalAllocationBuffer() { }
+  always_inline ThreadLocalAllocationBuffer() {}
+  always_inline ~ThreadLocalAllocationBuffer() {}
 
   always_inline void Init();
   always_inline Core& GetAB();
@@ -128,20 +145,7 @@ void ThreadLocalAllocationBuffer::GetMeALAB() {
 
 Core& ThreadLocalAllocationBuffer::GetAB() {
   Core* ab = GetTLS();
-  /*
-  if (UNLIKELY(ab == NULL)) {
-    Fatal("should not happen!");
-
-    ab = FindFreeAB();
-    if (UNLIKELY(ab == NULL)) {
-      Fatal("reached maximum number of threads.");
-    }
-    LOG(kTrace, "New at %p", ab);
-    ab->Init(core_id(ab, thread_ids_.fetch_add(1) + 1));
-    SetTLS(ab);
-    span_pool.AnnounceNewThread();
-  }
-  */
+  ScallocAssert(ab != nullptr);
   return *ab;
 }
 
@@ -149,7 +153,8 @@ Core& ThreadLocalAllocationBuffer::GetAB() {
 class RoundRobinAllocationBuffer : public TLSBase<GuardedCore> {
  public:
   // Globally constructed, hence we use staged construction.
-  always_inline RoundRobinAllocationBuffer() { }
+  always_inline RoundRobinAllocationBuffer() {}
+  always_inline ~RoundRobinAllocationBuffer() {}
 
   always_inline void Init();
   always_inline GuardedCore& GetAB();

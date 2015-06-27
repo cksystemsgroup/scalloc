@@ -21,6 +21,7 @@ class SpanPool {
  public:
   // Globally constructed, hence we use staged construction.
   always_inline SpanPool() {}
+  always_inline ~SpanPool() {}
 
   always_inline void Init();
   always_inline void* Allocate(size_t size_class, int32_t id);

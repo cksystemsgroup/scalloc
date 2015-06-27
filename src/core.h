@@ -135,6 +135,7 @@ Span* Core::GetSpan(int32_t sc) {
 
 
 void* Core::Allocate(size_t size) {
+  ScallocAssert(id() != kTerminated);
   const size_t sc = SizeToClass(size);
   if (UNLIKELY(hot_span_[sc] == nullptr)) {
     if (UNLIKELY(sc == 0)) {
@@ -167,6 +168,7 @@ void* Core::Allocate(size_t size) {
 
 
 void Core::Free(void* p) {
+  ScallocAssert(id() != kTerminated);
   Span* s = Span::FromObject(p);
   if (UNLIKELY(seen_memalign != 0)) {
     p = s->AlignToBlockStart(p);
