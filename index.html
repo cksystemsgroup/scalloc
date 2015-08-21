@@ -92,20 +92,26 @@
       <div class="row">
         <div class="col-md-12">
           <p>
-The problem of concurrent memory allocation is to find the right balance between
-temporal and spatial performance and scalability across a large range of
-workloads. Our contributions to address this problem are: uniform treatment of
-small and big objects through the idea of virtual spans, efficiently and
-effectively reclaiming unused memory through fast and scalable global data
+We demonstrate that general-purpose memory allocation involving many threads on many cores can be done with high performance, multicore scalability, and low memory consumption.
+For this purpose, we have designed and implemented scalloc, a concurrent allocator that generally performs and scales in our experiments better than
+other allocators while using less memory, and is still competitive otherwise. The main ideas behind the design of scalloc are: uniform treatment of
+small and big objects through so-called virtual spans, efficiently and
+effectively reclaiming free memory through fast and scalable global data
 structures, and constant-time (modulo synchronization) allocation and
-deallocation operations that trade off memory reuse and spatial locality without
-being subject to false sharing. We have implemented an allocator, scalloc, based
-on these ideas that generally performs and scales in our experiments better than
-other allocators while using less memory and is still competitive otherwise.
+deallocation operations that trade off memory reuse and spatial locality without being subject to false sharing.
           </p>
         </div><!-- /.col-md-12 -->
       </div><!-- /.row -->  
 
+      <div class="row">
+        <div class="col-md-12">
+          <h2 id="papers">Papers</h2>
+          <ul>
+            <li><a href="http://cs.uni-salzburg.at/~ck/content/publications/conferences/OOPSLA15-Scalloc.pdf">OOPSLA 2015</a></li>
+            <li><a href="http://arxiv.org/abs/1503.09006">arXiv 2015</a></li>
+          </ul>
+        </div><!-- /.col-md-12 -->
+      </div><!-- /.row -->
 
       <div class="row">
         <div class="col-md-12">
@@ -129,7 +135,7 @@ other allocators while using less memory and is still competitive otherwise.
             </a>
           </h2>
           <p>
-            All code is realeased under a
+            All code is released under a
             <a href="https://github.com/cksystemsgroup/scalloc/blob/master/LICENSE">
             BSD style license</a> and can be found on
             <a href="https://github.com/cksystemsgroup/scalloc">github</a>.
