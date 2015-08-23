@@ -8,54 +8,9 @@
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" />
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-
-    <style type="text/css">
-
-      .ribbon-parent {
-        position:relative;
-        overflow:hidden
-      }
-
-      .ribbon {
-        background-color: #080;
-        overflow: hidden;
-        position: absolute;
-        top: 2.5em;
-        right: -3em;
-        -moz-transform: rotate(45deg);
-        -webkit-transform: rotate(45deg);
-        -moz-box-shadow: 0 0 1em #888;
-        -webkit-box-shadow: 0 0 1em #888;
-      }
-
-      .ribbon a {
-        border: 1px solid #8d8;
-        color: #fff;
-        display: block;
-        font: bold 81.25% 'Helvetiva Neue', Helvetica, Arial, sans-serif;
-        margin: 0.05em 0 0.075em 0;
-        padding: 0.5em 3.5em;
-        text-align: center;
-        text-decoration: none;
-        /* shadow */
-        text-shadow: 0 0 0.5em #444;
-      }
-
-      body { padding-top: 50px; }
-
-      footer {
-        font-size: small;
-        text-align: center;
-        margin-top: 20px;
-        padding-top: 10px;
-        border-top: 1px solid #eee;
-      }
-
-    </style>
-
+    <link rel="stylesheet" href="css/main.css" />
   </head>
   <body>
-
 
     <nav class="navbar navbar-default navbar-fixed-top navbar-inverse" role="navigation">
       <div class="container">
@@ -74,20 +29,38 @@
             <li><a href="https://github.com/cksystemsgroup/scalloc"><span class="fa fa-github"></span> Code</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
+            <li>
+<a href="http://www.google.com/recaptcha/mailhide/d?k=018m0N8EmHL0zltboDLrXNIg==&amp;c=dGYuz_NkvwxvrFNLXl_dVbhitnuc-OdcUpm2WIW3HGw=" onclick="window.open('http://www.google.com/recaptcha/mailhide/d?k\075018m0N8EmHL0zltboDLrXNIg\75\75\46c\75dGYuz_NkvwxvrFNLXl_dVbhitnuc-OdcUpm2WIW3HGw\075', '', 'toolbar=0,scrollbars=0,location=0,statusbar=0,menubar=0,resizable=0,width=500,height=300'); return false;" title="Reveal this e-mail address">Contact Us</a>
+            </li>
             <li><a href="http://cs.uni-salzburg.at/~ck">Computational Systems Group</a></li>
 	        </ul>
         </div><!-- /.navbar-collapse -->
       </div><!-- /.container -->
     </nav>
 
-
     <div class="container">
 
-
       <div class="page-header">
-        <h1>scalloc <small>A Fast, Multicore-Scalable, Low-Memory-Overhead Allocator</small></h1>
+        <div class="row">
+          <div class="col-md-1 aec-badge-parent">
+            <img class="aec-badge" src="img/aec-badge.png" alt="OOPSLA AEC Badge" />
+          </div>
+          <div class="col-md-11 title">
+            <h1>scalloc <br> <small>A Fast, Multicore-Scalable, Low-Memory-Overhead Allocator</small></h1>
+          </div>
+        </div>
       </div><!-- /.page-header -->
 
+      <div class="row">
+        <div class="col-md-12" id="people-list-container">
+          <ul id="people-list">
+            <li><a href="http://cs.uni-salzburg.at/~maigner/">Martin Aigner</a></li>
+            <li><a href="http://cs.uni-salzburg.at/~ck/">Christoph Kirsch</a></li>
+            <li><a href="http://cs.uni-salzburg.at/~mlippautz/">Michael Lippautz</a></li>
+            <li><a href="http://cs.uni-salzburg.at/~anas/">Ana Sokolova</a></li>
+          </ul>
+        </div>
+      </div>
 
       <div class="row">
         <div class="col-md-12">
@@ -105,23 +78,26 @@ deallocation operations that trade off memory reuse and spatial locality without
 
       <div class="row">
         <div class="col-md-12">
-          <h2 id="papers">Papers</h2>
-          <ul>
-            <li><a href="http://cs.uni-salzburg.at/~ck/content/publications/conferences/OOPSLA15-Scalloc.pdf">OOPSLA 2015</a></li>
-            <li><a href="http://arxiv.org/abs/1503.09006">arXiv 2015</a></li>
-          </ul>
-        </div><!-- /.col-md-12 -->
-      </div><!-- /.row -->
+          <h2 id="papers">Publications</h2>
 
-      <div class="row">
-        <div class="col-md-12">
-          <h2 id="people">People</h2>
-          <ul>
-            <li><a href="http://cs.uni-salzburg.at/~maigner/">Martin Aigner</a></li>
-            <li><a href="http://cs.uni-salzburg.at/~ck/">Christoph Kirsch</a></li>
-            <li><a href="http://cs.uni-salzburg.at/~mlippautz/">Michael Lippautz</a></li>
-            <li><a href="http://cs.uni-salzburg.at/~anas/">Ana Sokolova</a></li>
-          </ul>
+<p><a name="OOPSLA15-scalloc"></a>
+M.&nbsp;Aigner, C.M. Kirsch, M.&nbsp;Lippautz, and A.&nbsp;Sokolova.
+ Fast, multicore-scalable, low-fragmentation memory allocation through
+  large virtual memory and global data structures.
+ In <em>Proc. International Conference on Object-Oriented Programming
+  Systems, Languages, and Applications (OOPSLA)</em>. ACM, 2015.
+[&nbsp;<a href="http://dx.doi.org/10.1145/2814270.2814294">DOI</a>&nbsp;| 
+<a href="http://www.cs.uni-salzburg.at/~mlippautz/assets/publications/OOPSLA15-Scalloc.pdf">preprint</a>&nbsp;]
+</p>
+
+<p><a name="ARXIV-scalloc"></a>
+M.&nbsp;Aigner, C.M. Kirsch, M.&nbsp;Lippautz, and A.&nbsp;Sokolova.
+ Fast, multicore-scalable, low-fragmentation memory allocation through
+  large virtual memory and global data structures.
+ <em>CoRR</em>, abs/1503.09006, 2015.
+[&nbsp;<a href="http://arxiv.org/abs/1503.09006">arXiv</a>&nbsp;]
+</p>
+
         </div><!-- /.col-md-12 -->
       </div><!-- /.row -->
 
@@ -130,15 +106,15 @@ deallocation operations that trade off memory reuse and spatial locality without
         <div class="col-md-12">
           <h2 id="code">
             Code
-            <a href="https://drone.io/github.com/cksystemsgroup/scalloc/latest">
-              <img src="https://drone.io/github.com/cksystemsgroup/scalloc/status.png" />
+            <a href="https://travis-ci.org/cksystemsgroup/scalloc">
+              <img src="https://travis-ci.org/cksystemsgroup/scalloc.svg?branch=master" />
             </a>
           </h2>
           <p>
             All code is released under a
             <a href="https://github.com/cksystemsgroup/scalloc/blob/master/LICENSE">
             BSD style license</a> and can be found on
-            <a href="https://github.com/cksystemsgroup/scalloc">github</a>.
+            <a href="https://github.com/cksystemsgroup/scalloc">GitHub</a>.
             Consult the
             <a href="https://github.com/cksystemsgroup/scalloc/blob/master/README.md">
               README</a> file for instructions on how to build and integrate

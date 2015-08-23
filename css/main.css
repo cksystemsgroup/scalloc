@@ -1,0 +1,50 @@
+
+body { padding-top: 50px; }
+
+footer {
+  font-size: small;
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+}
+
+.aec-badge {
+  width: 90px;
+  display: inline-block;
+  top:10px;
+  position: relative;
+
+}
+
+.aec-badge-parent {
+  text-align: center;
+}
+
+.title {
+  padding-left: 40px;
+}
+
+#people-list-container {
+  margin-top: -15px;
+  margin-bottom: 15px;
+}
+
+#people-list {
+  margin: 0px;
+  padding: 0px;
+}
+
+#people-list li{
+  list-style: none;
+  display: inline;
+
+}
+
+#people-list li:after {
+  content: ", ";
+}
+
+#people-list li:last-child:after {
+  content: "";
+}
