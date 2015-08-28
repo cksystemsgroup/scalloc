@@ -18,7 +18,7 @@ class LargeObject {
  public:
   static always_inline void* Allocate(size_t size);
   static always_inline void Free(void* p);
-  static always_inline size_t ObjectSize(void* p);
+  static always_inline size_t PayloadSize(void* p);
 
  private:
   static const uint64_t kMagic = 0xAAAAAAAAAAAAAAAA;
@@ -29,7 +29,8 @@ class LargeObject {
   always_inline void* ObjectStart();
   always_inline bool Validate();
 
-  always_inline size_t size() { return actual_size_; }
+  always_inline size_t payload_size() { return actual_size_ - sizeof(*this); }
+  always_inline size_t actual_size() { return actual_size_; }
 
   size_t actual_size_;
   uint64_t magic_;
@@ -53,23 +54,27 @@ LargeObject* LargeObject::FromMutatorPtr(void* p) {
 
 
 void* LargeObject::Allocate(size_t size) {
-  const size_t actual_size = size + sizeof(LargeObject);
+  const size_t actual_size = PadSize(size + sizeof(LargeObject), kPageSize);
   LargeObject* obj = new(SystemMmapFail(actual_size)) LargeObject(actual_size);
+#ifdef DEBUG
+  // Force the check by going through the mutator pointer.
+  obj = LargeObject::FromMutatorPtr(obj->ObjectStart());
+#endif  // DEBUG
   return obj->ObjectStart();
 }
 
 
 void LargeObject::Free(void* p) {
   LargeObject* obj = FromMutatorPtr(p);
-  if (munmap(obj, obj->size()) != 0) {
+  if (munmap(obj, obj->actual_size()) != 0) {
     Fatal("munmap failed");
   }
 }
 
 
-size_t LargeObject::ObjectSize(void* p) {
+size_t LargeObject::PayloadSize(void* p) {
   LargeObject* obj = FromMutatorPtr(p);
-  return obj->size();
+  return obj->payload_size();
 }
 
 

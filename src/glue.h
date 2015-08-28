@@ -82,14 +82,18 @@ always_inline void* realloc(void* ptr, size_t size) {
       return ptr;
     }
     new_obj = malloc(size);
-    memcpy(new_obj, ptr, old_size);
+    if (new_obj == nullptr) return nullptr;
+    memmove(new_obj, ptr, old_size);
+    free(ptr);
   } else {
-    const size_t old_size = LargeObject::ObjectSize(ptr);
+    const size_t old_size = LargeObject::PayloadSize(ptr);
     if (old_size >= size) {
       return ptr;
     }
     new_obj = malloc(size);
-    memcpy(new_obj, ptr, old_size);
+    if (new_obj == nullptr) return nullptr;
+    memmove(new_obj, ptr, old_size);
+    free(ptr);
   }
   return new_obj;
 }
