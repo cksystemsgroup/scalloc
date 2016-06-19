@@ -1,5 +1,7 @@
 notifications:
   email: false
+  slack:
+    secure: j5AEzzyfHznhJqd3ADxdoVYayWg3JG/cm+qA5Ge6NG67UWx5spRf8uuI9pJwHHUw1+3KLUOttSbGimOgxHSklmrSm5y65JMrCovb897OOBZIXVFWwyCPUGv7gUXmHYT4iBDtxlb3og3Xs0x52RMJ4i7hLQlL4oeeKadqnZxRhHs=
 language:
 - cpp
 os:
@@ -11,7 +13,6 @@ compiler:
 before_install: tools/travis_before_install.sh
 install: tools/travis_install.sh
 script: tools/travis_script.sh
-
 before_deploy: tools/travis_before_deploy.sh
 deploy:
   provider: releases
