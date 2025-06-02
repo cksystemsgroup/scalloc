@@ -56,7 +56,7 @@ tools/make_deps.sh
 
 Generate a build environment (using the gyp installation from the previous step)
 ```sh
-build/gyp/gyp --depth=. scalloc.gyp
+./tools/gyp --depth=. scalloc.gyp
 ```
 
 Additionally, scalloc provides some compile-time configuration flags:
@@ -88,7 +88,7 @@ BUILDTYPE=Release make
 Open `scalloc.xcodeproj` and build the project using Xcode, or build it from the command
 line using
 ```sh
-build/gyp/gyp --depth=. scalloc.gyp --build=Release
+./tools/gyp --depth=. scalloc.gyp --build=Release
 ```
 
 ## Using scalloc
