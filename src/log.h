@@ -46,13 +46,13 @@ inline void LogPrintf(
 
   snprintf(line_buffer, sizeof(line_buffer), "%d", line);
   // Start with "__FILENAME__:__LINE__ ".
-  strncat(buffer, file, strlen(file));
+  //strncat(buffer, file, strlen(file));
   rest -= strlen(file);
-  strncat(buffer, ":", 1);
+  strncat(buffer, ":", 2);
   rest -= 1;
-  strncat(buffer, line_buffer, strlen(line_buffer));
+  //strncat(buffer, line_buffer, strlen(line_buffer) + 1);
   rest -= strlen(line_buffer);
-  strncat(buffer, " ", 1);
+  strncat(buffer, " ", 2);
   rest -= 1;
 
   // Sanity check.
@@ -65,14 +65,14 @@ inline void LogPrintf(
   int would = vsnprintf(rest_start, rest + 1 /* including \0 */, format, args);
   // Ditto for the check.
   if (would >= (rest + 1 /* including \0 */)) {
-    const char* truncate_suffix = "...";
-    // For copying the suffix we need actual rest value again.
-    strncpy(rest_start + (rest - strlen(truncate_suffix)),
-            truncate_suffix,
-            strlen(truncate_suffix));
+    //const char* truncate_suffix = "...";
+    //For copying the suffix we need actual rest value again.
+    //strncpy(rest_start + (rest - strlen(truncate_suffix)),
+    //        truncate_suffix,
+    //        strlen(truncate_suffix));
   }
 
-  strncat(buffer, "\n", 1);
+  strncat(buffer, "\n", 2);
 
   // Sanity check.
   if (buffer[kLogLen-1] != 0) {
